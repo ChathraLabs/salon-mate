@@ -1,30 +1,10 @@
-import { useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { Check, ChevronRight, ChevronLeft, Calendar, Clock, User, CheckCircle } from 'lucide-react';
+import type { AvailabilityDay, PublicService } from '@/types/booking';
 
-const services = [
-  { id: 1, name: 'Hair Cut & Styling', price: 2500, duration: '45 min' },
-  { id: 2, name: 'Bridal Dressing', price: 15000, duration: '3 hours' },
-  { id: 3, name: 'Facial Treatment', price: 3500, duration: '60 min' },
-  { id: 4, name: 'Nail Care', price: 1500, duration: '30 min' },
-  { id: 5, name: 'Waxing & Threading', price: 500, duration: '20 min' },
-  { id: 6, name: 'Makeup', price: 5000, duration: '90 min' },
-  { id: 7, name: 'Hair Coloring', price: 4000, duration: '120 min' },
-  { id: 8, name: 'Tattoo Training', price: 0, duration: 'Varies' },
-];
-
-const timeSlots = [
-  '09:00 AM', '10:00 AM', '11:00 AM', '11:30 AM',
-  '02:00 PM', '03:00 PM', '04:00 PM', '04:30 PM', '05:30 PM',
-];
-
-const dates = [
-  { label: 'Today', date: '2026-05-11' },
-  { label: 'Tomorrow', date: '2026-05-12' },
-  { label: 'Fri 13', date: '2026-05-13' },
-  { label: 'Sat 14', date: '2026-05-14' },
-  { label: 'Sun 15', date: '2026-05-15' },
-  { label: 'Mon 16', date: '2026-05-16' },
-  { label: 'Tue 17', date: '2026-05-17' },
+const fallbackServices: PublicService[] = [
+  { id: 'hair-cut-styling', name: 'Hair Cut & Styling', description: null, priceCents: 250000, price: 2500, durationMinutes: 45, duration: '45 min' },
+  { id: 'bridal-dressing', name: 'Bridal Dressing', description: null, priceCents: 1500000, price: 15000, durationMinutes: 180, duration: '3 hours' },
 ];
 
 const stepLabels = ['Service', 'Date', 'Time', 'Details', 'Confirm'];
@@ -69,20 +49,103 @@ const selectionActive: React.CSSProperties = {
 
 export function Booking() {
   const [step, setStep] = useState(1);
-  const [selectedService, setSelectedService] = useState<typeof services[0] | null>(null);
+  const [services, setServices] = useState<PublicService[]>(fallbackServices);
+  const [dates, setDates] = useState<AvailabilityDay[]>([]);
+  const [selectedService, setSelectedService] = useState<PublicService | null>(null);
   const [selectedDate, setSelectedDate] = useState<string | null>(null);
   const [selectedTime, setSelectedTime] = useState<string | null>(null);
   const [customerDetails, setCustomerDetails] = useState({ name: '', phone: '', email: '', note: '' });
   const [isConfirmed, setIsConfirmed] = useState(false);
-  const [bookingId] = useState(() => Math.random().toString(36).substr(2, 9).toUpperCase());
+  const [bookingCode, setBookingCode] = useState<string | null>(null);
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [loadError, setLoadError] = useState<string | null>(null);
+  const [submitError, setSubmitError] = useState<string | null>(null);
+
+  useEffect(() => {
+    let cancelled = false;
+
+    async function loadBookingData() {
+      try {
+        const [servicesResponse, availabilityResponse] = await Promise.all([
+          fetch('/api/services'),
+          fetch('/api/availability'),
+        ]);
+
+        if (!servicesResponse.ok || !availabilityResponse.ok) {
+          throw new Error('Unable to load booking options.');
+        }
+
+        const [servicesData, availabilityData] = await Promise.all([
+          servicesResponse.json(),
+          availabilityResponse.json(),
+        ]);
+
+        if (!cancelled) {
+          setServices(servicesData.services);
+          setDates(availabilityData.days);
+          setLoadError(null);
+        }
+      } catch (error) {
+        if (!cancelled) {
+          setLoadError(error instanceof Error ? error.message : 'Unable to load booking options.');
+        }
+      }
+    }
+
+    loadBookingData();
+
+    return () => {
+      cancelled = true;
+    };
+  }, []);
+
+  const timeSlots = useMemo(() => {
+    return dates.find((date) => date.date === selectedDate)?.slots ?? [];
+  }, [dates, selectedDate]);
 
   const handleNext = () => { if (step < 5) setStep(step + 1); };
   const handleBack = () => { if (step > 1) setStep(step - 1); };
-  const handleConfirmBooking = () => setIsConfirmed(true);
+  const handleConfirmBooking = async () => {
+    if (!selectedService || !selectedDate || !selectedTime) return;
+
+    setIsSubmitting(true);
+    setSubmitError(null);
+
+    try {
+      const response = await fetch('/api/bookings', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          serviceId: selectedService.id,
+          date: selectedDate,
+          time: selectedTime,
+          customer: {
+            name: customerDetails.name,
+            phone: customerDetails.phone,
+            email: customerDetails.email,
+          },
+          note: customerDetails.note,
+        }),
+      });
+
+      const data = await response.json();
+
+      if (!response.ok) {
+        throw new Error(data.error ?? 'Unable to submit booking.');
+      }
+
+      setBookingCode(data.booking.bookingCode);
+      setIsConfirmed(true);
+    } catch (error) {
+      setSubmitError(error instanceof Error ? error.message : 'Unable to submit booking.');
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
   const handleNewBooking = () => {
     setStep(1); setSelectedService(null); setSelectedDate(null);
     setSelectedTime(null); setCustomerDetails({ name: '', phone: '', email: '', note: '' });
-    setIsConfirmed(false);
+    setBookingCode(null); setSubmitError(null); setIsConfirmed(false);
   };
 
   const canProceed = [
@@ -116,12 +179,12 @@ export function Booking() {
 
             <div className="text-left mb-8 rounded-2xl overflow-hidden" style={{ border: '1px solid var(--border)' }}>
               {[
-                { label: 'Booking ID', value: `SKD-${bookingId}` },
+                { label: 'Booking ID', value: bookingCode },
                 { label: 'Service', value: selectedService?.name },
                 { label: 'Date', value: dates.find(d => d.date === selectedDate)?.label },
                 { label: 'Time', value: selectedTime },
                 { label: 'Duration', value: selectedService?.duration },
-                { label: 'Price', value: `LKR ${selectedService?.price.toLocaleString()}` },
+                { label: 'Price', value: selectedService?.price ? `LKR ${selectedService.price.toLocaleString()}` : 'Contact for pricing' },
               ].map(({ label, value }, i) => (
                 <div
                   key={i}
@@ -215,6 +278,11 @@ export function Booking() {
           <p style={{ fontFamily: 'var(--font-body)', color: 'var(--muted-foreground)', fontSize: '1rem' }}>
             Follow these simple steps to secure your appointment
           </p>
+          {loadError && (
+            <p style={{ fontFamily: 'var(--font-body)', color: 'var(--gold-light)', fontSize: '0.875rem' }}>
+              {loadError}
+            </p>
+          )}
         </div>
 
         {/* Progress Steps */}
@@ -328,7 +396,10 @@ export function Booking() {
                 {dates.map((date) => (
                   <button
                     key={date.date}
-                    onClick={() => setSelectedDate(date.date)}
+                    onClick={() => {
+                      setSelectedDate(date.date);
+                      setSelectedTime(null);
+                    }}
                     style={selectedDate === date.date ? { ...selectionActive, textAlign: 'center' } : { ...selectionBase, textAlign: 'center' }}
                     onMouseEnter={(e) => { if (selectedDate !== date.date) (e.currentTarget as HTMLButtonElement).style.borderColor = 'rgba(212,165,32,0.3)'; }}
                     onMouseLeave={(e) => { if (selectedDate !== date.date) (e.currentTarget as HTMLButtonElement).style.borderColor = 'var(--border)'; }}
@@ -361,6 +432,11 @@ export function Booking() {
                   </button>
                 ))}
               </div>
+              {timeSlots.length === 0 && (
+                <p style={{ fontFamily: 'var(--font-body)', color: 'var(--muted-foreground)', fontSize: '0.9rem' }}>
+                  No available slots for this date. Please go back and choose another date.
+                </p>
+              )}
             </div>
           )}
 
@@ -423,7 +499,7 @@ export function Booking() {
                   { label: 'Date', value: `${dates.find(d => d.date === selectedDate)?.label} (${selectedDate})` },
                   { label: 'Time', value: selectedTime },
                   { label: 'Duration', value: selectedService?.duration },
-                  { label: 'Price', value: `LKR ${selectedService?.price.toLocaleString()}` },
+                  { label: 'Price', value: selectedService?.price ? `LKR ${selectedService.price.toLocaleString()}` : 'Contact for pricing' },
                   { label: 'Customer', value: customerDetails.name },
                   { label: 'Contact', value: customerDetails.phone },
                 ].map(({ label, value }, i, arr) => (
@@ -440,6 +516,11 @@ export function Booking() {
                   </div>
                 ))}
               </div>
+              {submitError && (
+                <p style={{ fontFamily: 'var(--font-body)', color: 'var(--gold-light)', fontSize: '0.9rem' }}>
+                  {submitError}
+                </p>
+              )}
             </div>
           )}
 
@@ -494,6 +575,7 @@ export function Booking() {
             ) : (
               <button
                 onClick={handleConfirmBooking}
+                disabled={isSubmitting}
                 className="ml-auto"
                 style={{
                   fontFamily: 'var(--font-body)',
@@ -501,14 +583,14 @@ export function Booking() {
                   borderRadius: '9999px',
                   background: 'linear-gradient(135deg, var(--gold-dark), var(--gold))',
                   color: 'var(--primary-foreground)',
-                  border: 'none', cursor: 'pointer',
+                  border: 'none', cursor: isSubmitting ? 'not-allowed' : 'pointer',
                   boxShadow: '0 4px 16px rgba(212,165,32,0.25)',
                   transition: 'box-shadow 0.2s',
                 }}
                 onMouseEnter={(e) => (e.currentTarget.style.boxShadow = '0 6px 24px rgba(212,165,32,0.4)')}
                 onMouseLeave={(e) => (e.currentTarget.style.boxShadow = '0 4px 16px rgba(212,165,32,0.25)')}
               >
-                Confirm Booking
+                {isSubmitting ? 'Submitting...' : 'Confirm Booking'}
               </button>
             )}
           </div>
