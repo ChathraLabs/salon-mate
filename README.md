@@ -1,5 +1,5 @@
 
-# Salon Website UI Design (Copy)
+# Salon Website UI Design
 
 This is a Next.js version of the Salon Website UI Design (Copy). The original project is available at https://www.figma.com/design/mYz8eGihBX2EgL0Tfx8Yfn/Salon-Website-UI-Design--Copy-.
 
