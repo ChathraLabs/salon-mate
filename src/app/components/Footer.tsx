@@ -21,7 +21,7 @@ export function Footer() {
           {/* Logo & Description */}
           <div className="lg:col-span-2 space-y-5">
             <img
-              src={logoImage}
+              src={logoImage.src}
               alt="Scissor King Dimma"
               className="h-14 w-auto object-contain"
             />

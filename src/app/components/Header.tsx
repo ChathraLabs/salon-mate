@@ -40,7 +40,7 @@ export function Header({ onMenuClick }: HeaderProps) {
           {/* Logo */}
           <div className="flex items-center">
             <img
-              src={logoImage}
+              src={logoImage.src}
               alt="Scissor King Dimma"
               className="h-12 sm:h-14 w-auto object-contain"
             />

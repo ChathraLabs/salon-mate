@@ -42,7 +42,7 @@ export function MobileMenu({ isOpen, onClose }: MobileMenuProps) {
           className="flex items-center justify-between px-6 py-5"
           style={{ borderBottom: '1px solid var(--border)' }}
         >
-          <img src={logoImage} alt="Scissor King Dimma" className="h-10 w-auto object-contain" />
+          <img src={logoImage.src} alt="Scissor King Dimma" className="h-10 w-auto object-contain" />
           <button
             onClick={onClose}
             className="p-2 transition-colors"
