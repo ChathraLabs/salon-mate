@@ -1,0 +1,212 @@
+@custom-variant dark (&:is(.dark *));
+
+:root {
+  --font-size: 16px;
+
+  /* ── Typography ─────────────────────────────────────── */
+  --font-heading: 'Playfair Display', 'Cormorant Garamond', Georgia, serif;
+  --font-body: 'Inter', 'Lato', system-ui, sans-serif;
+
+  /* ─────────────────────────────────────────────────────
+   * SCISSOR KING DIMMA — Dark Luxury Black & Gold Palette
+   * Extracted from brand identity image
+   * ───────────────────────────────────────────────────── */
+
+  /* Background: Deep warm black (the dark canvas from the banner) */
+  --background: #0C0908;
+  --foreground: #F0E4B8;          /* Warm cream — readable against black */
+
+  /* Cards: Slightly elevated dark surface */
+  --card: #141009;
+  --card-foreground: #F0E4B8;
+
+  --popover: #141009;
+  --popover-foreground: #F0E4B8;
+
+  /* Primary: Rich amber-gold (the main title gold in the banner) */
+  --primary: #D4A520;
+  --primary-foreground: #0C0908;
+
+  /* Secondary: Dark warm surface for subtle contrast */
+  --secondary: #1E180C;
+  --secondary-foreground: #D4A520;
+
+  /* Muted: Dark toned-down surface */
+  --muted: #161009;
+  --muted-foreground: #9A7830;    /* Warm golden-tan for subtle text */
+
+  /* Accent: Bright sparkle gold (the glow/highlight in the banner) */
+  --accent: #F2C83A;
+  --accent-foreground: #0C0908;
+
+  /* ── Gold Scale ────────────────────────────────────── */
+  --gold: #D4A520;                /* Primary amber gold */
+  --gold-light: #F2C83A;          /* Bright sparkle gold */
+  --gold-dark: #B8860B;           /* Deep antique gold */
+  --gold-glow: rgba(242, 200, 58, 0.15);  /* Subtle glow for shadows */
+
+  /* ── Surface Dark (footer / deepest black) ─────────── */
+  --surface-dark: #060402;
+  --surface-dark-foreground: #F0E4B8;
+
+  /* ── Utility ────────────────────────────────────────── */
+  --destructive: #c0392b;
+  --destructive-foreground: #ffffff;
+
+  /* Border: faint gold tint, subtle on dark backgrounds */
+  --border: rgba(212, 165, 32, 0.18);
+  --input: transparent;
+  --input-background: #1A1208;    /* Dark warm input bg */
+  --switch-background: #3A2E10;
+  --ring: #D4A520;
+
+  /* Chart */
+  --chart-1: oklch(0.646 0.222 41.116);
+  --chart-2: oklch(0.6 0.118 184.704);
+  --chart-3: oklch(0.398 0.07 227.392);
+  --chart-4: oklch(0.828 0.189 84.429);
+  --chart-5: oklch(0.769 0.188 70.08);
+
+  /* Radius */
+  --radius: 0.75rem;
+
+  /* Font weights */
+  --font-weight-medium: 500;
+  --font-weight-normal: 400;
+
+  /* Sidebar */
+  --sidebar: #141009;
+  --sidebar-foreground: #F0E4B8;
+  --sidebar-primary: #D4A520;
+  --sidebar-primary-foreground: #0C0908;
+  --sidebar-accent: #1E180C;
+  --sidebar-accent-foreground: #D4A520;
+  --sidebar-border: rgba(212, 165, 32, 0.18);
+  --sidebar-ring: #D4A520;
+}
+
+@theme inline {
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --color-card: var(--card);
+  --color-card-foreground: var(--card-foreground);
+  --color-popover: var(--popover);
+  --color-popover-foreground: var(--popover-foreground);
+  --color-primary: var(--primary);
+  --color-primary-foreground: var(--primary-foreground);
+  --color-secondary: var(--secondary);
+  --color-secondary-foreground: var(--secondary-foreground);
+  --color-muted: var(--muted);
+  --color-muted-foreground: var(--muted-foreground);
+  --color-accent: var(--accent);
+  --color-accent-foreground: var(--accent-foreground);
+  --color-gold: var(--gold);
+  --color-gold-light: var(--gold-light);
+  --color-gold-dark: var(--gold-dark);
+  --color-gold-glow: var(--gold-glow);
+  --color-surface-dark: var(--surface-dark);
+  --color-surface-dark-foreground: var(--surface-dark-foreground);
+  --color-destructive: var(--destructive);
+  --color-destructive-foreground: var(--destructive-foreground);
+  --color-border: var(--border);
+  --color-input: var(--input);
+  --color-input-background: var(--input-background);
+  --color-switch-background: var(--switch-background);
+  --color-ring: var(--ring);
+  --color-chart-1: var(--chart-1);
+  --color-chart-2: var(--chart-2);
+  --color-chart-3: var(--chart-3);
+  --color-chart-4: var(--chart-4);
+  --color-chart-5: var(--chart-5);
+  --radius-sm: calc(var(--radius) - 4px);
+  --radius-md: calc(var(--radius) - 2px);
+  --radius-lg: var(--radius);
+  --radius-xl: calc(var(--radius) + 4px);
+  --color-sidebar: var(--sidebar);
+  --color-sidebar-foreground: var(--sidebar-foreground);
+  --color-sidebar-primary: var(--sidebar-primary);
+  --color-sidebar-primary-foreground: var(--sidebar-primary-foreground);
+  --color-sidebar-accent: var(--sidebar-accent);
+  --color-sidebar-accent-foreground: var(--sidebar-accent-foreground);
+  --color-sidebar-border: var(--sidebar-border);
+  --color-sidebar-ring: var(--sidebar-ring);
+}
+
+@layer base {
+  * {
+    @apply border-border outline-ring/50;
+  }
+
+  body {
+    @apply bg-background text-foreground;
+    font-family: var(--font-body);
+  }
+
+  h1, h2, h3, h4, h5, h6 {
+    font-family: var(--font-heading);
+  }
+
+  html {
+    font-size: var(--font-size);
+  }
+
+  h1 {
+    font-size: var(--text-2xl);
+    font-weight: var(--font-weight-medium);
+    line-height: 1.25;
+  }
+
+  h2 {
+    font-size: var(--text-xl);
+    font-weight: var(--font-weight-medium);
+    line-height: 1.3;
+  }
+
+  h3 {
+    font-size: var(--text-lg);
+    font-weight: var(--font-weight-medium);
+    line-height: 1.4;
+  }
+
+  h4 {
+    font-size: var(--text-base);
+    font-weight: var(--font-weight-medium);
+    line-height: 1.5;
+  }
+
+  label {
+    font-size: var(--text-base);
+    font-weight: var(--font-weight-medium);
+    line-height: 1.5;
+    font-family: var(--font-body);
+  }
+
+  button {
+    font-size: var(--text-base);
+    font-weight: var(--font-weight-medium);
+    line-height: 1.5;
+    font-family: var(--font-body);
+  }
+
+  input, textarea, select {
+    font-size: var(--text-base);
+    font-weight: var(--font-weight-normal);
+    line-height: 1.5;
+    font-family: var(--font-body);
+  }
+
+  /* Scrollbar styling for the dark luxury theme */
+  ::-webkit-scrollbar {
+    width: 6px;
+  }
+  ::-webkit-scrollbar-track {
+    background: var(--background);
+  }
+  ::-webkit-scrollbar-thumb {
+    background: var(--gold-dark);
+    border-radius: 3px;
+  }
+  ::-webkit-scrollbar-thumb:hover {
+    background: var(--gold);
+  }
+}
