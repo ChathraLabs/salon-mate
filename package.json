@@ -4,7 +4,9 @@
   "version": "0.0.1",
   "type": "module",
   "scripts": {
+    "prebuild": "prisma generate",
     "build": "next build",
+    "postinstall": "prisma generate",
     "dev": "next dev",
     "start": "next start",
     "db:up": "docker compose up -d postgres",
