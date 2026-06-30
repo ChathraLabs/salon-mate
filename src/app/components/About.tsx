@@ -1,4 +1,5 @@
 import { Award, Users, Briefcase } from 'lucide-react';
+import { is_visible_cilent_review } from '../config/visibility';
 
 const stats = [
   { icon: Award, value: '5+', label: 'Years Experience', color: 'var(--gold)' },
@@ -8,7 +9,11 @@ const stats = [
 
 export function About() {
   return (
-    <section id="about" className="py-24 relative overflow-hidden" style={{ background: 'var(--background)' }}>
+    <section
+      id="about"
+      className="py-24 relative overflow-hidden"
+      style={{ background: is_visible_cilent_review ? 'var(--section-dark-green)' : 'var(--background)' }}
+    >
       {/* Top gold line */}
       <div
         className="absolute top-0 left-0 right-0 h-px pointer-events-none"

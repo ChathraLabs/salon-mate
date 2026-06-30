@@ -1,6 +1,11 @@
 import { BookingStatus, Prisma } from "@prisma/client";
 import { prisma } from "@/server/db";
-import { dateKey, dateTimeFromLocalParts, displayTime, nextDateOptions } from "./time";
+import { dateKey, dateTimeFromLocalParts, nextDateOptions } from "./time";
+
+const publicSlotTimes = Array.from({ length: 15 }, (_, index) => {
+  const hour = index + 8;
+  return `${hour.toString().padStart(2, "0")}:00`;
+});
 
 export async function getAvailability(days = 7) {
   const dateOptions = nextDateOptions(days);
@@ -42,7 +47,7 @@ export async function getAvailability(days = 7) {
     const dayExceptions = exceptionsByDate.get(date.date) ?? [];
     const isBlocked = dayExceptions.some((exception) => exception.type === "BLOCKED" && !exception.startsAt);
     const specialOpen = dayExceptions.filter((exception) => exception.type === "SPECIAL_OPEN" && exception.startsAt);
-    const baseSlots = dayHours?.active && !isBlocked ? dayHours.slotTimes : [];
+    const baseSlots = dayHours?.active && !isBlocked ? publicSlotTimes : [];
     const specialSlots = specialOpen.map((exception) => exception.startsAt).filter(Boolean) as string[];
     const blockedSlots = new Set(
       dayExceptions
@@ -50,6 +55,8 @@ export async function getAvailability(days = 7) {
         .map((exception) => exception.startsAt as string),
     );
 
+    const allSlots = Array.from(new Set([...publicSlotTimes, ...specialSlots])).sort();
+    const bookedSlots = allSlots.filter((slot) => confirmedSlotKeys.has(`${date.date}:${slot}`));
     const slots = Array.from(new Set([...baseSlots, ...specialSlots]))
       .filter((slot) => !blockedSlots.has(slot))
       .filter((slot) => !confirmedSlotKeys.has(`${date.date}:${slot}`))
@@ -58,7 +65,9 @@ export async function getAvailability(days = 7) {
     return {
       label: date.label,
       date: date.date,
-      slots: slots.map(displayTime),
+      allSlots,
+      slots,
+      bookedSlots,
     };
   });
 }

@@ -3,6 +3,13 @@ import { publicBookingSchema } from "@/server/validation/bookings";
 import { createPublicBooking } from "@/server/services/bookings";
 
 export async function POST(request: Request) {
+  if (!process.env.DATABASE_URL) {
+    return NextResponse.json(
+      { error: "Online booking is not connected yet. Please call the salon to confirm this appointment." },
+      { status: 503 },
+    );
+  }
+
   const parsed = publicBookingSchema.safeParse(await request.json());
 
   if (!parsed.success) {
@@ -19,9 +26,10 @@ export async function POST(request: Request) {
       },
     });
   } catch (error) {
+    console.error(error);
     return NextResponse.json(
-      { error: error instanceof Error ? error.message : "Unable to create booking." },
-      { status: 400 },
+      { error: "Unable to create the booking right now. Please call the salon to confirm this appointment." },
+      { status: 503 },
     );
   }
 }

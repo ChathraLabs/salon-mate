@@ -4,42 +4,59 @@ import { hashPassword } from "../src/server/auth/password";
 const prisma = new PrismaClient();
 
 const services = [
-  { name: "Hair Cut & Styling", priceCents: 250000, durationMinutes: 45, sortOrder: 1 },
-  { name: "Bridal Dressing", priceCents: 1500000, durationMinutes: 180, sortOrder: 2 },
-  { name: "Facial Treatment", priceCents: 350000, durationMinutes: 60, sortOrder: 3 },
-  { name: "Nail Care", priceCents: 150000, durationMinutes: 30, sortOrder: 4 },
-  { name: "Waxing & Threading", priceCents: 50000, durationMinutes: 20, sortOrder: 5 },
-  { name: "Makeup", priceCents: 500000, durationMinutes: 90, sortOrder: 6 },
-  { name: "Hair Coloring", priceCents: 400000, durationMinutes: 120, sortOrder: 7 },
-  { name: "Tattoo Training", priceCents: 0, durationMinutes: 120, sortOrder: 8 },
+  { name: "Hair Cutting", priceCents: 250000, durationMinutes: 45, sortOrder: 1 },
+  { name: "Hair Styling", priceCents: 250000, durationMinutes: 45, sortOrder: 2 },
+  { name: "Manicure & Pedicure", priceCents: 150000, durationMinutes: 60, sortOrder: 3 },
+  { name: "Waxing & Threading", priceCents: 50000, durationMinutes: 20, sortOrder: 4 },
+  { name: "Fire Cut & Dreadlocks", priceCents: 400000, durationMinutes: 120, sortOrder: 5 },
+  { name: "Tattoo & Piercing", priceCents: 0, durationMinutes: 60, sortOrder: 6 },
+  { name: "Makeup", priceCents: 500000, durationMinutes: 90, sortOrder: 7 },
+  { name: "Bridal Dressing", priceCents: 1500000, durationMinutes: 180, sortOrder: 8 },
+  { name: "Groom Dressing", priceCents: 800000, durationMinutes: 120, sortOrder: 9 },
+  { name: "Facial & Cleanup", priceCents: 350000, durationMinutes: 60, sortOrder: 10 },
 ];
 
-const defaultSlotTimes = ["09:00", "10:00", "11:00", "11:30", "14:00", "15:00", "16:00", "16:30", "17:30"];
+const defaultSlotTimes = Array.from({ length: 15 }, (_, index) => {
+  const hour = index + 8;
+  return `${hour.toString().padStart(2, "0")}:00`;
+});
+
+function serviceId(name: string) {
+  return name.toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-|-$/g, "");
+}
 
 async function main() {
+  const activeServiceIds = services.map((service) => serviceId(service.name));
+
   for (const service of services) {
     await prisma.service.upsert({
-      where: { id: service.name.toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-|-$/g, "") },
-      update: service,
+      where: { id: serviceId(service.name) },
+      update: { ...service, active: true },
       create: {
-        id: service.name.toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-|-$/g, ""),
+        id: serviceId(service.name),
         ...service,
+        active: true,
       },
     });
   }
 
+  await prisma.service.updateMany({
+    where: { id: { notIn: activeServiceIds } },
+    data: { active: false },
+  });
+
   for (let weekday = 1; weekday <= 6; weekday += 1) {
     await prisma.businessHour.upsert({
       where: { weekday },
-      update: { opensAt: "09:00", closesAt: "19:00", slotTimes: defaultSlotTimes, active: true },
-      create: { weekday, opensAt: "09:00", closesAt: "19:00", slotTimes: defaultSlotTimes, active: true },
+      update: { opensAt: "08:00", closesAt: "22:00", slotTimes: defaultSlotTimes, active: true },
+      create: { weekday, opensAt: "08:00", closesAt: "22:00", slotTimes: defaultSlotTimes, active: true },
     });
   }
 
   await prisma.businessHour.upsert({
     where: { weekday: 0 },
-    update: { opensAt: "09:00", closesAt: "19:00", slotTimes: [], active: false },
-    create: { weekday: 0, opensAt: "09:00", closesAt: "19:00", slotTimes: [], active: false },
+    update: { opensAt: "08:00", closesAt: "22:00", slotTimes: [], active: false },
+    create: { weekday: 0, opensAt: "08:00", closesAt: "22:00", slotTimes: [], active: false },
   });
 
   const ownerEmail = process.env.SEED_OWNER_EMAIL ?? "owner@salonmate.local";

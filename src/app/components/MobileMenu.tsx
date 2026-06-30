@@ -1,11 +1,22 @@
 import { X } from 'lucide-react';
 import { useEffect } from 'react';
-import logoImage from '../../imports/428409218_895173022613361_2413261302491507174_n.jpg';
+import logoImage from '../../imports/image-1.png';
+import { is_visible_cilent_review } from '../config/visibility';
 
 interface MobileMenuProps {
   isOpen: boolean;
   onClose: () => void;
 }
+
+const navLinks = [
+  { label: 'Home', href: '#home' },
+  { label: 'Book Appointment', href: '#booking' },
+  { label: 'Services', href: '#services' },
+  { label: 'Gallery', href: '#gallery' },
+  ...(is_visible_cilent_review ? [{ label: 'Reviews', href: '#reviews' }] : []),
+  { label: 'About Us', href: '#about' },
+  { label: 'Contact Us', href: '#contact' },
+];
 
 export function MobileMenu({ isOpen, onClose }: MobileMenuProps) {
   useEffect(() => {
@@ -42,7 +53,7 @@ export function MobileMenu({ isOpen, onClose }: MobileMenuProps) {
           className="flex items-center justify-between px-6 py-5"
           style={{ borderBottom: '1px solid var(--border)' }}
         >
-          <img src={logoImage.src} alt="Scissor King Dimma" className="h-10 w-auto object-contain" />
+          <img src={logoImage.src} alt="Scissor King Dimma" className="h-12 w-auto object-contain" />
           <button
             onClick={onClose}
             className="p-2 transition-colors"
@@ -58,10 +69,10 @@ export function MobileMenu({ isOpen, onClose }: MobileMenuProps) {
         {/* Nav Links */}
         <nav className="flex-1 px-6 py-8">
           <div className="flex flex-col gap-1">
-            {['Home', 'Services', 'Gallery', 'Reviews', 'Contact'].map((item) => (
+            {navLinks.map((item) => (
               <a
-                key={item}
-                href={`#${item.toLowerCase()}`}
+                key={item.href}
+                href={item.href}
                 onClick={handleLinkClick}
                 style={{
                   fontFamily: 'var(--font-body)',
@@ -76,30 +87,9 @@ export function MobileMenu({ isOpen, onClose }: MobileMenuProps) {
                 onMouseEnter={(e) => (e.currentTarget.style.color = 'var(--gold)')}
                 onMouseLeave={(e) => (e.currentTarget.style.color = 'var(--foreground)')}
               >
-                {item}
+                {item.label}
               </a>
             ))}
-
-            <a
-              href="#booking"
-              onClick={handleLinkClick}
-              style={{
-                fontFamily: 'var(--font-body)',
-                marginTop: '2rem',
-                display: 'block',
-                textAlign: 'center',
-                background: 'linear-gradient(135deg, var(--gold-dark), var(--gold), var(--gold-light))',
-                color: 'var(--primary-foreground)',
-                padding: '0.875rem 1.5rem',
-                borderRadius: '9999px',
-                textDecoration: 'none',
-                letterSpacing: '0.04em',
-                boxShadow: '0 4px 20px rgba(212,165,32,0.3)',
-                transition: 'box-shadow 0.2s',
-              }}
-            >
-              Book Appointment
-            </a>
           </div>
         </nav>
 
@@ -112,10 +102,10 @@ export function MobileMenu({ isOpen, onClose }: MobileMenuProps) {
             Scissor King Dimma Academy
           </p>
           <a
-            href="tel:+94712345678"
+            href="tel:+94715729660"
             style={{ fontFamily: 'var(--font-body)', color: 'var(--gold)', fontSize: '0.875rem', textDecoration: 'none' }}
           >
-            +94 71 234 5678
+            071 57 29 660
           </a>
         </div>
       </div>

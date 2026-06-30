@@ -1,13 +1,155 @@
 import { useEffect, useMemo, useState } from 'react';
-import { Check, ChevronRight, ChevronLeft, Calendar, Clock, User, CheckCircle } from 'lucide-react';
+import { Check, ChevronRight, ChevronLeft, Calendar as CalendarIcon, Clock, User, CheckCircle } from 'lucide-react';
+import { Calendar as DatePickerCalendar } from './ui/calendar';
 import type { AvailabilityDay, PublicService } from '@/types/booking';
 
+type BookingProps = {
+  requestedService?: { id: string; key: number } | null;
+};
+
+type ServiceOption = {
+  id: string;
+  label: string;
+  price: number;
+  durationMinutes: number;
+  defaultSelected?: boolean;
+};
+
 const fallbackServices: PublicService[] = [
-  { id: 'hair-cut-styling', name: 'Hair Cut & Styling', description: null, priceCents: 250000, price: 2500, durationMinutes: 45, duration: '45 min' },
+  { id: 'hair-cutting', name: 'Hair Cutting', description: null, priceCents: 250000, price: 2500, durationMinutes: 45, duration: '45 min' },
+  { id: 'hair-styling', name: 'Hair Styling', description: null, priceCents: 250000, price: 2500, durationMinutes: 45, duration: '45 min' },
+  { id: 'manicure-pedicure', name: 'Manicure & Pedicure', description: null, priceCents: 150000, price: 1500, durationMinutes: 60, duration: '1 hour' },
+  { id: 'waxing-threading', name: 'Waxing & Threading', description: null, priceCents: 50000, price: 500, durationMinutes: 20, duration: '20 min' },
+  { id: 'fire-cut-dreadlocks', name: 'Fire Cut & Dreadlocks', description: null, priceCents: 400000, price: 4000, durationMinutes: 120, duration: '2 hours' },
+  { id: 'tattoo-piercing', name: 'Tattoo & Piercing', description: null, priceCents: 0, price: 0, durationMinutes: 60, duration: '1 hour' },
+  { id: 'makeup', name: 'Makeup', description: null, priceCents: 500000, price: 5000, durationMinutes: 90, duration: '1 hr 30 min' },
   { id: 'bridal-dressing', name: 'Bridal Dressing', description: null, priceCents: 1500000, price: 15000, durationMinutes: 180, duration: '3 hours' },
+  { id: 'groom-dressing', name: 'Groom Dressing', description: null, priceCents: 800000, price: 8000, durationMinutes: 120, duration: '2 hours' },
+  { id: 'facial-cleanup', name: 'Facial & Cleanup', description: null, priceCents: 350000, price: 3500, durationMinutes: 60, duration: '1 hour' },
 ];
 
-const stepLabels = ['Service', 'Date', 'Time', 'Details', 'Confirm'];
+const stepLabels = ['Service', 'Date & Time', 'Details', 'Confirm'];
+
+const serviceOptionCatalog: Record<string, ServiceOption[]> = {
+  'hair-cutting': [
+    { id: 'hair-cut', label: 'Hair Cut', price: 2500, durationMinutes: 45, defaultSelected: true },
+    { id: 'beard-cut', label: 'Beard Cut', price: 1000, durationMinutes: 20 },
+    { id: 'kids-cut', label: 'Kids Cut', price: 1500, durationMinutes: 30 },
+  ],
+  'hair-styling': [
+    { id: 'hair-styling', label: 'Hair Styling', price: 2500, durationMinutes: 45, defaultSelected: true },
+    { id: 'blow-dry', label: 'Blow Dry', price: 2000, durationMinutes: 35 },
+    { id: 'hair-color', label: 'Hair Color', price: 4000, durationMinutes: 120 },
+    { id: 'head-massage', label: 'Head Massage', price: 1500, durationMinutes: 30 },
+  ],
+  'manicure-pedicure': [
+    { id: 'manicure', label: 'Manicure', price: 1500, durationMinutes: 30, defaultSelected: true },
+    { id: 'pedicure', label: 'Pedicure', price: 2000, durationMinutes: 40 },
+    { id: 'gel-polish', label: 'Gel Polish', price: 2500, durationMinutes: 45 },
+  ],
+  'waxing-threading': [
+    { id: 'eyebrow-threading', label: 'Eyebrow Threading', price: 500, durationMinutes: 20, defaultSelected: true },
+    { id: 'face-waxing', label: 'Face Waxing', price: 1500, durationMinutes: 30 },
+    { id: 'full-body-waxing', label: 'Full Body Waxing', price: 6500, durationMinutes: 120 },
+  ],
+  'fire-cut-dreadlocks': [
+    { id: 'fire-cut', label: 'Fire Cut', price: 4000, durationMinutes: 90, defaultSelected: true },
+    { id: 'dreadlocks', label: 'Dreadlocks', price: 9000, durationMinutes: 180 },
+    { id: 'dreadlock-maintenance', label: 'Dreadlock Maintenance', price: 4500, durationMinutes: 90 },
+  ],
+  'tattoo-piercing': [
+    { id: 'tattoo-consultation', label: 'Tattoo Consultation', price: 0, durationMinutes: 30, defaultSelected: true },
+    { id: 'tattoo-session', label: 'Tattoo Session', price: 0, durationMinutes: 120 },
+    { id: 'ear-piercing', label: 'Ear Piercing', price: 2500, durationMinutes: 30 },
+  ],
+  makeup: [
+    { id: 'party-makeup', label: 'Party Makeup', price: 5000, durationMinutes: 90, defaultSelected: true },
+    { id: 'hair-setting', label: 'Hair Setting', price: 2500, durationMinutes: 45 },
+    { id: 'lashes', label: 'Lashes', price: 1500, durationMinutes: 20 },
+  ],
+  'bridal-dressing': [
+    { id: 'bridal-makeup', label: 'Bridal Makeup', price: 9000, durationMinutes: 120, defaultSelected: true },
+    { id: 'bridal-hair', label: 'Bridal Hair Styling', price: 3000, durationMinutes: 45 },
+    { id: 'saree-draping', label: 'Saree Draping', price: 3000, durationMinutes: 45 },
+  ],
+  'groom-dressing': [
+    { id: 'groom-makeup', label: 'Groom Makeup', price: 5000, durationMinutes: 75, defaultSelected: true },
+    { id: 'groom-hair', label: 'Groom Hair Styling', price: 2000, durationMinutes: 35 },
+    { id: 'beard-styling', label: 'Beard Styling', price: 1500, durationMinutes: 25 },
+  ],
+  'facial-cleanup': [
+    { id: 'cleanup', label: 'Cleanup', price: 2500, durationMinutes: 45, defaultSelected: true },
+    { id: 'facial', label: 'Facial', price: 3500, durationMinutes: 60 },
+    { id: 'brightening', label: 'Brightening Mask', price: 2500, durationMinutes: 30 },
+  ],
+};
+
+const defaultTimeSlots = Array.from({ length: 15 }, (_, index) => {
+  const hour = index + 8;
+  return `${hour.toString().padStart(2, '0')}:00`;
+});
+
+function formatTimeLabel(time: string) {
+  const [hourText, minute] = time.split(':');
+  const hour = Number(hourText);
+  const suffix = hour >= 12 ? 'PM' : 'AM';
+  const displayHour = hour % 12 === 0 ? 12 : hour % 12;
+  return `${displayHour}:${minute} ${suffix}`;
+}
+
+function formatDurationLabel(minutes: number) {
+  if (minutes < 60) return `${minutes} min`;
+  if (minutes % 60 === 0) return `${minutes / 60} hour${minutes === 60 ? '' : 's'}`;
+  return `${Math.floor(minutes / 60)} hr ${minutes % 60} min`;
+}
+
+function formatPrice(price: number) {
+  return price > 0 ? `LKR ${price.toLocaleString()}` : 'Contact for pricing';
+}
+
+function dateToLocalDate(date: string) {
+  const [year, month, day] = date.split('-').map(Number);
+  return new Date(year, month - 1, day);
+}
+
+function localDateKey(date: Date) {
+  const year = date.getFullYear();
+  const month = `${date.getMonth() + 1}`.padStart(2, '0');
+  const day = `${date.getDate()}`.padStart(2, '0');
+  return `${year}-${month}-${day}`;
+}
+
+function fallbackAvailabilityDays(days = 7): AvailabilityDay[] {
+  const labels = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
+  const today = new Date();
+
+  return Array.from({ length: days }, (_, index) => {
+    const date = new Date(today.getFullYear(), today.getMonth(), today.getDate() + index);
+    const label = index === 0 ? 'Today' : index === 1 ? 'Tomorrow' : `${labels[date.getDay()]} ${date.getDate()}`;
+
+    return {
+      label,
+      date: localDateKey(date),
+      allSlots: defaultTimeSlots,
+      slots: defaultTimeSlots,
+      bookedSlots: [],
+    };
+  });
+}
+
+function optionsForService(service: PublicService | null): ServiceOption[] {
+  if (!service) return [];
+
+  return serviceOptionCatalog[service.id] ?? [
+    {
+      id: service.id,
+      label: service.name,
+      price: service.price,
+      durationMinutes: service.durationMinutes,
+      defaultSelected: true,
+    },
+  ];
+}
 
 const inputBase: React.CSSProperties = {
   width: '100%',
@@ -47,11 +189,12 @@ const selectionActive: React.CSSProperties = {
   boxShadow: '0 0 0 2px rgba(212,165,32,0.12)',
 };
 
-export function Booking() {
+export function Booking({ requestedService }: BookingProps) {
   const [step, setStep] = useState(1);
   const [services, setServices] = useState<PublicService[]>(fallbackServices);
   const [dates, setDates] = useState<AvailabilityDay[]>([]);
   const [selectedService, setSelectedService] = useState<PublicService | null>(null);
+  const [selectedOptionIds, setSelectedOptionIds] = useState<string[]>([]);
   const [selectedDate, setSelectedDate] = useState<string | null>(null);
   const [selectedTime, setSelectedTime] = useState<string | null>(null);
   const [customerDetails, setCustomerDetails] = useState({ name: '', phone: '', email: '', note: '' });
@@ -71,14 +214,14 @@ export function Booking() {
           fetch('/api/availability'),
         ]);
 
-        if (!servicesResponse.ok || !availabilityResponse.ok) {
-          throw new Error('Unable to load booking options.');
-        }
-
         const [servicesData, availabilityData] = await Promise.all([
           servicesResponse.json(),
           availabilityResponse.json(),
         ]);
+
+        if (!servicesResponse.ok || !availabilityResponse.ok) {
+          throw new Error(servicesData.error ?? availabilityData.error ?? 'Unable to load booking options.');
+        }
 
         if (!cancelled) {
           setServices(servicesData.services);
@@ -87,7 +230,8 @@ export function Booking() {
         }
       } catch (error) {
         if (!cancelled) {
-          setLoadError(error instanceof Error ? error.message : 'Unable to load booking options.');
+          setDates(fallbackAvailabilityDays());
+          setLoadError(error instanceof Error ? `${error.message} Showing default times for preview.` : 'Unable to load booking options. Showing default times for preview.');
         }
       }
     }
@@ -99,11 +243,65 @@ export function Booking() {
     };
   }, []);
 
-  const timeSlots = useMemo(() => {
+  useEffect(() => {
+    if (!requestedService) return;
+
+    const service = services.find((item) => item.id === requestedService.id);
+    if (!service) return;
+
+    selectService(service);
+    setStep(1);
+    setSubmitError(null);
+  }, [requestedService, services]);
+
+  const selectService = (service: PublicService) => {
+    const options = optionsForService(service);
+    const defaultIds = options.filter((option) => option.defaultSelected).map((option) => option.id);
+
+    setSelectedService(service);
+    setSelectedOptionIds(defaultIds.length > 0 ? defaultIds : options.slice(0, 1).map((option) => option.id));
+    setSelectedDate(null);
+    setSelectedTime(null);
+    setSubmitError(null);
+  };
+
+  const handleOptionToggle = (optionId: string) => {
+    setSelectedOptionIds((current) => (
+      current.includes(optionId)
+        ? current.filter((id) => id !== optionId)
+        : [...current, optionId]
+    ));
+  };
+
+  const availableTimeSlots = useMemo(() => {
     return dates.find((date) => date.date === selectedDate)?.slots ?? [];
   }, [dates, selectedDate]);
+  const allTimeSlots = useMemo(() => {
+    return dates.find((date) => date.date === selectedDate)?.allSlots ?? (selectedDate ? defaultTimeSlots : []);
+  }, [dates, selectedDate]);
+  const bookedTimeSlots = useMemo(() => {
+    return dates.find((date) => date.date === selectedDate)?.bookedSlots ?? [];
+  }, [dates, selectedDate]);
+  const selectedDateOption = useMemo(() => {
+    return dates.find((date) => date.date === selectedDate) ?? null;
+  }, [dates, selectedDate]);
+  const selectableDateKeys = useMemo(() => new Set(dates.map((date) => date.date)), [dates]);
+  const availableTimeSlotSet = useMemo(() => new Set(availableTimeSlots), [availableTimeSlots]);
+  const bookedTimeSlotSet = useMemo(() => new Set(bookedTimeSlots), [bookedTimeSlots]);
+  const selectedCalendarDate = selectedDate ? dateToLocalDate(selectedDate) : undefined;
+  const firstAvailableDate = dates[0]?.date;
+  const lastAvailableDate = dates[dates.length - 1]?.date;
+  const isUsingFallbackBookingOptions = loadError?.includes('Showing default times for preview.') ?? false;
+  const selectedServiceOptions = useMemo(() => optionsForService(selectedService), [selectedService]);
+  const selectedOptions = useMemo(
+    () => selectedServiceOptions.filter((option) => selectedOptionIds.includes(option.id)),
+    [selectedOptionIds, selectedServiceOptions],
+  );
+  const selectedTotalPrice = selectedOptions.reduce((total, option) => total + option.price, 0);
+  const selectedTotalDuration = selectedOptions.reduce((total, option) => total + option.durationMinutes, 0);
+  const selectedOptionLabels = selectedOptions.map((option) => option.label).join(', ');
 
-  const handleNext = () => { if (step < 5) setStep(step + 1); };
+  const handleNext = () => { if (step < stepLabels.length) setStep(step + 1); };
   const handleBack = () => { if (step > 1) setStep(step - 1); };
   const handleConfirmBooking = async () => {
     if (!selectedService || !selectedDate || !selectedTime) return;
@@ -124,7 +322,12 @@ export function Booking() {
             phone: customerDetails.phone,
             email: customerDetails.email,
           },
-          note: customerDetails.note,
+          note: [
+            customerDetails.note,
+            selectedOptionLabels ? `Selected options: ${selectedOptionLabels}` : null,
+            `Total: ${formatPrice(selectedTotalPrice)}`,
+            `Estimated time: ${formatDurationLabel(selectedTotalDuration)}`,
+          ].filter(Boolean).join('\n'),
         }),
       });
 
@@ -144,21 +347,20 @@ export function Booking() {
   };
   const handleNewBooking = () => {
     setStep(1); setSelectedService(null); setSelectedDate(null);
-    setSelectedTime(null); setCustomerDetails({ name: '', phone: '', email: '', note: '' });
+    setSelectedOptionIds([]); setSelectedTime(null); setCustomerDetails({ name: '', phone: '', email: '', note: '' });
     setBookingCode(null); setSubmitError(null); setIsConfirmed(false);
   };
 
   const canProceed = [
-    selectedService !== null,
-    selectedDate !== null,
-    selectedTime !== null,
+    selectedService !== null && selectedOptions.length > 0,
+    selectedDate !== null && selectedTime !== null,
     !!(customerDetails.name && customerDetails.phone),
     true,
   ][step - 1];
 
   if (isConfirmed) {
     return (
-      <section id="booking" className="py-24 relative" style={{ background: 'var(--muted)' }}>
+      <section id="booking" className="py-24 relative" style={{ background: 'var(--section-dark-green)' }}>
         <div className="max-w-2xl mx-auto px-4 sm:px-6">
           <div className="text-center p-10 sm:p-14" style={cardStyle}>
             <div
@@ -181,16 +383,17 @@ export function Booking() {
               {[
                 { label: 'Booking ID', value: bookingCode },
                 { label: 'Service', value: selectedService?.name },
+                { label: 'Options', value: selectedOptionLabels },
                 { label: 'Date', value: dates.find(d => d.date === selectedDate)?.label },
-                { label: 'Time', value: selectedTime },
-                { label: 'Duration', value: selectedService?.duration },
-                { label: 'Price', value: selectedService?.price ? `LKR ${selectedService.price.toLocaleString()}` : 'Contact for pricing' },
+                { label: 'Time', value: selectedTime ? formatTimeLabel(selectedTime) : null },
+                { label: 'Duration', value: selectedTotalDuration ? formatDurationLabel(selectedTotalDuration) : selectedService?.duration },
+                { label: 'Price', value: formatPrice(selectedTotalPrice) },
               ].map(({ label, value }, i) => (
                 <div
                   key={i}
                   className="flex justify-between items-center px-5 py-3"
                   style={{
-                    borderBottom: i < 5 ? '1px solid var(--border)' : 'none',
+                    borderBottom: i < 6 ? '1px solid var(--border)' : 'none',
                     background: i % 2 === 0 ? 'var(--muted)' : 'var(--card)',
                   }}
                 >
@@ -234,7 +437,7 @@ export function Booking() {
                 Book Another
               </button>
               <a
-                href="tel:+94712345678"
+                href="tel:+94715729660"
                 style={{
                   fontFamily: 'var(--font-body)',
                   border: '1px solid rgba(212,165,32,0.35)', color: 'var(--foreground)',
@@ -260,7 +463,7 @@ export function Booking() {
   }
 
   return (
-    <section id="booking" className="py-24 relative overflow-hidden" style={{ background: 'var(--muted)' }}>
+    <section id="booking" className="py-24 relative overflow-hidden" style={{ background: 'var(--section-dark-green)' }}>
       <div
         className="absolute top-0 left-0 right-0 h-px pointer-events-none"
         style={{ background: 'linear-gradient(to right, transparent, rgba(212,165,32,0.3), transparent)' }}
@@ -331,7 +534,7 @@ export function Booking() {
                     {label}
                   </span>
                 </div>
-                {s < 5 && (
+                {s < stepLabels.length && (
                   <div
                     className="w-10 sm:w-14 h-px mx-1 mb-5 transition-all"
                     style={{
@@ -353,95 +556,238 @@ export function Booking() {
           {step === 1 && (
             <div className="space-y-6">
               <h3 className="flex items-center gap-3" style={{ fontFamily: 'var(--font-heading)', color: 'var(--foreground)', fontSize: '1.4rem' }}>
-                <Calendar className="w-5 h-5" style={{ color: 'var(--gold)' }} />
-                Select Service
+                <CalendarIcon className="w-5 h-5" style={{ color: 'var(--gold)' }} />
+                {selectedService ? selectedService.name : 'Select Service'}
               </h3>
-              <div className="grid sm:grid-cols-2 gap-3">
-                {services.map((service) => (
-                  <button
-                    key={service.id}
-                    onClick={() => setSelectedService(service)}
-                    style={selectedService?.id === service.id ? selectionActive : selectionBase}
-                    onMouseEnter={(e) => { if (selectedService?.id !== service.id) { (e.currentTarget as HTMLButtonElement).style.borderColor = 'rgba(212,165,32,0.3)'; } }}
-                    onMouseLeave={(e) => { if (selectedService?.id !== service.id) { (e.currentTarget as HTMLButtonElement).style.borderColor = 'var(--border)'; } }}
-                  >
-                    <p style={{ fontFamily: 'var(--font-heading)', color: 'var(--foreground)', fontSize: '0.975rem', marginBottom: '0.35rem' }}>
-                      {service.name}
-                    </p>
-                    <div className="flex items-center justify-between">
-                      <span style={{ fontFamily: 'var(--font-body)', color: 'var(--gold)', fontSize: '0.8rem' }}>
-                        {service.price > 0 ? `LKR ${service.price.toLocaleString()}` : 'Contact for pricing'}
-                      </span>
-                      <span
-                        className="px-2 py-0.5 rounded-full"
-                        style={{ fontFamily: 'var(--font-body)', color: 'var(--muted-foreground)', fontSize: '0.72rem', background: 'var(--card)', border: '1px solid var(--border)' }}
-                      >
-                        {service.duration}
-                      </span>
+
+              {!selectedService ? (
+                <div className="grid sm:grid-cols-2 gap-3">
+                  {services.map((service) => (
+                    <button
+                      key={service.id}
+                      onClick={() => selectService(service)}
+                      style={selectionBase}
+                      onMouseEnter={(e) => { (e.currentTarget as HTMLButtonElement).style.borderColor = 'rgba(212,165,32,0.3)'; }}
+                      onMouseLeave={(e) => { (e.currentTarget as HTMLButtonElement).style.borderColor = 'var(--border)'; }}
+                    >
+                      <p style={{ fontFamily: 'var(--font-heading)', color: 'var(--foreground)', fontSize: '0.975rem', marginBottom: '0.35rem' }}>
+                        {service.name}
+                      </p>
+                      <div className="flex items-center justify-between">
+                        <span style={{ fontFamily: 'var(--font-body)', color: 'var(--gold)', fontSize: '0.8rem' }}>
+                          {formatPrice(service.price)}
+                        </span>
+                        <span
+                          className="px-2 py-0.5 rounded-full"
+                          style={{ fontFamily: 'var(--font-body)', color: 'var(--muted-foreground)', fontSize: '0.72rem', background: 'var(--card)', border: '1px solid var(--border)' }}
+                        >
+                          {service.duration}
+                        </span>
+                      </div>
+                    </button>
+                  ))}
+                </div>
+              ) : (
+                <div className="space-y-5">
+                  <div className="rounded-2xl overflow-hidden" style={{ border: '1px solid var(--border)' }}>
+                    {selectedServiceOptions.map((option, index) => {
+                      const isChecked = selectedOptionIds.includes(option.id);
+
+                      return (
+                        <label
+                          key={option.id}
+                          className="flex items-center gap-4 px-5 py-4 cursor-pointer"
+                          style={{
+                            borderBottom: index < selectedServiceOptions.length - 1 ? '1px solid var(--border)' : 'none',
+                            background: isChecked ? 'rgba(212,165,32,0.08)' : index % 2 === 0 ? 'var(--muted)' : 'var(--card)',
+                          }}
+                        >
+                          <span className="flex-1" style={{ fontFamily: 'var(--font-heading)', color: 'var(--foreground)', fontSize: '1rem' }}>
+                            {option.label}
+                          </span>
+                          <span style={{ fontFamily: 'var(--font-body)', color: 'var(--muted-foreground)', fontSize: '0.78rem' }}>
+                            {formatDurationLabel(option.durationMinutes)}
+                          </span>
+                          <span style={{ fontFamily: 'var(--font-body)', color: 'var(--gold)', fontSize: '0.82rem', minWidth: '6.5rem', textAlign: 'right' }}>
+                            {formatPrice(option.price)}
+                          </span>
+                          <input
+                            type="checkbox"
+                            checked={isChecked}
+                            onChange={() => handleOptionToggle(option.id)}
+                            className="h-5 w-5 accent-gold"
+                          />
+                        </label>
+                      );
+                    })}
+                  </div>
+
+                  <div className="grid sm:grid-cols-2 gap-3">
+                    <div className="rounded-xl px-4 py-3" style={{ background: 'rgba(212,165,32,0.08)', border: '1px solid rgba(212,165,32,0.25)' }}>
+                      <p style={{ fontFamily: 'var(--font-body)', color: 'var(--muted-foreground)', fontSize: '0.75rem' }}>Total</p>
+                      <p style={{ fontFamily: 'var(--font-heading)', color: 'var(--foreground)', fontSize: '1.25rem', marginTop: '0.15rem' }}>
+                        {formatPrice(selectedTotalPrice)}
+                      </p>
                     </div>
-                  </button>
-                ))}
-              </div>
-            </div>
-          )}
+                    <div className="rounded-xl px-4 py-3" style={{ background: 'var(--muted)', border: '1px solid var(--border)' }}>
+                      <p style={{ fontFamily: 'var(--font-body)', color: 'var(--muted-foreground)', fontSize: '0.75rem' }}>Time</p>
+                      <p style={{ fontFamily: 'var(--font-heading)', color: 'var(--foreground)', fontSize: '1.25rem', marginTop: '0.15rem' }}>
+                        {selectedTotalDuration ? formatDurationLabel(selectedTotalDuration) : 'Select options'}
+                      </p>
+                    </div>
+                  </div>
 
-          {/* Step 2 – Date */}
-          {step === 2 && (
-            <div className="space-y-6">
-              <h3 className="flex items-center gap-3" style={{ fontFamily: 'var(--font-heading)', color: 'var(--foreground)', fontSize: '1.4rem' }}>
-                <Calendar className="w-5 h-5" style={{ color: 'var(--gold)' }} />
-                Select Date
-              </h3>
-              <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
-                {dates.map((date) => (
                   <button
-                    key={date.date}
+                    type="button"
                     onClick={() => {
-                      setSelectedDate(date.date);
-                      setSelectedTime(null);
+                      setSelectedService(null);
+                      setSelectedOptionIds([]);
                     }}
-                    style={selectedDate === date.date ? { ...selectionActive, textAlign: 'center' } : { ...selectionBase, textAlign: 'center' }}
-                    onMouseEnter={(e) => { if (selectedDate !== date.date) (e.currentTarget as HTMLButtonElement).style.borderColor = 'rgba(212,165,32,0.3)'; }}
-                    onMouseLeave={(e) => { if (selectedDate !== date.date) (e.currentTarget as HTMLButtonElement).style.borderColor = 'var(--border)'; }}
+                    style={{
+                      fontFamily: 'var(--font-body)',
+                      color: 'var(--gold)',
+                      background: 'transparent',
+                      border: 'none',
+                      cursor: 'pointer',
+                      padding: 0,
+                      fontSize: '0.85rem',
+                    }}
                   >
-                    <p style={{ fontFamily: 'var(--font-heading)', color: 'var(--foreground)', fontSize: '0.975rem' }}>{date.label}</p>
-                    <p style={{ fontFamily: 'var(--font-body)', color: 'var(--muted-foreground)', fontSize: '0.72rem', marginTop: '0.25rem' }}>{date.date}</p>
+                    Change service
                   </button>
-                ))}
-              </div>
-            </div>
-          )}
-
-          {/* Step 3 – Time */}
-          {step === 3 && (
-            <div className="space-y-6">
-              <h3 className="flex items-center gap-3" style={{ fontFamily: 'var(--font-heading)', color: 'var(--foreground)', fontSize: '1.4rem' }}>
-                <Clock className="w-5 h-5" style={{ color: 'var(--gold)' }} />
-                Select Time
-              </h3>
-              <div className="grid grid-cols-3 sm:grid-cols-4 gap-3">
-                {timeSlots.map((time) => (
-                  <button
-                    key={time}
-                    onClick={() => setSelectedTime(time)}
-                    style={{ ...(selectedTime === time ? selectionActive : selectionBase), textAlign: 'center' }}
-                    onMouseEnter={(e) => { if (selectedTime !== time) (e.currentTarget as HTMLButtonElement).style.borderColor = 'rgba(212,165,32,0.3)'; }}
-                    onMouseLeave={(e) => { if (selectedTime !== time) (e.currentTarget as HTMLButtonElement).style.borderColor = 'var(--border)'; }}
-                  >
-                    <span style={{ fontFamily: 'var(--font-body)', color: 'var(--foreground)', fontSize: '0.875rem' }}>{time}</span>
-                  </button>
-                ))}
-              </div>
-              {timeSlots.length === 0 && (
-                <p style={{ fontFamily: 'var(--font-body)', color: 'var(--muted-foreground)', fontSize: '0.9rem' }}>
-                  No available slots for this date. Please go back and choose another date.
-                </p>
+                </div>
               )}
             </div>
           )}
 
-          {/* Step 4 – Details */}
-          {step === 4 && (
+          {/* Step 2 – Date & Time */}
+          {step === 2 && (
+            <div className="space-y-6">
+              <h3 className="flex items-center gap-3" style={{ fontFamily: 'var(--font-heading)', color: 'var(--foreground)', fontSize: '1.4rem' }}>
+                <CalendarIcon className="w-5 h-5" style={{ color: 'var(--gold)' }} />
+                Select Date & Time
+              </h3>
+
+              <div className="grid lg:grid-cols-[0.9fr_1.1fr] gap-6">
+                <div className="space-y-4">
+                  <label style={{ fontFamily: 'var(--font-body)', color: 'var(--foreground)', fontSize: '0.875rem', display: 'block' }}>
+                    Pick a date
+                  </label>
+                  <DatePickerCalendar
+                    mode="single"
+                    selected={selectedCalendarDate}
+                    fromDate={firstAvailableDate ? dateToLocalDate(firstAvailableDate) : undefined}
+                    toDate={lastAvailableDate ? dateToLocalDate(lastAvailableDate) : undefined}
+                    disabled={(date) => !selectableDateKeys.has(localDateKey(date))}
+                    onSelect={(date) => {
+                      setSelectedDate(date ? localDateKey(date) : null);
+                      setSelectedTime(null);
+                    }}
+                    className="w-full rounded-xl border border-border bg-input-background text-foreground"
+                    classNames={{
+                      months: 'flex w-full flex-col',
+                      month: 'flex w-full flex-col gap-4',
+                      caption: 'relative flex w-full items-center justify-center pt-1',
+                      caption_label: 'text-sm font-medium text-foreground',
+                      nav: 'flex items-center gap-1',
+                      nav_button: 'absolute top-0 inline-flex size-7 items-center justify-center rounded-md border border-border bg-transparent p-0 text-gold opacity-75 transition hover:bg-secondary hover:opacity-100',
+                      nav_button_previous: 'left-1',
+                      nav_button_next: 'right-1',
+                      table: 'w-full border-collapse',
+                      head_row: 'grid grid-cols-7',
+                      head_cell: 'text-muted-foreground rounded-md text-center text-[0.75rem] font-normal',
+                      row: 'grid grid-cols-7 mt-2',
+                      cell: 'relative p-0 text-center text-sm',
+                      day: 'mx-auto flex size-9 items-center justify-center rounded-md p-0 text-sm font-normal text-foreground transition hover:bg-secondary hover:text-gold-light disabled:pointer-events-none disabled:opacity-30',
+                      day_selected: 'bg-gold text-primary-foreground hover:bg-gold hover:text-primary-foreground focus:bg-gold focus:text-primary-foreground',
+                      day_today: 'border border-gold/50 text-gold',
+                      day_outside: 'text-muted-foreground opacity-30',
+                      day_disabled: 'text-muted-foreground opacity-30',
+                    }}
+                  />
+                  {selectedDateOption && (
+                    <div
+                      className="rounded-xl px-4 py-3"
+                      style={{
+                        background: 'rgba(212,165,32,0.08)',
+                        border: '1px solid rgba(212,165,32,0.25)',
+                      }}
+                    >
+                      <p style={{ fontFamily: 'var(--font-heading)', color: 'var(--foreground)', fontSize: '1rem' }}>
+                        {selectedDateOption.label}
+                      </p>
+                      <p style={{ fontFamily: 'var(--font-body)', color: 'var(--muted-foreground)', fontSize: '0.78rem', marginTop: '0.2rem' }}>
+                        {selectedDateOption.date}
+                      </p>
+                    </div>
+                  )}
+                </div>
+
+                <div className="space-y-4">
+                  <div className="flex items-start justify-between gap-4">
+                    <h4 className="flex items-center gap-2" style={{ fontFamily: 'var(--font-heading)', color: 'var(--foreground)', fontSize: '1.05rem' }}>
+                      <Clock className="w-4 h-4" style={{ color: 'var(--gold)' }} />
+                      Available Times
+                    </h4>
+                    <span style={{ fontFamily: 'var(--font-body)', color: 'var(--muted-foreground)', fontSize: '0.74rem' }}>
+                      8:00 AM - 10:00 PM
+                    </span>
+                  </div>
+                  <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
+                    {allTimeSlots.map((time) => {
+                      const isAvailable = availableTimeSlotSet.has(time);
+                      const isBooked = bookedTimeSlotSet.has(time);
+                      const isSelected = selectedTime === time;
+                      return (
+                        <button
+                          key={time}
+                          onClick={() => isAvailable && setSelectedTime(time)}
+                          style={{
+                            ...(isSelected ? selectionActive : selectionBase),
+                            minHeight: '3.75rem',
+                            padding: '0.65rem 0.5rem',
+                            textAlign: 'center',
+                            cursor: isAvailable ? 'pointer' : 'not-allowed',
+                            opacity: isAvailable ? 1 : 0.48,
+                            background: isSelected
+                              ? 'rgba(212,165,32,0.08)'
+                              : isAvailable
+                                ? 'var(--muted)'
+                                : 'rgba(154,120,48,0.08)',
+                          }}
+                          onMouseEnter={(e) => { if (isAvailable && !isSelected) (e.currentTarget as HTMLButtonElement).style.borderColor = 'rgba(212,165,32,0.3)'; }}
+                          onMouseLeave={(e) => { if (isAvailable && !isSelected) (e.currentTarget as HTMLButtonElement).style.borderColor = 'var(--border)'; }}
+                          disabled={!isAvailable}
+                        >
+                          <span style={{ fontFamily: 'var(--font-body)', color: isAvailable ? 'var(--foreground)' : 'var(--muted-foreground)', fontSize: '0.875rem' }}>
+                            {formatTimeLabel(time)}
+                          </span>
+                          {!isAvailable && (
+                            <span style={{ display: 'block', fontFamily: 'var(--font-body)', color: 'var(--muted-foreground)', fontSize: '0.68rem', marginTop: '0.15rem' }}>
+                              {isBooked ? 'Booked' : 'Unavailable'}
+                            </span>
+                          )}
+                        </button>
+                      );
+                    })}
+                  </div>
+                  {!selectedDate && (
+                    <p style={{ fontFamily: 'var(--font-body)', color: 'var(--muted-foreground)', fontSize: '0.9rem' }}>
+                      Pick a date to see available time slots.
+                    </p>
+                  )}
+                  {selectedDate && availableTimeSlots.length === 0 && (
+                    <p style={{ fontFamily: 'var(--font-body)', color: 'var(--muted-foreground)', fontSize: '0.9rem' }}>
+                      No available slots for this date. Please choose another date.
+                    </p>
+                  )}
+                </div>
+              </div>
+            </div>
+          )}
+
+          {/* Step 3 – Details */}
+          {step === 3 && (
             <div className="space-y-6">
               <h3 className="flex items-center gap-3" style={{ fontFamily: 'var(--font-heading)', color: 'var(--foreground)', fontSize: '1.4rem' }}>
                 <User className="w-5 h-5" style={{ color: 'var(--gold)' }} />
@@ -486,8 +832,8 @@ export function Booking() {
             </div>
           )}
 
-          {/* Step 5 – Summary */}
-          {step === 5 && (
+          {/* Step 4 – Summary */}
+          {step === 4 && (
             <div className="space-y-6">
               <h3 className="flex items-center gap-3" style={{ fontFamily: 'var(--font-heading)', color: 'var(--foreground)', fontSize: '1.4rem' }}>
                 <CheckCircle className="w-5 h-5" style={{ color: 'var(--gold)' }} />
@@ -496,10 +842,11 @@ export function Booking() {
               <div className="rounded-2xl overflow-hidden" style={{ border: '1px solid var(--border)' }}>
                 {[
                   { label: 'Service', value: selectedService?.name },
+                  { label: 'Options', value: selectedOptionLabels },
                   { label: 'Date', value: `${dates.find(d => d.date === selectedDate)?.label} (${selectedDate})` },
-                  { label: 'Time', value: selectedTime },
-                  { label: 'Duration', value: selectedService?.duration },
-                  { label: 'Price', value: selectedService?.price ? `LKR ${selectedService.price.toLocaleString()}` : 'Contact for pricing' },
+                  { label: 'Time', value: selectedTime ? formatTimeLabel(selectedTime) : null },
+                  { label: 'Duration', value: selectedTotalDuration ? formatDurationLabel(selectedTotalDuration) : selectedService?.duration },
+                  { label: 'Price', value: formatPrice(selectedTotalPrice) },
                   { label: 'Customer', value: customerDetails.name },
                   { label: 'Contact', value: customerDetails.phone },
                 ].map(({ label, value }, i, arr) => (
@@ -519,6 +866,11 @@ export function Booking() {
               {submitError && (
                 <p style={{ fontFamily: 'var(--font-body)', color: 'var(--gold-light)', fontSize: '0.9rem' }}>
                   {submitError}
+                </p>
+              )}
+              {isUsingFallbackBookingOptions && (
+                <p style={{ fontFamily: 'var(--font-body)', color: 'var(--gold-light)', fontSize: '0.9rem' }}>
+                  Online booking is not connected yet. These slots are shown for preview only.
                 </p>
               )}
             </div>
@@ -548,7 +900,7 @@ export function Booking() {
               </button>
             ) : <div />}
 
-            {step < 5 ? (
+            {step < stepLabels.length ? (
               <button
                 onClick={handleNext}
                 disabled={!canProceed}
@@ -575,22 +927,27 @@ export function Booking() {
             ) : (
               <button
                 onClick={handleConfirmBooking}
-                disabled={isSubmitting}
+                disabled={isSubmitting || isUsingFallbackBookingOptions}
                 className="ml-auto"
                 style={{
                   fontFamily: 'var(--font-body)',
                   padding: '0.7rem 2rem',
                   borderRadius: '9999px',
-                  background: 'linear-gradient(135deg, var(--gold-dark), var(--gold))',
-                  color: 'var(--primary-foreground)',
-                  border: 'none', cursor: isSubmitting ? 'not-allowed' : 'pointer',
-                  boxShadow: '0 4px 16px rgba(212,165,32,0.25)',
+                  background: isUsingFallbackBookingOptions ? 'var(--card)' : 'linear-gradient(135deg, var(--gold-dark), var(--gold))',
+                  color: isUsingFallbackBookingOptions ? 'var(--muted-foreground)' : 'var(--primary-foreground)',
+                  border: isUsingFallbackBookingOptions ? '1px solid var(--border)' : 'none',
+                  cursor: isSubmitting || isUsingFallbackBookingOptions ? 'not-allowed' : 'pointer',
+                  boxShadow: isUsingFallbackBookingOptions ? 'none' : '0 4px 16px rgba(212,165,32,0.25)',
                   transition: 'box-shadow 0.2s',
                 }}
-                onMouseEnter={(e) => (e.currentTarget.style.boxShadow = '0 6px 24px rgba(212,165,32,0.4)')}
-                onMouseLeave={(e) => (e.currentTarget.style.boxShadow = '0 4px 16px rgba(212,165,32,0.25)')}
+                onMouseEnter={(e) => {
+                  if (!isUsingFallbackBookingOptions) e.currentTarget.style.boxShadow = '0 6px 24px rgba(212,165,32,0.4)';
+                }}
+                onMouseLeave={(e) => {
+                  if (!isUsingFallbackBookingOptions) e.currentTarget.style.boxShadow = '0 4px 16px rgba(212,165,32,0.25)';
+                }}
               >
-                {isSubmitting ? 'Submitting...' : 'Confirm Booking'}
+                {isSubmitting ? 'Submitting...' : isUsingFallbackBookingOptions ? 'Booking Offline' : 'Confirm Booking'}
               </button>
             )}
           </div>

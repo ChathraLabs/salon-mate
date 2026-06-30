@@ -11,7 +11,9 @@ export type PublicService = {
 export type AvailabilityDay = {
   label: string;
   date: string;
+  allSlots: string[];
   slots: string[];
+  bookedSlots: string[];
 };
 
 export type PublicBookingResponse = {

@@ -14,7 +14,7 @@ const galleryImages = [
 
 export function Gallery() {
   return (
-    <section id="gallery" className="py-24 relative overflow-hidden" style={{ background: 'var(--muted)' }}>
+    <section id="gallery" className="py-24 relative overflow-hidden" style={{ background: 'var(--section-dark-green)' }}>
       <div
         className="absolute top-0 left-0 right-0 h-px pointer-events-none"
         style={{ background: 'linear-gradient(to right, transparent, rgba(212,165,32,0.3), transparent)' }}

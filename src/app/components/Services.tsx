@@ -2,38 +2,34 @@ import { Scissors, Heart, Sparkles, Hand, Palette, Droplet, Crown, Wind } from '
 
 const services = [
   {
+    id: 'hair-cutting',
     icon: Scissors,
-    name: 'Hair Styling',
-    description: 'Professional haircut, styling, and blow dry for all hair types.',
+    name: 'Hair Cutting',
+    description: 'Clean, precise haircuts and trims tailored to your face shape and style.',
     price: 'From LKR 2,500',
     duration: '45 min',
     image: 'https://images.unsplash.com/photo-1654097801176-cb1795fd0c5e?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3Nzg4Nzd8MHwxfHNlYXJjaHw1fHxzYWxvbiUyMGhhaXJjdXQlMjBzdHlsaW5nfGVufDF8fHx8MTc3ODUxODE2N3ww&ixlib=rb-4.1.0&q=80&w=1080',
   },
   {
-    icon: Crown,
-    name: 'Bridal Dressing',
-    description: 'Complete bridal makeup, hair styling, and saree draping services.',
-    price: 'From LKR 15,000',
-    duration: '3 hours',
-    image: 'https://images.unsplash.com/photo-1588842867976-fd084ca2c87b?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3Nzg4Nzd8MHwxfHNlYXJjaHwxfHxicmlkYWwlMjBtYWtldXAlMjBiZWF1dHl8ZW58MXx8fHwxNzc4NTE4MTc0fDA&ixlib=rb-4.1.0&q=80&w=1080',
-  },
-  {
+    id: 'hair-styling',
     icon: Sparkles,
-    name: 'Facial Treatments',
-    description: 'Deep cleansing, anti-aging, and rejuvenating facial therapies.',
-    price: 'From LKR 3,500',
-    duration: '60 min',
-    image: 'https://images.unsplash.com/photo-1599387737838-660b75526801?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3Nzg4Nzd8MHwxfHNlYXJjaHw3fHxzYWxvbiUyMGhhaXJjdXQlMjBzdHlsaW5nfGVufDF8fHx8MTc3ODUxODE2N3ww&ixlib=rb-4.1.0&q=80&w=1080',
+    name: 'Hair Styling',
+    description: 'Blow dry, hair setting, color, and finishing for polished everyday or event looks.',
+    price: 'From LKR 2,500',
+    duration: '45 min',
+    image: 'https://images.unsplash.com/photo-1762745103094-6760fab8eb50?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3Nzg4Nzd8MHwxfHNlYXJjaHw2fHxzYWxvbiUyMGhhaXJjdXQlMjBzdHlsaW5nfGVufDF8fHx8MTc3ODUxODE2N3ww&ixlib=rb-4.1.0&q=80&w=1080',
   },
   {
+    id: 'manicure-pedicure',
     icon: Hand,
-    name: 'Nail Care',
-    description: 'Manicure, pedicure, nail art, and gel nail extensions.',
+    name: 'Manicure & Pedicure',
+    description: 'Hand and foot care with shaping, cuticle care, polish, and optional gel finish.',
     price: 'From LKR 1,500',
-    duration: '30 min',
+    duration: '60 min',
     image: 'https://images.unsplash.com/photo-1772322586754-34c9e6f5be6f?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3Nzg4Nzd8MHwxfHNlYXJjaHw0fHxuYWlsJTIwY2FyZSUyMG1hbmljdXJlfGVufDF8fHx8MTc3ODUxODE3NXww&ixlib=rb-4.1.0&q=80&w=1080',
   },
   {
+    id: 'waxing-threading',
     icon: Wind,
     name: 'Waxing & Threading',
     description: 'Full body waxing, eyebrow threading, and facial hair removal.',
@@ -42,34 +38,64 @@ const services = [
     image: 'https://images.unsplash.com/photo-1560066984-138dadb4c035?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3Nzg4Nzd8MHwxfHNlYXJjaHwyfHxzYWxvbiUyMGhhaXJjdXQlMjBzdHlsaW5nfGVufDF8fHx8MTc3ODUxODE2N3ww&ixlib=rb-4.1.0&q=80&w=1080',
   },
   {
+    id: 'fire-cut-dreadlocks',
+    icon: Droplet,
+    name: 'Fire Cut & Dreadlocks',
+    description: 'Specialized fire-cut styling, dreadlock creation, and dreadlock maintenance.',
+    price: 'From LKR 4,000',
+    duration: '2 hours',
+    image: 'https://images.unsplash.com/photo-1560066984-138dadb4c035?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3Nzg4Nzd8MHwxfHNlYXJjaHwyfHxzYWxvbiUyMGhhaXJjdXQlMjBzdHlsaW5nfGVufDF8fHx8MTc3ODUxODE2N3ww&ixlib=rb-4.1.0&q=80&w=1080',
+  },
+  {
+    id: 'tattoo-piercing',
+    icon: Heart,
+    name: 'Tattoo & Piercing',
+    description: 'Tattoo consultation, tattoo sessions, and piercing services.',
+    price: 'Contact for pricing',
+    duration: 'Varies',
+    image: 'https://images.unsplash.com/photo-1696835196034-cf22e2b72736?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3Nzg4Nzd8MHwxfHNlYXJjaHwzfHxzYWxvbiUyMGhhaXJjdXQlMjBzdHlsaW5nfGVufDF8fHx8MTc3ODUxODE2N3ww&ixlib=rb-4.1.0&q=80&w=1080',
+  },
+  {
+    id: 'makeup',
     icon: Palette,
     name: 'Makeup',
-    description: 'Party makeup, bridal makeup, and special occasion styling.',
+    description: 'Party makeup, event makeup, lashes, and special occasion finishing.',
     price: 'From LKR 5,000',
     duration: '90 min',
     image: 'https://images.unsplash.com/photo-1641699862936-be9f49b1c38d?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3Nzg4Nzd8MHwxfHNlYXJjaHwyfHxicmlkYWwlMjBtYWtldXAlMjBiZWF1dHl8ZW58MXx8fHwxNzc4NTE4MTc0fDA&ixlib=rb-4.1.0&q=80&w=1080',
   },
   {
-    icon: Droplet,
-    name: 'Hair Coloring',
-    description: 'Full color, highlights, balayage, and ombre techniques.',
-    price: 'From LKR 4,000',
-    duration: '120 min',
-    image: 'https://images.unsplash.com/photo-1762745103094-6760fab8eb50?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3Nzg4Nzd8MHwxfHNlYXJjaHw2fHxzYWxvbiUyMGhhaXJjdXQlMjBzdHlsaW5nfGVufDF8fHx8MTc3ODUxODE2N3ww&ixlib=rb-4.1.0&q=80&w=1080',
+    id: 'bridal-dressing',
+    icon: Crown,
+    name: 'Bridal Dressing',
+    description: 'Complete bridal makeup, hair styling, and saree draping services.',
+    price: 'From LKR 15,000',
+    duration: '3 hours',
+    image: 'https://images.unsplash.com/photo-1588842867976-fd084ca2c87b?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3Nzg4Nzd8MHwxfHNlYXJjaHwxfHxicmlkYWwlMjBtYWtldXAlMjBiZWF1dHl8ZW58MXx8fHwxNzc4NTE4MTc0fDA&ixlib=rb-4.1.0&q=80&w=1080',
   },
   {
-    icon: Heart,
-    name: 'Tattoo Training',
-    description: 'Professional tattoo artist training and certification programs.',
-    price: 'Contact for pricing',
-    duration: 'Varies',
-    image: 'https://images.unsplash.com/photo-1696835196034-cf22e2b72736?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3Nzg4Nzd8MHwxfHNlYXJjaHwzfHxzYWxvbiUyMGhhaXJjdXQlMjBzdHlsaW5nfGVufDF8fHx8MTc3ODUxODE2N3ww&ixlib=rb-4.1.0&q=80&w=1080',
+    id: 'groom-dressing',
+    icon: Crown,
+    name: 'Groom Dressing',
+    description: 'Groom makeup, hair styling, and beard styling for wedding and formal looks.',
+    price: 'From LKR 8,000',
+    duration: '2 hours',
+    image: 'https://images.unsplash.com/photo-1654097801176-cb1795fd0c5e?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3Nzg4Nzd8MHwxfHNlYXJjaHw1fHxzYWxvbiUyMGhhaXJjdXQlMjBzdHlsaW5nfGVufDF8fHx8MTc3ODUxODE2N3ww&ixlib=rb-4.1.0&q=80&w=1080',
+  },
+  {
+    id: 'facial-cleanup',
+    icon: Sparkles,
+    name: 'Facial & Cleanup',
+    description: 'Refreshing cleanup, facial treatments, masks, and skin-brightening care.',
+    price: 'From LKR 3,500',
+    duration: '60 min',
+    image: 'https://images.unsplash.com/photo-1599387737838-660b75526801?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3Nzg4Nzd8MHwxfHNlYXJjaHw3fHxzYWxvbiUyMGhhaXJjdXQlMjBzdHlsaW5nfGVufDF8fHx8MTc3ODUxODE2N3ww&ixlib=rb-4.1.0&q=80&w=1080',
   },
 ];
 
-export function Services() {
+export function Services({ onBookService }: { onBookService?: (serviceId: string) => void }) {
   return (
-    <section id="services" className="py-24 relative overflow-hidden" style={{ background: 'var(--muted)' }}>
+    <section id="services" className="py-24 relative overflow-hidden" style={{ background: 'var(--background)' }}>
       {/* Ambient glow */}
       <div
         className="absolute top-0 left-1/2 -translate-x-1/2 w-full h-px pointer-events-none"
@@ -118,13 +144,13 @@ export function Services() {
           </div>
         </div>
 
-        <div className="grid md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-5">
+        <div className="flex flex-wrap justify-center gap-5">
           {services.map((service, index) => {
             const Icon = service.icon;
             return (
               <div
                 key={index}
-                className="group rounded-2xl overflow-hidden transition-all duration-300 hover:-translate-y-1"
+                className="group w-full overflow-hidden rounded-2xl transition-all duration-300 hover:-translate-y-1 md:w-[calc((100%-1.25rem)/2)] lg:w-[calc((100%-2.5rem)/3)] xl:w-[calc((100%-3.75rem)/4)]"
                 style={{
                   background: 'var(--card)',
                   border: '1px solid var(--border)',
@@ -192,6 +218,7 @@ export function Services() {
                   </div>
                   <a
                     href="#booking"
+                    onClick={() => onBookService?.(service.id)}
                     className="block text-center transition-all duration-200"
                     style={{
                       fontFamily: 'var(--font-body)',

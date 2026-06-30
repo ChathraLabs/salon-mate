@@ -1,5 +1,16 @@
 import { Facebook, Instagram, Youtube, Twitter, MapPin, Phone, Mail } from 'lucide-react';
-import logoImage from '../../imports/428409218_895173022613361_2413261302491507174_n.jpg';
+import logoImage from '../../imports/image-1.png';
+import { is_visible_cilent_review } from '../config/visibility';
+
+const quickLinks = [
+  { label: 'Home', href: '#home' },
+  { label: 'Book Appointment', href: '#booking' },
+  { label: 'Services', href: '#services' },
+  { label: 'Gallery', href: '#gallery' },
+  ...(is_visible_cilent_review ? [{ label: 'Reviews', href: '#reviews' }] : []),
+  { label: 'About Us', href: '#about' },
+  { label: 'Contact Us', href: '#contact' },
+];
 
 export function Footer() {
   return (
@@ -23,7 +34,7 @@ export function Footer() {
             <img
               src={logoImage.src}
               alt="Scissor King Dimma"
-              className="h-14 w-auto object-contain"
+              className="h-20 w-auto object-contain"
             />
             <p
               style={{
@@ -83,40 +94,24 @@ export function Footer() {
               Quick Links
             </h3>
             <ul className="space-y-3">
-              {['Home', 'Services', 'Gallery', 'Reviews', 'Contact'].map((item) => (
-                <li key={item}>
+              {quickLinks.map((item) => (
+                <li key={item.href}>
                   <a
-                    href={`#${item.toLowerCase()}`}
+                    href={item.href}
                     style={{
                       fontFamily: 'var(--font-body)',
-                      color: 'rgba(240,228,184,0.55)',
+                      color: item.href === '#booking' ? 'var(--gold)' : 'rgba(240,228,184,0.55)',
                       fontSize: '0.875rem',
                       transition: 'color 0.2s',
                       textDecoration: 'none',
                     }}
                     onMouseEnter={(e) => (e.currentTarget.style.color = 'var(--gold-light)')}
-                    onMouseLeave={(e) => (e.currentTarget.style.color = 'rgba(240,228,184,0.55)')}
+                    onMouseLeave={(e) => (e.currentTarget.style.color = item.href === '#booking' ? 'var(--gold)' : 'rgba(240,228,184,0.55)')}
                   >
-                    {item}
+                    {item.label}
                   </a>
                 </li>
               ))}
-              <li>
-                <a
-                  href="#booking"
-                  style={{
-                    fontFamily: 'var(--font-body)',
-                    color: 'var(--gold)',
-                    fontSize: '0.875rem',
-                    transition: 'color 0.2s',
-                    textDecoration: 'none',
-                  }}
-                  onMouseEnter={(e) => (e.currentTarget.style.color = 'var(--gold-light)')}
-                  onMouseLeave={(e) => (e.currentTarget.style.color = 'var(--gold)')}
-                >
-                  Book Appointment ›
-                </a>
-              </li>
             </ul>
           </div>
 
@@ -129,18 +124,18 @@ export function Footer() {
               <li className="flex items-start gap-2.5">
                 <MapPin className="w-4 h-4 flex-shrink-0 mt-0.5" style={{ color: 'var(--gold-dark)' }} />
                 <span style={{ fontFamily: 'var(--font-body)', color: 'rgba(240,228,184,0.55)', fontSize: '0.85rem', lineHeight: '1.6' }}>
-                  123 Galle Road, Colombo 03<br />Sri Lanka
+                  No 29 Salon Scissor<br />Bus Stand, Urubokka
                 </span>
               </li>
               <li className="flex items-center gap-2.5">
                 <Phone className="w-4 h-4 flex-shrink-0" style={{ color: 'var(--gold-dark)' }} />
                 <a
-                  href="tel:+94712345678"
+                  href="tel:+94715729660"
                   style={{ fontFamily: 'var(--font-body)', color: 'rgba(240,228,184,0.55)', fontSize: '0.85rem', transition: 'color 0.2s', textDecoration: 'none' }}
                   onMouseEnter={(e) => (e.currentTarget.style.color = 'var(--gold-light)')}
                   onMouseLeave={(e) => (e.currentTarget.style.color = 'rgba(240,228,184,0.55)')}
                 >
-                  +94 71 234 5678
+                  071 57 29 660
                 </a>
               </li>
               <li className="flex items-center gap-2.5">

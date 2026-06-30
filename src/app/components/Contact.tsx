@@ -1,4 +1,5 @@
 import { MapPin, Phone, Mail, Clock, MessageCircle, Navigation } from 'lucide-react';
+import { is_visible_cilent_review } from '../config/visibility';
 
 const contactItems = [
   {
@@ -7,8 +8,8 @@ const contactItems = [
     content: (
       <>
         Scissor King Dimma Academy<br />
-        123 Galle Road, Colombo 03<br />
-        Sri Lanka
+        No 29 Salon Scissor<br />
+        Bus Stand, Urubokka
       </>
     ),
   },
@@ -16,8 +17,8 @@ const contactItems = [
     icon: Phone,
     title: 'Phone',
     content: (
-      <a href="tel:+94712345678" style={{ color: 'var(--gold)', fontFamily: 'var(--font-body)', transition: 'color 0.2s', textDecoration: 'none' }}>
-        +94 71 234 5678
+      <a href="tel:+94715729660" style={{ color: 'var(--gold)', fontFamily: 'var(--font-body)', transition: 'color 0.2s', textDecoration: 'none' }}>
+        071 57 29 660
       </a>
     ),
   },
@@ -25,8 +26,8 @@ const contactItems = [
     icon: MessageCircle,
     title: 'WhatsApp',
     content: (
-      <a href="https://wa.me/94712345678" style={{ color: 'var(--gold)', fontFamily: 'var(--font-body)', transition: 'color 0.2s', textDecoration: 'none' }}>
-        +94 71 234 5678
+      <a href="https://wa.me/94715729660" style={{ color: 'var(--gold)', fontFamily: 'var(--font-body)', transition: 'color 0.2s', textDecoration: 'none' }}>
+        071 57 29 660
       </a>
     ),
   },
@@ -52,14 +53,18 @@ const contactItems = [
 ];
 
 const quickLinks = [
-  { icon: Phone, label: 'Call Now', href: 'tel:+94712345678' },
-  { icon: MessageCircle, label: 'WhatsApp', href: 'https://wa.me/94712345678' },
-  { icon: Navigation, label: 'Directions', href: 'https://maps.google.com', external: true },
+  { icon: Phone, label: 'Call Now', href: 'tel:+94715729660' },
+  { icon: MessageCircle, label: 'WhatsApp', href: 'https://wa.me/94715729660' },
+  { icon: Navigation, label: 'Directions', href: 'https://maps.google.com/?q=No%2029%20Salon%20Scissor%20Bus%20Stand%20Urubokka', external: true },
 ];
 
 export function Contact() {
   return (
-    <section id="contact" className="py-24 relative overflow-hidden" style={{ background: 'var(--background)' }}>
+    <section
+      id="contact"
+      className="py-24 relative overflow-hidden"
+      style={{ background: is_visible_cilent_review ? 'var(--background)' : 'var(--section-dark-green)' }}
+    >
       <div
         className="absolute top-0 left-0 right-0 h-px pointer-events-none"
         style={{ background: 'linear-gradient(to right, transparent, rgba(212,165,32,0.3), transparent)' }}
@@ -170,7 +175,7 @@ export function Contact() {
             }}
           >
             <iframe
-              src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d3960.798467128487!2d79.84593631477229!3d6.914589995010283!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x3ae259694f8a1d83%3A0xf36e0cc81c0d8f16!2sGalle%20Road%2C%20Colombo%2C%20Sri%20Lanka!5e0!3m2!1sen!2s!4v1620000000000!5m2!1sen!2s"
+              src="https://www.google.com/maps?q=No%2029%20Salon%20Scissor%20Bus%20Stand%20Urubokka&output=embed"
               width="100%"
               height="100%"
               style={{ border: 0, display: 'block', minHeight: '480px' }}
