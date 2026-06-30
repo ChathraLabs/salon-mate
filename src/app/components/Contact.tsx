@@ -35,8 +35,8 @@ const contactItems = [
     icon: Mail,
     title: 'Email',
     content: (
-      <a href="mailto:info@scissorkingdimma.lk" style={{ color: 'var(--gold)', fontFamily: 'var(--font-body)', transition: 'color 0.2s', textDecoration: 'none' }}>
-        info@scissorkingdimma.lk
+      <a href="mailto:srinathdimuthu@gmail.com" style={{ color: 'var(--gold)', fontFamily: 'var(--font-body)', transition: 'color 0.2s', textDecoration: 'none' }}>
+        srinathdimuthu@gmail.com
       </a>
     ),
   },
@@ -45,8 +45,8 @@ const contactItems = [
     title: 'Opening Hours',
     content: (
       <>
-        Monday – Saturday: 9:00 AM – 7:00 PM<br />
-        Sunday: Closed
+        Monday – Sunday: 8:00 AM – 10:00 PM<br />
+        Poya Day: Closed
       </>
     ),
   },

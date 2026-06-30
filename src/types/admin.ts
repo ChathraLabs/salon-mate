@@ -28,6 +28,6 @@ export type AdminStaffRow = {
   id: string;
   name: string;
   email: string;
-  role: "OWNER" | "STAFF";
+  role: "SUPER_ADMIN" | "OWNER" | "STAFF";
   active: boolean;
 };

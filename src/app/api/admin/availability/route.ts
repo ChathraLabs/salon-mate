@@ -1,10 +1,10 @@
 import { NextResponse } from "next/server";
-import { requireOwner } from "@/server/auth/guards";
+import { requireAdmin } from "@/server/auth/guards";
 import { availabilitySchema } from "@/server/validation/admin";
 import { getAdminAvailability, updateAvailability } from "@/server/services/availability";
 
 export async function GET() {
-  const auth = await requireOwner();
+  const auth = await requireAdmin();
   if (auth.response) return auth.response;
 
   const availability = await getAdminAvailability();
@@ -12,7 +12,7 @@ export async function GET() {
 }
 
 export async function POST(request: Request) {
-  const auth = await requireOwner();
+  const auth = await requireAdmin();
   if (auth.response) return auth.response;
 
   const parsed = availabilitySchema.safeParse(await request.json());

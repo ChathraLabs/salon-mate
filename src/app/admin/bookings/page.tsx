@@ -3,8 +3,10 @@
 import { useEffect, useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
 import type { AdminBookingRow, AdminStaffRow } from "@/types/admin";
+import { AdminShell } from "../components/AdminShell";
 
 const statuses = ["PENDING", "CONFIRMED", "REJECTED", "CANCELLED", "COMPLETED"] as const;
+type AdminUserRole = "SUPER_ADMIN" | "OWNER" | "STAFF";
 
 function formatDateTime(value: string) {
   return new Intl.DateTimeFormat("en-LK", {
@@ -20,6 +22,7 @@ export default function AdminBookingsPage() {
   const [staff, setStaff] = useState<AdminStaffRow[]>([]);
   const [selectedId, setSelectedId] = useState<string | null>(null);
   const [statusFilter, setStatusFilter] = useState("");
+  const [role, setRole] = useState<AdminUserRole | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
@@ -49,6 +52,12 @@ export default function AdminBookingsPage() {
       setBookings(data.bookings);
       setSelectedId((current) => current ?? data.bookings[0]?.id ?? null);
 
+      const userResponse = await fetch("/api/admin/auth/me");
+      if (userResponse.ok) {
+        const userData = await userResponse.json();
+        setRole(userData.user.role);
+      }
+
       const staffResponse = await fetch("/api/admin/staff");
       if (staffResponse.ok) {
         const staffData = await staffResponse.json();
@@ -65,6 +74,8 @@ export default function AdminBookingsPage() {
     loadBookings();
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [statusFilter]);
+
+  const canAssignStaff = role === "SUPER_ADMIN" || role === "OWNER";
 
   async function updateBooking(payload: { status?: string; assignedStaffId?: string | null; adminNote?: string | null }) {
     if (!selectedBooking) return;
@@ -85,28 +96,16 @@ export default function AdminBookingsPage() {
     setBookings((current) => current.map((booking) => (booking.id === data.booking.id ? data.booking : booking)));
   }
 
-  async function logout() {
-    await fetch("/api/admin/auth/logout", { method: "POST" });
-    router.push("/admin/login");
-  }
-
   return (
-    <main className="min-h-screen p-4 sm:p-8" style={{ background: "var(--background)", color: "var(--foreground)" }}>
-      <div className="max-w-7xl mx-auto space-y-6">
-        <header className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+    <AdminShell active="booking">
+      <div className="space-y-6">
+        <header>
           <div>
             <h1 style={{ fontFamily: "var(--font-heading)", fontSize: "2.25rem" }}>Bookings</h1>
             <p style={{ color: "var(--muted-foreground)", fontFamily: "var(--font-body)" }}>
               Review, assign, and update appointment requests.
             </p>
           </div>
-          <button
-            onClick={logout}
-            className="px-4 py-2"
-            style={{ border: "1px solid var(--border)", borderRadius: "9999px", background: "transparent", color: "var(--foreground)" }}
-          >
-            Logout
-          </button>
         </header>
 
         <div className="flex flex-wrap gap-3 items-center">
@@ -208,20 +207,26 @@ export default function AdminBookingsPage() {
                   </select>
                 </label>
 
-                <label className="block space-y-2">
-                  <span>Assigned staff</span>
-                  <select
-                    value={selectedBooking.assignedStaff?.id ?? ""}
-                    onChange={(event) => updateBooking({ assignedStaffId: event.target.value || null })}
-                    className="w-full px-3 py-2"
-                    style={{ background: "var(--input-background)", color: "var(--foreground)", border: "1px solid var(--border)", borderRadius: "0.75rem" }}
-                  >
-                    <option value="">Unassigned</option>
-                    {staff.map((member) => (
-                      <option key={member.id} value={member.id}>{member.name}</option>
-                    ))}
-                  </select>
-                </label>
+                {canAssignStaff ? (
+                  <label className="block space-y-2">
+                    <span>Assigned staff</span>
+                    <select
+                      value={selectedBooking.assignedStaff?.id ?? ""}
+                      onChange={(event) => updateBooking({ assignedStaffId: event.target.value || null })}
+                      className="w-full px-3 py-2"
+                      style={{ background: "var(--input-background)", color: "var(--foreground)", border: "1px solid var(--border)", borderRadius: "0.75rem" }}
+                    >
+                      <option value="">Unassigned</option>
+                      {staff.map((member) => (
+                        <option key={member.id} value={member.id}>{member.name}</option>
+                      ))}
+                    </select>
+                  </label>
+                ) : (
+                  <p style={{ color: "var(--muted-foreground)", fontFamily: "var(--font-body)" }}>
+                    <strong>Assigned staff:</strong> {selectedBooking.assignedStaff?.name ?? "Unassigned"}
+                  </p>
+                )}
 
                 <label className="block space-y-2">
                   <span>Admin note</span>
@@ -240,6 +245,6 @@ export default function AdminBookingsPage() {
           </aside>
         </div>
       </div>
-    </main>
+    </AdminShell>
   );
 }

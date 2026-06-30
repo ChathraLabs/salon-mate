@@ -4,7 +4,7 @@ import { hashPassword } from "@/server/auth/password";
 
 export async function listStaff() {
   return prisma.user.findMany({
-    where: { role: { in: [UserRole.OWNER, UserRole.STAFF] } },
+    where: { role: { in: [UserRole.SUPER_ADMIN, UserRole.OWNER, UserRole.STAFF] } },
     select: { id: true, name: true, email: true, role: true, active: true },
     orderBy: [{ role: "asc" }, { name: "asc" }],
   });

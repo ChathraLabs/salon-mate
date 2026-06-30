@@ -1,4 +1,4 @@
-import { Facebook, Instagram, Youtube, Twitter, MapPin, Phone, Mail } from 'lucide-react';
+import { Facebook, Youtube, MapPin, Phone, Mail } from 'lucide-react';
 import logoImage from '../../imports/image-1.png';
 import { is_visible_cilent_review } from '../config/visibility';
 
@@ -51,10 +51,8 @@ export function Footer() {
             {/* Social Icons */}
             <div className="flex items-center gap-3 pt-1">
               {[
-                { href: 'https://facebook.com', Icon: Facebook, label: 'Facebook' },
-                { href: 'https://instagram.com', Icon: Instagram, label: 'Instagram' },
-                { href: 'https://youtube.com', Icon: Youtube, label: 'YouTube' },
-                { href: 'https://twitter.com', Icon: Twitter, label: 'Twitter' },
+                { href: 'https://www.facebook.com/DimmaGroup', Icon: Facebook, label: 'Facebook' },
+                { href: 'https://www.youtube.com/@scissorkingdimma', Icon: Youtube, label: 'YouTube' },
               ].map(({ href, Icon, label }) => (
                 <a
                   key={label}
@@ -141,12 +139,12 @@ export function Footer() {
               <li className="flex items-center gap-2.5">
                 <Mail className="w-4 h-4 flex-shrink-0" style={{ color: 'var(--gold-dark)' }} />
                 <a
-                  href="mailto:info@scissorkingdimma.lk"
+                  href="mailto:srinathdimuthu@gmail.com"
                   style={{ fontFamily: 'var(--font-body)', color: 'rgba(240,228,184,0.55)', fontSize: '0.85rem', transition: 'color 0.2s', textDecoration: 'none' }}
                   onMouseEnter={(e) => (e.currentTarget.style.color = 'var(--gold-light)')}
                   onMouseLeave={(e) => (e.currentTarget.style.color = 'rgba(240,228,184,0.55)')}
                 >
-                  info@scissorkingdimma.lk
+                  srinathdimuthu@gmail.com
                 </a>
               </li>
             </ul>

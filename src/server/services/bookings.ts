@@ -1,5 +1,6 @@
 import { BookingStatus, Prisma, UserRole } from "@prisma/client";
 import { prisma } from "@/server/db";
+import { canManageSalon } from "@/server/auth/roles";
 import { addMinutes, dateTimeFromLocalParts, parseDisplayTime } from "./time";
 
 function bookingCode() {
@@ -113,7 +114,7 @@ export async function updateAdminBooking(
     where: { id: input.id },
     data: {
       status: input.status,
-      assignedStaffId: actor.role === UserRole.OWNER ? input.assignedStaffId : undefined,
+      assignedStaffId: canManageSalon(actor.role) ? input.assignedStaffId : undefined,
       adminNote: input.adminNote,
     },
     include: {

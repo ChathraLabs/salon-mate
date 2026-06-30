@@ -1,88 +1,22 @@
 import { useEffect, useMemo, useState } from 'react';
 import { Check, ChevronRight, ChevronLeft, Calendar as CalendarIcon, Clock, User, CheckCircle } from 'lucide-react';
 import { Calendar as DatePickerCalendar } from './ui/calendar';
+import {
+  formatServiceDuration as formatDurationLabel,
+  formatServicePrice as formatPrice,
+  getSalonService,
+  publicSalonServices,
+  type SalonServiceOption,
+} from '../config/services';
 import type { AvailabilityDay, PublicService } from '@/types/booking';
 
 type BookingProps = {
   requestedService?: { id: string; key: number } | null;
 };
 
-type ServiceOption = {
-  id: string;
-  label: string;
-  price: number;
-  durationMinutes: number;
-  defaultSelected?: boolean;
-};
-
-const fallbackServices: PublicService[] = [
-  { id: 'hair-cutting', name: 'Hair Cutting', description: null, priceCents: 250000, price: 2500, durationMinutes: 45, duration: '45 min' },
-  { id: 'hair-styling', name: 'Hair Styling', description: null, priceCents: 250000, price: 2500, durationMinutes: 45, duration: '45 min' },
-  { id: 'manicure-pedicure', name: 'Manicure & Pedicure', description: null, priceCents: 150000, price: 1500, durationMinutes: 60, duration: '1 hour' },
-  { id: 'waxing-threading', name: 'Waxing & Threading', description: null, priceCents: 50000, price: 500, durationMinutes: 20, duration: '20 min' },
-  { id: 'fire-cut-dreadlocks', name: 'Fire Cut & Dreadlocks', description: null, priceCents: 400000, price: 4000, durationMinutes: 120, duration: '2 hours' },
-  { id: 'tattoo-piercing', name: 'Tattoo & Piercing', description: null, priceCents: 0, price: 0, durationMinutes: 60, duration: '1 hour' },
-  { id: 'makeup', name: 'Makeup', description: null, priceCents: 500000, price: 5000, durationMinutes: 90, duration: '1 hr 30 min' },
-  { id: 'bridal-dressing', name: 'Bridal Dressing', description: null, priceCents: 1500000, price: 15000, durationMinutes: 180, duration: '3 hours' },
-  { id: 'groom-dressing', name: 'Groom Dressing', description: null, priceCents: 800000, price: 8000, durationMinutes: 120, duration: '2 hours' },
-  { id: 'facial-cleanup', name: 'Facial & Cleanup', description: null, priceCents: 350000, price: 3500, durationMinutes: 60, duration: '1 hour' },
-];
+const fallbackServices: PublicService[] = publicSalonServices;
 
 const stepLabels = ['Service', 'Date & Time', 'Details', 'Confirm'];
-
-const serviceOptionCatalog: Record<string, ServiceOption[]> = {
-  'hair-cutting': [
-    { id: 'hair-cut', label: 'Hair Cut', price: 2500, durationMinutes: 45, defaultSelected: true },
-    { id: 'beard-cut', label: 'Beard Cut', price: 1000, durationMinutes: 20 },
-    { id: 'kids-cut', label: 'Kids Cut', price: 1500, durationMinutes: 30 },
-  ],
-  'hair-styling': [
-    { id: 'hair-styling', label: 'Hair Styling', price: 2500, durationMinutes: 45, defaultSelected: true },
-    { id: 'blow-dry', label: 'Blow Dry', price: 2000, durationMinutes: 35 },
-    { id: 'hair-color', label: 'Hair Color', price: 4000, durationMinutes: 120 },
-    { id: 'head-massage', label: 'Head Massage', price: 1500, durationMinutes: 30 },
-  ],
-  'manicure-pedicure': [
-    { id: 'manicure', label: 'Manicure', price: 1500, durationMinutes: 30, defaultSelected: true },
-    { id: 'pedicure', label: 'Pedicure', price: 2000, durationMinutes: 40 },
-    { id: 'gel-polish', label: 'Gel Polish', price: 2500, durationMinutes: 45 },
-  ],
-  'waxing-threading': [
-    { id: 'eyebrow-threading', label: 'Eyebrow Threading', price: 500, durationMinutes: 20, defaultSelected: true },
-    { id: 'face-waxing', label: 'Face Waxing', price: 1500, durationMinutes: 30 },
-    { id: 'full-body-waxing', label: 'Full Body Waxing', price: 6500, durationMinutes: 120 },
-  ],
-  'fire-cut-dreadlocks': [
-    { id: 'fire-cut', label: 'Fire Cut', price: 4000, durationMinutes: 90, defaultSelected: true },
-    { id: 'dreadlocks', label: 'Dreadlocks', price: 9000, durationMinutes: 180 },
-    { id: 'dreadlock-maintenance', label: 'Dreadlock Maintenance', price: 4500, durationMinutes: 90 },
-  ],
-  'tattoo-piercing': [
-    { id: 'tattoo-consultation', label: 'Tattoo Consultation', price: 0, durationMinutes: 30, defaultSelected: true },
-    { id: 'tattoo-session', label: 'Tattoo Session', price: 0, durationMinutes: 120 },
-    { id: 'ear-piercing', label: 'Ear Piercing', price: 2500, durationMinutes: 30 },
-  ],
-  makeup: [
-    { id: 'party-makeup', label: 'Party Makeup', price: 5000, durationMinutes: 90, defaultSelected: true },
-    { id: 'hair-setting', label: 'Hair Setting', price: 2500, durationMinutes: 45 },
-    { id: 'lashes', label: 'Lashes', price: 1500, durationMinutes: 20 },
-  ],
-  'bridal-dressing': [
-    { id: 'bridal-makeup', label: 'Bridal Makeup', price: 9000, durationMinutes: 120, defaultSelected: true },
-    { id: 'bridal-hair', label: 'Bridal Hair Styling', price: 3000, durationMinutes: 45 },
-    { id: 'saree-draping', label: 'Saree Draping', price: 3000, durationMinutes: 45 },
-  ],
-  'groom-dressing': [
-    { id: 'groom-makeup', label: 'Groom Makeup', price: 5000, durationMinutes: 75, defaultSelected: true },
-    { id: 'groom-hair', label: 'Groom Hair Styling', price: 2000, durationMinutes: 35 },
-    { id: 'beard-styling', label: 'Beard Styling', price: 1500, durationMinutes: 25 },
-  ],
-  'facial-cleanup': [
-    { id: 'cleanup', label: 'Cleanup', price: 2500, durationMinutes: 45, defaultSelected: true },
-    { id: 'facial', label: 'Facial', price: 3500, durationMinutes: 60 },
-    { id: 'brightening', label: 'Brightening Mask', price: 2500, durationMinutes: 30 },
-  ],
-};
 
 const defaultTimeSlots = Array.from({ length: 15 }, (_, index) => {
   const hour = index + 8;
@@ -95,16 +29,6 @@ function formatTimeLabel(time: string) {
   const suffix = hour >= 12 ? 'PM' : 'AM';
   const displayHour = hour % 12 === 0 ? 12 : hour % 12;
   return `${displayHour}:${minute} ${suffix}`;
-}
-
-function formatDurationLabel(minutes: number) {
-  if (minutes < 60) return `${minutes} min`;
-  if (minutes % 60 === 0) return `${minutes / 60} hour${minutes === 60 ? '' : 's'}`;
-  return `${Math.floor(minutes / 60)} hr ${minutes % 60} min`;
-}
-
-function formatPrice(price: number) {
-  return price > 0 ? `LKR ${price.toLocaleString()}` : 'Contact for pricing';
 }
 
 function dateToLocalDate(date: string) {
@@ -137,18 +61,24 @@ function fallbackAvailabilityDays(days = 7): AvailabilityDay[] {
   });
 }
 
-function optionsForService(service: PublicService | null): ServiceOption[] {
+function optionsForService(service: PublicService | null): SalonServiceOption[] {
   if (!service) return [];
 
-  return serviceOptionCatalog[service.id] ?? [
+  return getSalonService(service.id)?.options ?? [
     {
       id: service.id,
-      label: service.name,
+      name: service.name,
       price: service.price,
-      durationMinutes: service.durationMinutes,
+      duration: service.durationMinutes,
       defaultSelected: true,
     },
   ];
+}
+
+function resolvePublicService(serviceId: string, services: PublicService[]) {
+  return services.find((item) => item.id === serviceId)
+    ?? publicSalonServices.find((item) => item.id === serviceId)
+    ?? null;
 }
 
 const inputBase: React.CSSProperties = {
@@ -224,7 +154,7 @@ export function Booking({ requestedService }: BookingProps) {
         }
 
         if (!cancelled) {
-          setServices(servicesData.services);
+          setServices(publicSalonServices);
           setDates(availabilityData.days);
           setLoadError(null);
         }
@@ -246,7 +176,7 @@ export function Booking({ requestedService }: BookingProps) {
   useEffect(() => {
     if (!requestedService) return;
 
-    const service = services.find((item) => item.id === requestedService.id);
+    const service = resolvePublicService(requestedService.id, services);
     if (!service) return;
 
     selectService(service);
@@ -298,8 +228,8 @@ export function Booking({ requestedService }: BookingProps) {
     [selectedOptionIds, selectedServiceOptions],
   );
   const selectedTotalPrice = selectedOptions.reduce((total, option) => total + option.price, 0);
-  const selectedTotalDuration = selectedOptions.reduce((total, option) => total + option.durationMinutes, 0);
-  const selectedOptionLabels = selectedOptions.map((option) => option.label).join(', ');
+  const selectedTotalDuration = selectedOptions.reduce((total, option) => total + option.duration, 0);
+  const selectedOptionLabels = selectedOptions.map((option) => option.name).join(', ');
 
   const handleNext = () => { if (step < stepLabels.length) setStep(step + 1); };
   const handleBack = () => { if (step > 1) setStep(step - 1); };
@@ -603,10 +533,10 @@ export function Booking({ requestedService }: BookingProps) {
                           }}
                         >
                           <span className="flex-1" style={{ fontFamily: 'var(--font-heading)', color: 'var(--foreground)', fontSize: '1rem' }}>
-                            {option.label}
+                            {option.name}
                           </span>
                           <span style={{ fontFamily: 'var(--font-body)', color: 'var(--muted-foreground)', fontSize: '0.78rem' }}>
-                            {formatDurationLabel(option.durationMinutes)}
+                            {formatDurationLabel(option.duration)}
                           </span>
                           <span style={{ fontFamily: 'var(--font-body)', color: 'var(--gold)', fontSize: '0.82rem', minWidth: '6.5rem', textAlign: 'right' }}>
                             {formatPrice(option.price)}
