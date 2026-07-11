@@ -9,9 +9,11 @@ import { Booking } from './components/Booking';
 import { Contact } from './components/Contact';
 import { Footer } from './components/Footer';
 import { MobileMenu } from './components/MobileMenu';
+import { is_visible_cilent_review } from './config/visibility';
 
 export default function App() {
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+  const [requestedService, setRequestedService] = useState<{ id: string; key: number } | null>(null);
 
   return (
     <div className="min-h-screen" style={{ background: 'var(--background)' }}>
@@ -20,11 +22,11 @@ export default function App() {
 
       <main>
         <Hero />
-        <Services />
-        <About />
+        <Booking requestedService={requestedService} />
+        <Services onBookService={(id) => setRequestedService({ id, key: Date.now() })} />
         <Gallery />
-        <Reviews />
-        <Booking />
+        {is_visible_cilent_review && <Reviews />}
+        <About />
         <Contact />
       </main>
 

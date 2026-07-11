@@ -1,4 +1,5 @@
 import { Award, Users, Briefcase } from 'lucide-react';
+import { is_visible_cilent_review } from '../config/visibility';
 
 const stats = [
   { icon: Award, value: '5+', label: 'Years Experience', color: 'var(--gold)' },
@@ -8,7 +9,11 @@ const stats = [
 
 export function About() {
   return (
-    <section id="about" className="py-24 relative overflow-hidden" style={{ background: 'var(--background)' }}>
+    <section
+      id="about"
+      className="py-24 relative overflow-hidden"
+      style={{ background: is_visible_cilent_review ? 'var(--section-dark-green)' : 'var(--background)' }}
+    >
       {/* Top gold line */}
       <div
         className="absolute top-0 left-0 right-0 h-px pointer-events-none"
@@ -47,8 +52,8 @@ export function About() {
               style={{ border: '1px solid rgba(212,165,32,0.2)', boxShadow: '0 8px 48px rgba(0,0,0,0.5)' }}
             >
               <img
-                src="https://images.unsplash.com/photo-1600948836101-f9ffda59d250?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3Nzg4Nzd8MHwxfHNlYXJjaHwxfHxzYWxvbiUyMGludGVyaW9yJTIwbW9kZXJufGVufDF8fHx8MTc3ODUxODE3NXww&ixlib=rb-4.1.0&q=80&w=1080"
-                alt="Salon Interior"
+                src="/unsplash.com/about-us.png"
+                alt="Scissor King Dimma salon interior"
                 className="w-full h-full object-cover"
               />
               {/* Subtle dark overlay at bottom */}

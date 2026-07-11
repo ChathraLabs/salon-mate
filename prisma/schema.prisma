@@ -8,6 +8,7 @@ datasource db {
 }
 
 enum UserRole {
+  SUPER_ADMIN
   OWNER
   STAFF
 }
@@ -26,17 +27,18 @@ enum AvailabilityExceptionType {
 }
 
 model User {
-  id           String     @id @default(cuid())
-  name         String
-  email        String     @unique
-  passwordHash String
-  role         UserRole   @default(STAFF)
-  active       Boolean    @default(true)
-  createdAt    DateTime   @default(now())
-  updatedAt    DateTime   @updatedAt
-  sessions     Session[]
-  bookings     Booking[]  @relation("AssignedStaff")
-  auditLogs    AuditLog[]
+  id                     String                  @id @default(cuid())
+  name                   String
+  email                  String                  @unique
+  passwordHash           String
+  role                   UserRole                @default(STAFF)
+  active                 Boolean                 @default(true)
+  createdAt              DateTime                @default(now())
+  updatedAt              DateTime                @updatedAt
+  sessions               Session[]
+  bookings               Booking[]               @relation("AssignedStaff")
+  availabilityExceptions AvailabilityException[] @relation("StaffAvailabilityExceptions")
+  auditLogs              AuditLog[]
 }
 
 model Session {
@@ -80,14 +82,17 @@ model BusinessHour {
 model AvailabilityException {
   id        String                    @id @default(cuid())
   date      DateTime
+  staffId   String?
   type      AvailabilityExceptionType
   startsAt  String?
   endsAt    String?
   reason    String?
   createdAt DateTime                  @default(now())
   updatedAt DateTime                  @updatedAt
+  staff     User?                     @relation("StaffAvailabilityExceptions", fields: [staffId], references: [id], onDelete: Cascade)
 
   @@index([date])
+  @@index([staffId])
 }
 
 model Customer {

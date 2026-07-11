@@ -199,8 +199,8 @@ export function Hero() {
             {/* Main image */}
             <div className="relative h-full rounded-3xl overflow-hidden" style={{ border: '1px solid rgba(212,165,32,0.15)' }}>
               <img
-                src="https://images.unsplash.com/photo-1776850476481-2bccba2e35c7?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3Nzg4Nzd8MHwxfHNlYXJjaHwxfHxzYWxvbiUyMGhhaXJjdXQlMjBzdHlsaW5nfGVufDF8fHx8MTc3ODUxODE2N3ww&ixlib=rb-4.1.0&q=80&w=1080"
-                alt="Professional Salon Service"
+                src="/unsplash.com/salon-reciption.png"
+                alt="Scissor King Dimma salon reception"
                 className="w-full h-full object-cover"
               />
               {/* Dark-to-transparent overlay */}
@@ -221,7 +221,7 @@ export function Hero() {
                   Scissor King Dimma
                 </p>
                 <p style={{ fontFamily: 'var(--font-body)', color: 'var(--muted-foreground)', fontSize: '0.75rem' }}>
-                  Est. 2020 · Colombo, Sri Lanka
+                  Est. 2020 · Urubokka, Sri Lanka
                 </p>
               </div>
             </div>

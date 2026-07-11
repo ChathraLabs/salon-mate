@@ -1,10 +1,20 @@
 import { useState, useEffect } from 'react';
 import { Menu } from 'lucide-react';
-import logoImage from '../../imports/428409218_895173022613361_2413261302491507174_n.jpg';
+import logoImage from '../../imports/image-1.png';
+import { is_visible_cilent_review } from '../config/visibility';
 
 interface HeaderProps {
   onMenuClick: () => void;
 }
+
+const navLinks = [
+  { label: 'Home', href: '#home' },
+  { label: 'Services', href: '#services' },
+  { label: 'Gallery', href: '#gallery' },
+  ...(is_visible_cilent_review ? [{ label: 'Reviews', href: '#reviews' }] : []),
+  { label: 'About Us', href: '#about' },
+  { label: 'Contact Us', href: '#contact' },
+];
 
 export function Header({ onMenuClick }: HeaderProps) {
   const [isScrolled, setIsScrolled] = useState(false);
@@ -42,16 +52,16 @@ export function Header({ onMenuClick }: HeaderProps) {
             <img
               src={logoImage.src}
               alt="Scissor King Dimma"
-              className="h-12 sm:h-14 w-auto object-contain"
+              className="h-14 sm:h-16 w-auto object-contain"
             />
           </div>
 
           {/* Desktop Navigation */}
           <nav className="hidden lg:flex items-center gap-8">
-            {['Home', 'Services', 'Gallery', 'Reviews', 'Contact'].map((item) => (
+            {navLinks.map((item) => (
               <a
-                key={item}
-                href={`#${item.toLowerCase()}`}
+                key={item.href}
+                href={item.href}
                 className="relative group transition-colors"
                 style={{
                   fontFamily: 'var(--font-body)',
@@ -63,7 +73,7 @@ export function Header({ onMenuClick }: HeaderProps) {
                 onMouseEnter={(e) => (e.currentTarget.style.color = 'var(--gold-light)')}
                 onMouseLeave={(e) => (e.currentTarget.style.color = 'var(--muted-foreground)')}
               >
-                {item}
+                {item.label}
                 {/* Gold underline on hover */}
                 <span
                   className="absolute -bottom-0.5 left-0 w-0 h-px transition-all duration-300 group-hover:w-full"

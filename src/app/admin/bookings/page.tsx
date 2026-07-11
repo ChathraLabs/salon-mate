@@ -3,8 +3,11 @@
 import { useEffect, useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
 import type { AdminBookingRow, AdminStaffRow } from "@/types/admin";
+import { isStaffAllowedForService } from "@/app/config/services";
+import { AdminShell } from "../components/AdminShell";
 
 const statuses = ["PENDING", "CONFIRMED", "REJECTED", "CANCELLED", "COMPLETED"] as const;
+type AdminUserRole = "SUPER_ADMIN" | "OWNER" | "STAFF";
 
 function formatDateTime(value: string) {
   return new Intl.DateTimeFormat("en-LK", {
@@ -14,12 +17,17 @@ function formatDateTime(value: string) {
   }).format(new Date(value));
 }
 
+function firstName(name?: string | null) {
+  return name?.trim().split(/\s+/)[0] ?? "Unassigned";
+}
+
 export default function AdminBookingsPage() {
   const router = useRouter();
   const [bookings, setBookings] = useState<AdminBookingRow[]>([]);
   const [staff, setStaff] = useState<AdminStaffRow[]>([]);
   const [selectedId, setSelectedId] = useState<string | null>(null);
   const [statusFilter, setStatusFilter] = useState("");
+  const [role, setRole] = useState<AdminUserRole | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
@@ -27,6 +35,16 @@ export default function AdminBookingsPage() {
     () => bookings.find((booking) => booking.id === selectedId) ?? bookings[0] ?? null,
     [bookings, selectedId],
   );
+  const activeStaff = useMemo(() => staff.filter((member) => member.active), [staff]);
+  const assignableStaff = useMemo(() => {
+    if (!selectedBooking) return [];
+
+    return activeStaff.filter((member) => (
+      member.active
+      && member.role !== "SUPER_ADMIN"
+      && isStaffAllowedForService(selectedBooking.service.id, member.name)
+    ));
+  }, [activeStaff, selectedBooking]);
 
   async function loadBookings() {
     setLoading(true);
@@ -34,26 +52,41 @@ export default function AdminBookingsPage() {
 
     try {
       const query = statusFilter ? `?status=${statusFilter}` : "";
-      const response = await fetch(`/api/admin/bookings${query}`);
+      const [response, userResponse, staffResponse] = await Promise.all([
+        fetch(`/api/admin/bookings${query}`),
+        fetch("/api/admin/auth/me"),
+        fetch("/api/admin/staff"),
+      ]);
 
-      if (response.status === 401) {
+      if (
+        response.status === 401
+        || userResponse.status === 401
+        || staffResponse.status === 401
+      ) {
         router.push("/admin/login");
         return;
       }
 
-      const data = await response.json();
+      const [data, userData, staffData] = await Promise.all([
+        response.json(),
+        userResponse.json(),
+        staffResponse.json(),
+      ]);
+
       if (!response.ok) {
         throw new Error(data.error ?? "Unable to load bookings.");
+      }
+      if (!userResponse.ok) {
+        throw new Error(userData.error ?? "Unable to load admin user.");
+      }
+      if (!staffResponse.ok) {
+        throw new Error(staffData.error ?? "Unable to load staff.");
       }
 
       setBookings(data.bookings);
       setSelectedId((current) => current ?? data.bookings[0]?.id ?? null);
-
-      const staffResponse = await fetch("/api/admin/staff");
-      if (staffResponse.ok) {
-        const staffData = await staffResponse.json();
-        setStaff(staffData.staff);
-      }
+      setRole(userData.user.role);
+      setStaff(staffData.staff);
     } catch (error) {
       setError(error instanceof Error ? error.message : "Unable to load bookings.");
     } finally {
@@ -65,6 +98,8 @@ export default function AdminBookingsPage() {
     loadBookings();
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [statusFilter]);
+
+  const canAssignStaff = role === "SUPER_ADMIN" || role === "OWNER";
 
   async function updateBooking(payload: { status?: string; assignedStaffId?: string | null; adminNote?: string | null }) {
     if (!selectedBooking) return;
@@ -85,28 +120,16 @@ export default function AdminBookingsPage() {
     setBookings((current) => current.map((booking) => (booking.id === data.booking.id ? data.booking : booking)));
   }
 
-  async function logout() {
-    await fetch("/api/admin/auth/logout", { method: "POST" });
-    router.push("/admin/login");
-  }
-
   return (
-    <main className="min-h-screen p-4 sm:p-8" style={{ background: "var(--background)", color: "var(--foreground)" }}>
-      <div className="max-w-7xl mx-auto space-y-6">
-        <header className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+    <AdminShell active="booking">
+      <div className="space-y-6">
+        <header>
           <div>
             <h1 style={{ fontFamily: "var(--font-heading)", fontSize: "2.25rem" }}>Bookings</h1>
             <p style={{ color: "var(--muted-foreground)", fontFamily: "var(--font-body)" }}>
               Review, assign, and update appointment requests.
             </p>
           </div>
-          <button
-            onClick={logout}
-            className="px-4 py-2"
-            style={{ border: "1px solid var(--border)", borderRadius: "9999px", background: "transparent", color: "var(--foreground)" }}
-          >
-            Logout
-          </button>
         </header>
 
         <div className="flex flex-wrap gap-3 items-center">
@@ -148,6 +171,7 @@ export default function AdminBookingsPage() {
                       <th className="p-3">Code</th>
                       <th className="p-3">Customer</th>
                       <th className="p-3">Service</th>
+                      <th className="p-3">Staff</th>
                       <th className="p-3">When</th>
                       <th className="p-3">Status</th>
                     </tr>
@@ -166,6 +190,7 @@ export default function AdminBookingsPage() {
                         <td className="p-3" style={{ color: "var(--gold)" }}>{booking.bookingCode}</td>
                         <td className="p-3">{booking.customer.name}</td>
                         <td className="p-3">{booking.service.name}</td>
+                        <td className="p-3">{firstName(booking.assignedStaff?.name)}</td>
                         <td className="p-3">{formatDateTime(booking.startsAt)}</td>
                         <td className="p-3">{booking.status}</td>
                       </tr>
@@ -190,6 +215,7 @@ export default function AdminBookingsPage() {
 
                 <div className="space-y-2" style={{ fontFamily: "var(--font-body)" }}>
                   <p><strong>Service:</strong> {selectedBooking.service.name}</p>
+                  <p><strong>Staff:</strong> {firstName(selectedBooking.assignedStaff?.name)}</p>
                   <p><strong>Time:</strong> {formatDateTime(selectedBooking.startsAt)}</p>
                   <p><strong>Note:</strong> {selectedBooking.customerNote || "None"}</p>
                 </div>
@@ -208,20 +234,26 @@ export default function AdminBookingsPage() {
                   </select>
                 </label>
 
-                <label className="block space-y-2">
-                  <span>Assigned staff</span>
-                  <select
-                    value={selectedBooking.assignedStaff?.id ?? ""}
-                    onChange={(event) => updateBooking({ assignedStaffId: event.target.value || null })}
-                    className="w-full px-3 py-2"
-                    style={{ background: "var(--input-background)", color: "var(--foreground)", border: "1px solid var(--border)", borderRadius: "0.75rem" }}
-                  >
-                    <option value="">Unassigned</option>
-                    {staff.map((member) => (
-                      <option key={member.id} value={member.id}>{member.name}</option>
-                    ))}
-                  </select>
-                </label>
+                {canAssignStaff ? (
+                  <label className="block space-y-2">
+                    <span>Assigned staff</span>
+                    <select
+                      value={selectedBooking.assignedStaff?.id ?? ""}
+                      onChange={(event) => updateBooking({ assignedStaffId: event.target.value || null })}
+                      className="w-full px-3 py-2"
+                      style={{ background: "var(--input-background)", color: "var(--foreground)", border: "1px solid var(--border)", borderRadius: "0.75rem" }}
+                    >
+                      <option value="">Unassigned</option>
+                      {assignableStaff.map((member) => (
+                        <option key={member.id} value={member.id}>{firstName(member.name)}</option>
+                      ))}
+                    </select>
+                  </label>
+                ) : (
+                  <p style={{ color: "var(--muted-foreground)", fontFamily: "var(--font-body)" }}>
+                    <strong>Assigned staff:</strong> {selectedBooking.assignedStaff?.name ?? "Unassigned"}
+                  </p>
+                )}
 
                 <label className="block space-y-2">
                   <span>Admin note</span>
@@ -240,6 +272,6 @@ export default function AdminBookingsPage() {
           </aside>
         </div>
       </div>
-    </main>
+    </AdminShell>
   );
 }

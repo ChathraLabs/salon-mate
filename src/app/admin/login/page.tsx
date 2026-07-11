@@ -5,7 +5,7 @@ import { useRouter } from "next/navigation";
 
 export default function AdminLoginPage() {
   const router = useRouter();
-  const [email, setEmail] = useState("owner@salonmate.local");
+  const [email, setEmail] = useState("srinathdimuthu@gmail.com");
   const [password, setPassword] = useState("");
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
@@ -27,7 +27,7 @@ export default function AdminLoginPage() {
         throw new Error(data.error ?? "Unable to log in.");
       }
 
-      router.push("/admin/bookings");
+      router.push("/admin");
     } catch (error) {
       setError(error instanceof Error ? error.message : "Unable to log in.");
     } finally {

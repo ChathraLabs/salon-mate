@@ -1,10 +1,10 @@
 import { NextResponse } from "next/server";
-import { requireOwner } from "@/server/auth/guards";
+import { requireAdmin } from "@/server/auth/guards";
 import { listAdminServices, upsertService } from "@/server/services/services";
 import { serviceSchema } from "@/server/validation/admin";
 
 export async function GET() {
-  const auth = await requireOwner();
+  const auth = await requireAdmin();
   if (auth.response) return auth.response;
 
   const services = await listAdminServices();
@@ -12,7 +12,7 @@ export async function GET() {
 }
 
 export async function POST(request: Request) {
-  const auth = await requireOwner();
+  const auth = await requireAdmin();
   if (auth.response) return auth.response;
 
   const parsed = serviceSchema.safeParse(await request.json());

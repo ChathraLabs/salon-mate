@@ -1,60 +1,109 @@
 import { PrismaClient, UserRole } from "@prisma/client";
+import { salonServices } from "../src/app/config/services";
 import { hashPassword } from "../src/server/auth/password";
 
 const prisma = new PrismaClient();
 
-const services = [
-  { name: "Hair Cut & Styling", priceCents: 250000, durationMinutes: 45, sortOrder: 1 },
-  { name: "Bridal Dressing", priceCents: 1500000, durationMinutes: 180, sortOrder: 2 },
-  { name: "Facial Treatment", priceCents: 350000, durationMinutes: 60, sortOrder: 3 },
-  { name: "Nail Care", priceCents: 150000, durationMinutes: 30, sortOrder: 4 },
-  { name: "Waxing & Threading", priceCents: 50000, durationMinutes: 20, sortOrder: 5 },
-  { name: "Makeup", priceCents: 500000, durationMinutes: 90, sortOrder: 6 },
-  { name: "Hair Coloring", priceCents: 400000, durationMinutes: 120, sortOrder: 7 },
-  { name: "Tattoo Training", priceCents: 0, durationMinutes: 120, sortOrder: 8 },
-];
+const services = salonServices.map((service, index) => ({
+  id: service.id,
+  name: service.title,
+  priceCents: service.basePrice * 100,
+  durationMinutes: service.baseDuration,
+  sortOrder: index + 1,
+}));
 
-const defaultSlotTimes = ["09:00", "10:00", "11:00", "11:30", "14:00", "15:00", "16:00", "16:30", "17:30"];
+const defaultSlotTimes = Array.from({ length: 15 }, (_, index) => {
+  const hour = index + 8;
+  return `${hour.toString().padStart(2, "0")}:00`;
+});
 
 async function main() {
+  const activeServiceIds = services.map((service) => service.id);
+
   for (const service of services) {
     await prisma.service.upsert({
-      where: { id: service.name.toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-|-$/g, "") },
-      update: service,
+      where: { id: service.id },
+      update: { ...service, active: true },
       create: {
-        id: service.name.toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-|-$/g, ""),
         ...service,
+        active: true,
       },
     });
   }
 
-  for (let weekday = 1; weekday <= 6; weekday += 1) {
+  await prisma.service.updateMany({
+    where: { id: { notIn: activeServiceIds } },
+    data: { active: false },
+  });
+
+  for (let weekday = 0; weekday <= 6; weekday += 1) {
     await prisma.businessHour.upsert({
       where: { weekday },
-      update: { opensAt: "09:00", closesAt: "19:00", slotTimes: defaultSlotTimes, active: true },
-      create: { weekday, opensAt: "09:00", closesAt: "19:00", slotTimes: defaultSlotTimes, active: true },
+      update: { opensAt: "08:00", closesAt: "22:00", slotTimes: defaultSlotTimes, active: true },
+      create: { weekday, opensAt: "08:00", closesAt: "22:00", slotTimes: defaultSlotTimes, active: true },
     });
   }
 
-  await prisma.businessHour.upsert({
-    where: { weekday: 0 },
-    update: { opensAt: "09:00", closesAt: "19:00", slotTimes: [], active: false },
-    create: { weekday: 0, opensAt: "09:00", closesAt: "19:00", slotTimes: [], active: false },
+  const users = [
+    {
+      name: "Salonmate Super Admin",
+      email: process.env.SEED_SUPER_ADMIN_EMAIL ?? "salonmate@gmail.com",
+      password: process.env.SEED_SUPER_ADMIN_PASSWORD ?? "sadmin12345",
+      role: UserRole.SUPER_ADMIN,
+    },
+    {
+      name: "Dimuthu Srinath Weerasinghe",
+      email: process.env.SEED_OWNER_EMAIL ?? "srinathdimuthu@gmail.com",
+      password: process.env.SEED_OWNER_PASSWORD ?? "admin12345",
+      role: UserRole.OWNER,
+    },
+    {
+      name: "Vinu Siriwardhana",
+      email: process.env.SEED_STAFF_ONE_EMAIL ?? "vinu@salonmate.local",
+      password: process.env.SEED_STAFF_ONE_PASSWORD ?? "staff12345",
+      role: UserRole.STAFF,
+    },
+    {
+      name: "Sanju Malawige",
+      email: process.env.SEED_STAFF_TWO_EMAIL ?? "sanju@salonmate.local",
+      password: process.env.SEED_STAFF_TWO_PASSWORD ?? "staff12345",
+      role: UserRole.STAFF,
+    },
+    {
+      name: "Salindeee Weerasinghe",
+      email: process.env.SEED_STAFF_THREE_EMAIL ?? "salindee@salonmate.local",
+      password: process.env.SEED_STAFF_THREE_PASSWORD ?? "staff12345",
+      role: UserRole.STAFF,
+    },
+  ];
+
+  for (const user of users) {
+    await prisma.user.upsert({
+      where: { email: user.email },
+      update: {
+        name: user.name,
+        passwordHash: hashPassword(user.password),
+        role: user.role,
+        active: true,
+      },
+      create: {
+        name: user.name,
+        email: user.email,
+        passwordHash: hashPassword(user.password),
+        role: user.role,
+        active: true,
+      },
+    });
+  }
+
+  await prisma.user.updateMany({
+    where: { email: "owner@salonmate.local" },
+    data: { active: false },
   });
 
-  const ownerEmail = process.env.SEED_OWNER_EMAIL ?? "owner@salonmate.local";
-  const ownerPassword = process.env.SEED_OWNER_PASSWORD ?? "ChangeMe123!";
-
-  await prisma.user.upsert({
-    where: { email: ownerEmail },
-    update: { name: "Salon Owner", role: UserRole.OWNER, active: true },
-    create: {
-      name: "Salon Owner",
-      email: ownerEmail,
-      passwordHash: hashPassword(ownerPassword),
-      role: UserRole.OWNER,
-      active: true,
-    },
+  await prisma.user.updateMany({
+    where: { email: { in: ["samith@salonmate.local", "ganesh@salonmate.local"] } },
+    data: { active: false },
   });
 }
 

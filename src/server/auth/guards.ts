@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server";
-import { UserRole } from "@prisma/client";
+import { canManageSalon } from "./roles";
 import { getCurrentUser } from "./session";
 
 export async function requireUser() {
@@ -11,11 +11,11 @@ export async function requireUser() {
   return { user, response: null };
 }
 
-export async function requireOwner() {
+export async function requireAdmin() {
   const auth = await requireUser();
   if (auth.response) return auth;
 
-  if (auth.user?.role !== UserRole.OWNER) {
+  if (!auth.user || !canManageSalon(auth.user.role)) {
     return { user: auth.user, response: NextResponse.json({ error: "Forbidden" }, { status: 403 }) };
   }
 
