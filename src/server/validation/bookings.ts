@@ -2,6 +2,8 @@ import { z } from "zod";
 
 export const publicBookingSchema = z.object({
   serviceId: z.string().min(1),
+  staffId: z.string().min(1).optional(),
+  optionIds: z.array(z.string().min(1)).optional(),
   date: z.string().regex(/^\d{4}-\d{2}-\d{2}$/),
   time: z.string().regex(/^\d{2}:\d{2}$/),
   customer: z.object({

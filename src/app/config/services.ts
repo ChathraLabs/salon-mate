@@ -18,6 +18,41 @@ export type SalonService = {
   options: SalonServiceOption[];
 };
 
+export type SalonStaffKey = 'dimuthu' | 'sanju' | 'salindee' | 'vinu';
+
+export const salonStaffProfiles: Record<SalonStaffKey, { name: string; avatarUrl: string }> = {
+  dimuthu: { name: 'Dimuthu Srinath Weerasinghe', avatarUrl: '/staff/Dimuthu.jpeg' },
+  sanju: { name: 'Sanju Malawige', avatarUrl: '/staff/Sanju.png' },
+  salindee: { name: 'Salindeee Weerasinghe', avatarUrl: '/staff/Salindee.png' },
+  vinu: { name: 'Vinu Siriwardhana', avatarUrl: '/staff/Vinu.png' },
+};
+
+export const serviceStaffAssignments: Record<string, SalonStaffKey[]> = {
+  'hair-cutting': ['dimuthu', 'sanju'],
+  'hair-styling': ['dimuthu'],
+  'manicure-pedicure': ['salindee', 'vinu'],
+  'waxing-threading': ['salindee', 'vinu'],
+  'fire-cut-dreadlocks': ['dimuthu'],
+  'tattoo-piercing': ['dimuthu'],
+  'makeup': ['dimuthu', 'salindee'],
+  'bridal-dressing': ['dimuthu', 'salindee'],
+  'groom-dressing': ['dimuthu'],
+  'facial-cleanup': ['dimuthu', 'salindee', 'vinu', 'sanju'],
+};
+
+export const serviceStaffRoleLabels: Record<string, string> = {
+  'hair-cutting': 'Barber',
+  'hair-styling': 'Hair Stylist',
+  'manicure-pedicure': 'Nail Technician',
+  'waxing-threading': 'Beautician',
+  'fire-cut-dreadlocks': 'Barber',
+  'tattoo-piercing': 'Tattoo Artist',
+  'makeup': 'Makeup Artist',
+  'bridal-dressing': 'Bridal Stylist',
+  'groom-dressing': 'Groom Stylist',
+  'facial-cleanup': 'Beauty Therapist',
+};
+
 export const salonServices: SalonService[] = [
   {
     id: 'hair-cutting',
@@ -172,6 +207,39 @@ export function formatServiceDuration(minutes: number) {
 
 export function getSalonService(serviceId: string) {
   return salonServices.find((service) => service.id === serviceId) ?? null;
+}
+
+export function staffKeyForName(name: string): SalonStaffKey | null {
+  const lowerName = name.toLowerCase();
+
+  if (lowerName.includes('dimuthu')) return 'dimuthu';
+  if (lowerName.includes('sanju')) return 'sanju';
+  if (lowerName.includes('salindee')) return 'salindee';
+  if (lowerName.includes('vinu')) return 'vinu';
+
+  return null;
+}
+
+export function staffAvatarForName(name: string) {
+  const key = staffKeyForName(name);
+  return key ? salonStaffProfiles[key].avatarUrl : null;
+}
+
+export function getStaffKeysForService(serviceId?: string | null) {
+  if (!serviceId) return null;
+  return serviceStaffAssignments[serviceId] ?? null;
+}
+
+export function getStaffRoleLabelForService(serviceId?: string | null) {
+  if (!serviceId) return 'Barber';
+  return serviceStaffRoleLabels[serviceId] ?? 'Barber';
+}
+
+export function isStaffAllowedForService(serviceId: string, staffName: string) {
+  const assignedStaff = getStaffKeysForService(serviceId);
+  const staffKey = staffKeyForName(staffName);
+
+  return !assignedStaff || (staffKey !== null && assignedStaff.includes(staffKey));
 }
 
 export function toPublicService(service: SalonService): PublicService {

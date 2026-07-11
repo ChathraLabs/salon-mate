@@ -28,8 +28,8 @@ export async function POST(request: Request) {
   } catch (error) {
     console.error(error);
     return NextResponse.json(
-      { error: "Unable to create the booking right now. Please call the salon to confirm this appointment." },
-      { status: 503 },
+      { error: error instanceof Error ? error.message : "Unable to create the booking right now. Please call the salon to confirm this appointment." },
+      { status: 400 },
     );
   }
 }

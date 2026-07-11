@@ -1,4 +1,4 @@
-import { Facebook, Youtube, MapPin, Phone, Mail } from 'lucide-react';
+import { Facebook, Instagram, Youtube, MapPin, Phone, Mail } from 'lucide-react';
 import logoImage from '../../imports/image-1.png';
 import { is_visible_cilent_review } from '../config/visibility';
 
@@ -11,6 +11,14 @@ const quickLinks = [
   { label: 'About Us', href: '#about' },
   { label: 'Contact Us', href: '#contact' },
 ];
+
+function TikTokIcon({ className }: { className?: string }) {
+  return (
+    <svg className={className} viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
+      <path d="M16.6 2c.4 3.2 2.2 5.1 5.4 5.3v3.6c-1.9.1-3.6-.4-5.2-1.5v6.7c0 4.3-2.8 6.9-6.8 6.9-3.8 0-6.6-2.5-6.6-6.1 0-3.9 3-6.5 7.4-6.2v3.8c-2-.3-3.5.6-3.5 2.3 0 1.4 1.1 2.3 2.6 2.3 1.8 0 2.9-1 2.9-3.2V2h3.8Z" />
+    </svg>
+  );
+}
 
 export function Footer() {
   return (
@@ -52,6 +60,8 @@ export function Footer() {
             <div className="flex items-center gap-3 pt-1">
               {[
                 { href: 'https://www.facebook.com/DimmaGroup', Icon: Facebook, label: 'Facebook' },
+                { href: 'https://www.instagram.com/scissorkingdimma?igsh=MXJ5OXM3NnJxNnoybA==', Icon: Instagram, label: 'Instagram' },
+                { href: 'https://www.tiktok.com/@dimuthusrinathweerasinhe?_r=1&_t=ZS-97wDPxhyPUw', Icon: TikTokIcon, label: 'TikTok' },
                 { href: 'https://www.youtube.com/@scissorkingdimma', Icon: Youtube, label: 'YouTube' },
               ].map(({ href, Icon, label }) => (
                 <a

@@ -57,6 +57,24 @@ async function main() {
       password: process.env.SEED_OWNER_PASSWORD ?? "admin12345",
       role: UserRole.OWNER,
     },
+    {
+      name: "Vinu Siriwardhana",
+      email: process.env.SEED_STAFF_ONE_EMAIL ?? "vinu@salonmate.local",
+      password: process.env.SEED_STAFF_ONE_PASSWORD ?? "staff12345",
+      role: UserRole.STAFF,
+    },
+    {
+      name: "Sanju Malawige",
+      email: process.env.SEED_STAFF_TWO_EMAIL ?? "sanju@salonmate.local",
+      password: process.env.SEED_STAFF_TWO_PASSWORD ?? "staff12345",
+      role: UserRole.STAFF,
+    },
+    {
+      name: "Salindeee Weerasinghe",
+      email: process.env.SEED_STAFF_THREE_EMAIL ?? "salindee@salonmate.local",
+      password: process.env.SEED_STAFF_THREE_PASSWORD ?? "staff12345",
+      role: UserRole.STAFF,
+    },
   ];
 
   for (const user of users) {
@@ -80,6 +98,11 @@ async function main() {
 
   await prisma.user.updateMany({
     where: { email: "owner@salonmate.local" },
+    data: { active: false },
+  });
+
+  await prisma.user.updateMany({
+    where: { email: { in: ["samith@salonmate.local", "ganesh@salonmate.local"] } },
     data: { active: false },
   });
 }

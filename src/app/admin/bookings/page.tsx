@@ -3,6 +3,7 @@
 import { useEffect, useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
 import type { AdminBookingRow, AdminStaffRow } from "@/types/admin";
+import { isStaffAllowedForService } from "@/app/config/services";
 import { AdminShell } from "../components/AdminShell";
 
 const statuses = ["PENDING", "CONFIRMED", "REJECTED", "CANCELLED", "COMPLETED"] as const;
@@ -14,6 +15,10 @@ function formatDateTime(value: string) {
     timeStyle: "short",
     timeZone: "UTC",
   }).format(new Date(value));
+}
+
+function firstName(name?: string | null) {
+  return name?.trim().split(/\s+/)[0] ?? "Unassigned";
 }
 
 export default function AdminBookingsPage() {
@@ -30,6 +35,16 @@ export default function AdminBookingsPage() {
     () => bookings.find((booking) => booking.id === selectedId) ?? bookings[0] ?? null,
     [bookings, selectedId],
   );
+  const activeStaff = useMemo(() => staff.filter((member) => member.active), [staff]);
+  const assignableStaff = useMemo(() => {
+    if (!selectedBooking) return [];
+
+    return activeStaff.filter((member) => (
+      member.active
+      && member.role !== "SUPER_ADMIN"
+      && isStaffAllowedForService(selectedBooking.service.id, member.name)
+    ));
+  }, [activeStaff, selectedBooking]);
 
   async function loadBookings() {
     setLoading(true);
@@ -37,32 +52,41 @@ export default function AdminBookingsPage() {
 
     try {
       const query = statusFilter ? `?status=${statusFilter}` : "";
-      const response = await fetch(`/api/admin/bookings${query}`);
+      const [response, userResponse, staffResponse] = await Promise.all([
+        fetch(`/api/admin/bookings${query}`),
+        fetch("/api/admin/auth/me"),
+        fetch("/api/admin/staff"),
+      ]);
 
-      if (response.status === 401) {
+      if (
+        response.status === 401
+        || userResponse.status === 401
+        || staffResponse.status === 401
+      ) {
         router.push("/admin/login");
         return;
       }
 
-      const data = await response.json();
+      const [data, userData, staffData] = await Promise.all([
+        response.json(),
+        userResponse.json(),
+        staffResponse.json(),
+      ]);
+
       if (!response.ok) {
         throw new Error(data.error ?? "Unable to load bookings.");
+      }
+      if (!userResponse.ok) {
+        throw new Error(userData.error ?? "Unable to load admin user.");
+      }
+      if (!staffResponse.ok) {
+        throw new Error(staffData.error ?? "Unable to load staff.");
       }
 
       setBookings(data.bookings);
       setSelectedId((current) => current ?? data.bookings[0]?.id ?? null);
-
-      const userResponse = await fetch("/api/admin/auth/me");
-      if (userResponse.ok) {
-        const userData = await userResponse.json();
-        setRole(userData.user.role);
-      }
-
-      const staffResponse = await fetch("/api/admin/staff");
-      if (staffResponse.ok) {
-        const staffData = await staffResponse.json();
-        setStaff(staffData.staff);
-      }
+      setRole(userData.user.role);
+      setStaff(staffData.staff);
     } catch (error) {
       setError(error instanceof Error ? error.message : "Unable to load bookings.");
     } finally {
@@ -147,6 +171,7 @@ export default function AdminBookingsPage() {
                       <th className="p-3">Code</th>
                       <th className="p-3">Customer</th>
                       <th className="p-3">Service</th>
+                      <th className="p-3">Staff</th>
                       <th className="p-3">When</th>
                       <th className="p-3">Status</th>
                     </tr>
@@ -165,6 +190,7 @@ export default function AdminBookingsPage() {
                         <td className="p-3" style={{ color: "var(--gold)" }}>{booking.bookingCode}</td>
                         <td className="p-3">{booking.customer.name}</td>
                         <td className="p-3">{booking.service.name}</td>
+                        <td className="p-3">{firstName(booking.assignedStaff?.name)}</td>
                         <td className="p-3">{formatDateTime(booking.startsAt)}</td>
                         <td className="p-3">{booking.status}</td>
                       </tr>
@@ -189,6 +215,7 @@ export default function AdminBookingsPage() {
 
                 <div className="space-y-2" style={{ fontFamily: "var(--font-body)" }}>
                   <p><strong>Service:</strong> {selectedBooking.service.name}</p>
+                  <p><strong>Staff:</strong> {firstName(selectedBooking.assignedStaff?.name)}</p>
                   <p><strong>Time:</strong> {formatDateTime(selectedBooking.startsAt)}</p>
                   <p><strong>Note:</strong> {selectedBooking.customerNote || "None"}</p>
                 </div>
@@ -217,8 +244,8 @@ export default function AdminBookingsPage() {
                       style={{ background: "var(--input-background)", color: "var(--foreground)", border: "1px solid var(--border)", borderRadius: "0.75rem" }}
                     >
                       <option value="">Unassigned</option>
-                      {staff.map((member) => (
-                        <option key={member.id} value={member.id}>{member.name}</option>
+                      {assignableStaff.map((member) => (
+                        <option key={member.id} value={member.id}>{firstName(member.name)}</option>
                       ))}
                     </select>
                   </label>

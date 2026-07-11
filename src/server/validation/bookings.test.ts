@@ -4,6 +4,8 @@ import { adminBookingUpdateSchema, publicBookingSchema } from "./bookings";
 
 const validBooking = {
   serviceId: "hair-cut-styling",
+  staffId: "staff_1",
+  optionIds: ["hair-cut"],
   date: "2026-06-23",
   time: "09:00",
   customer: {
@@ -39,6 +41,16 @@ test("publicBookingSchema rejects missing customer phone", () => {
 test("publicBookingSchema rejects invalid date and time shapes", () => {
   assert.equal(publicBookingSchema.safeParse({ ...validBooking, date: "23-06-2026" }).success, false);
   assert.equal(publicBookingSchema.safeParse({ ...validBooking, time: "9 AM" }).success, false);
+});
+
+test("publicBookingSchema accepts optional barber and selected options", () => {
+  const result = publicBookingSchema.safeParse({
+    ...validBooking,
+    staffId: undefined,
+    optionIds: ["hair-cut", "beard-cut"],
+  });
+
+  assert.equal(result.success, true);
 });
 
 test("adminBookingUpdateSchema accepts supported status updates", () => {

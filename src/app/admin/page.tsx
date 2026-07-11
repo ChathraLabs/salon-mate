@@ -40,6 +40,10 @@ function formatTime(value: string) {
   }).format(new Date(value));
 }
 
+function firstName(name?: string | null) {
+  return name?.trim().split(/\s+/)[0] ?? "Unassigned";
+}
+
 function statusStyle(status: AdminBookingRow["status"]) {
   if (status === "CONFIRMED") return { color: "#9ad56b", background: "rgba(78,160,63,0.12)", border: "rgba(78,160,63,0.26)" };
   if (status === "COMPLETED") return { color: "#75b7ff", background: "rgba(44,126,210,0.12)", border: "rgba(44,126,210,0.28)" };
@@ -247,7 +251,9 @@ export default function AdminDashboardPage() {
                     </div>
                     <div className="min-w-0 flex-1">
                       <p style={{ fontFamily: "var(--font-heading)" }}>{booking.customer.name}</p>
-                      <p className="truncate" style={{ color: "rgba(240,228,184,0.62)", fontFamily: "var(--font-body)", fontSize: "0.9rem" }}>{booking.service.name}</p>
+                      <p className="truncate" style={{ color: "rgba(240,228,184,0.62)", fontFamily: "var(--font-body)", fontSize: "0.9rem" }}>
+                        {booking.service.name} · {firstName(booking.assignedStaff?.name)}
+                      </p>
                     </div>
                     <p className="hidden text-sm sm:block" style={{ color: "rgba(240,228,184,0.62)", fontFamily: "var(--font-body)" }}>{formatDate(booking.startsAt)}<br />{formatTime(booking.startsAt)}</p>
                     <StatusPill status={booking.status} />
@@ -270,7 +276,9 @@ export default function AdminDashboardPage() {
                     <p style={{ color: "var(--gold-light)", fontFamily: "var(--font-body)" }}>{formatTime(booking.startsAt)}</p>
                     <div>
                       <p style={{ fontFamily: "var(--font-heading)" }}>{booking.customer.name}</p>
-                      <p style={{ color: "rgba(240,228,184,0.62)", fontFamily: "var(--font-body)", fontSize: "0.9rem" }}>{booking.service.name}</p>
+                      <p style={{ color: "rgba(240,228,184,0.62)", fontFamily: "var(--font-body)", fontSize: "0.9rem" }}>
+                        {booking.service.name} · {firstName(booking.assignedStaff?.name)}
+                      </p>
                     </div>
                     <StatusPill status={booking.status} />
                   </div>

@@ -4,11 +4,12 @@ import { Calendar as DatePickerCalendar } from './ui/calendar';
 import {
   formatServiceDuration as formatDurationLabel,
   formatServicePrice as formatPrice,
+  getStaffRoleLabelForService,
   getSalonService,
   publicSalonServices,
   type SalonServiceOption,
 } from '../config/services';
-import type { AvailabilityDay, PublicService } from '@/types/booking';
+import type { AvailabilityDay, PublicService, PublicStaffMember } from '@/types/booking';
 
 type BookingProps = {
   requestedService?: { id: string; key: number } | null;
@@ -29,6 +30,17 @@ function formatTimeLabel(time: string) {
   const suffix = hour >= 12 ? 'PM' : 'AM';
   const displayHour = hour % 12 === 0 ? 12 : hour % 12;
   return `${displayHour}:${minute} ${suffix}`;
+}
+
+function minutesFromTime(time: string) {
+  const [hour, minute] = time.split(':').map(Number);
+  return hour * 60 + minute;
+}
+
+function timeFromMinutes(totalMinutes: number) {
+  const hour = Math.floor(totalMinutes / 60) % 24;
+  const minute = totalMinutes % 60;
+  return `${hour.toString().padStart(2, '0')}:${minute.toString().padStart(2, '0')}`;
 }
 
 function dateToLocalDate(date: string) {
@@ -57,6 +69,9 @@ function fallbackAvailabilityDays(days = 7): AvailabilityDay[] {
       allSlots: defaultTimeSlots,
       slots: defaultTimeSlots,
       bookedSlots: [],
+      staffSlots: {},
+      staffBookedSlots: {},
+      availableStaffBySlot: {},
     };
   });
 }
@@ -79,6 +94,18 @@ function resolvePublicService(serviceId: string, services: PublicService[]) {
   return services.find((item) => item.id === serviceId)
     ?? publicSalonServices.find((item) => item.id === serviceId)
     ?? null;
+}
+
+function barberAvatarUrl(barber: PublicStaffMember) {
+  const lowerName = barber.name.toLowerCase();
+
+  if (barber.avatarUrl) return barber.avatarUrl;
+  if (lowerName.includes('dimuthu')) return '/staff/Dimuthu.jpeg';
+  if (lowerName.includes('sanju')) return '/staff/Sanju.png';
+  if (lowerName.includes('salindee')) return '/staff/Salindee.png';
+  if (lowerName.includes('vinu')) return '/staff/Vinu.png';
+
+  return null;
 }
 
 const inputBase: React.CSSProperties = {
@@ -122,15 +149,18 @@ const selectionActive: React.CSSProperties = {
 export function Booking({ requestedService }: BookingProps) {
   const [step, setStep] = useState(1);
   const [services, setServices] = useState<PublicService[]>(fallbackServices);
+  const [barbers, setBarbers] = useState<PublicStaffMember[]>([]);
   const [dates, setDates] = useState<AvailabilityDay[]>([]);
   const [selectedService, setSelectedService] = useState<PublicService | null>(null);
   const [selectedOptionIds, setSelectedOptionIds] = useState<string[]>([]);
+  const [selectedStaffId, setSelectedStaffId] = useState<string | null>(null);
   const [selectedDate, setSelectedDate] = useState<string | null>(null);
   const [selectedTime, setSelectedTime] = useState<string | null>(null);
   const [customerDetails, setCustomerDetails] = useState({ name: '', phone: '', email: '', note: '' });
   const [isConfirmed, setIsConfirmed] = useState(false);
   const [bookingCode, setBookingCode] = useState<string | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [isAvailabilityLoading, setIsAvailabilityLoading] = useState(false);
   const [loadError, setLoadError] = useState<string | null>(null);
   const [submitError, setSubmitError] = useState<string | null>(null);
 
@@ -156,11 +186,14 @@ export function Booking({ requestedService }: BookingProps) {
         if (!cancelled) {
           setServices(publicSalonServices);
           setDates(availabilityData.days);
+          setBarbers(availabilityData.staff ?? []);
+          setSelectedStaffId((current) => current ?? availabilityData.staff?.find((member: PublicStaffMember) => member.isMain)?.id ?? availabilityData.staff?.[0]?.id ?? null);
           setLoadError(null);
         }
       } catch (error) {
         if (!cancelled) {
           setDates(fallbackAvailabilityDays());
+          setBarbers([]);
           setLoadError(error instanceof Error ? `${error.message} Showing default times for preview.` : 'Unable to load booking options. Showing default times for preview.');
         }
       }
@@ -190,6 +223,7 @@ export function Booking({ requestedService }: BookingProps) {
 
     setSelectedService(service);
     setSelectedOptionIds(defaultIds.length > 0 ? defaultIds : options.slice(0, 1).map((option) => option.id));
+    setSelectedStaffId(null);
     setSelectedDate(null);
     setSelectedTime(null);
     setSubmitError(null);
@@ -201,20 +235,28 @@ export function Booking({ requestedService }: BookingProps) {
         ? current.filter((id) => id !== optionId)
         : [...current, optionId]
     ));
+    setSelectedTime(null);
   };
 
   const availableTimeSlots = useMemo(() => {
-    return dates.find((date) => date.date === selectedDate)?.slots ?? [];
-  }, [dates, selectedDate]);
+    const day = dates.find((date) => date.date === selectedDate);
+    if (!day) return [];
+    return selectedStaffId ? (day.staffSlots?.[selectedStaffId] ?? []) : day.slots;
+  }, [dates, selectedDate, selectedStaffId]);
   const allTimeSlots = useMemo(() => {
     return dates.find((date) => date.date === selectedDate)?.allSlots ?? (selectedDate ? defaultTimeSlots : []);
   }, [dates, selectedDate]);
   const bookedTimeSlots = useMemo(() => {
-    return dates.find((date) => date.date === selectedDate)?.bookedSlots ?? [];
-  }, [dates, selectedDate]);
+    const day = dates.find((date) => date.date === selectedDate);
+    if (!day) return [];
+    return selectedStaffId ? (day.staffBookedSlots?.[selectedStaffId] ?? []) : day.bookedSlots;
+  }, [dates, selectedDate, selectedStaffId]);
   const selectedDateOption = useMemo(() => {
     return dates.find((date) => date.date === selectedDate) ?? null;
   }, [dates, selectedDate]);
+  const selectedStaff = useMemo(() => {
+    return barbers.find((barber) => barber.id === selectedStaffId) ?? null;
+  }, [barbers, selectedStaffId]);
   const selectableDateKeys = useMemo(() => new Set(dates.map((date) => date.date)), [dates]);
   const availableTimeSlotSet = useMemo(() => new Set(availableTimeSlots), [availableTimeSlots]);
   const bookedTimeSlotSet = useMemo(() => new Set(bookedTimeSlots), [bookedTimeSlots]);
@@ -230,6 +272,78 @@ export function Booking({ requestedService }: BookingProps) {
   const selectedTotalPrice = selectedOptions.reduce((total, option) => total + option.price, 0);
   const selectedTotalDuration = selectedOptions.reduce((total, option) => total + option.duration, 0);
   const selectedOptionLabels = selectedOptions.map((option) => option.name).join(', ');
+  const selectedStaffRoleLabel = getStaffRoleLabelForService(selectedService?.id);
+  const selectedTimeEnd = useMemo(() => {
+    if (!selectedTime || selectedTotalDuration <= 0) return null;
+    return timeFromMinutes(minutesFromTime(selectedTime) + selectedTotalDuration);
+  }, [selectedTime, selectedTotalDuration]);
+  const heldTimeSlotSet = useMemo(() => {
+    if (!selectedTime || selectedTotalDuration <= 0) return new Set<string>();
+
+    const startsAt = minutesFromTime(selectedTime);
+    const endsAt = startsAt + selectedTotalDuration;
+
+    return new Set(
+      allTimeSlots.filter((slot) => {
+        const slotStartsAt = minutesFromTime(slot);
+        return slotStartsAt >= startsAt && slotStartsAt < endsAt;
+      }),
+    );
+  }, [allTimeSlots, selectedTime, selectedTotalDuration]);
+  useEffect(() => {
+    if (!selectedService || selectedTotalDuration <= 0 || isUsingFallbackBookingOptions) return;
+
+    let cancelled = false;
+    const serviceId = selectedService.id;
+
+    async function loadDurationAvailability() {
+      setIsAvailabilityLoading(true);
+
+      try {
+        const params = new URLSearchParams({
+          duration: String(selectedTotalDuration),
+          serviceId,
+        });
+        const response = await fetch(`/api/availability?${params.toString()}`);
+        const data = await response.json();
+
+        if (!response.ok) {
+          throw new Error(data.error ?? 'Unable to refresh availability.');
+        }
+
+        if (!cancelled) {
+          const nextStaff = data.staff ?? [];
+          setDates(data.days);
+          setBarbers(nextStaff);
+          setSelectedStaffId((current) => {
+            if (current && nextStaff.some((member: PublicStaffMember) => member.id === current)) return current;
+            return nextStaff.find((member: PublicStaffMember) => member.isMain)?.id ?? nextStaff[0]?.id ?? null;
+          });
+          setLoadError(null);
+        }
+      } catch (error) {
+        if (!cancelled) {
+          setLoadError(error instanceof Error ? error.message : 'Unable to refresh availability.');
+        }
+      } finally {
+        if (!cancelled) {
+          setIsAvailabilityLoading(false);
+        }
+      }
+    }
+
+    loadDurationAvailability();
+
+    return () => {
+      cancelled = true;
+    };
+  }, [selectedService, selectedTotalDuration, isUsingFallbackBookingOptions]);
+
+  useEffect(() => {
+    if (selectedTime && !availableTimeSlotSet.has(selectedTime)) {
+      setSelectedTime(null);
+    }
+  }, [availableTimeSlotSet, selectedTime]);
 
   const handleNext = () => { if (step < stepLabels.length) setStep(step + 1); };
   const handleBack = () => { if (step > 1) setStep(step - 1); };
@@ -245,6 +359,8 @@ export function Booking({ requestedService }: BookingProps) {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           serviceId: selectedService.id,
+          staffId: selectedStaffId ?? undefined,
+          optionIds: selectedOptionIds,
           date: selectedDate,
           time: selectedTime,
           customer: {
@@ -283,7 +399,7 @@ export function Booking({ requestedService }: BookingProps) {
 
   const canProceed = [
     selectedService !== null && selectedOptions.length > 0,
-    selectedDate !== null && selectedTime !== null,
+    selectedDate !== null && selectedTime !== null && (barbers.length === 0 || selectedStaffId !== null),
     !!(customerDetails.name && customerDetails.phone),
     true,
   ][step - 1];
@@ -316,6 +432,7 @@ export function Booking({ requestedService }: BookingProps) {
                 { label: 'Options', value: selectedOptionLabels },
                 { label: 'Date', value: dates.find(d => d.date === selectedDate)?.label },
                 { label: 'Time', value: selectedTime ? formatTimeLabel(selectedTime) : null },
+                { label: selectedStaffRoleLabel, value: selectedStaff?.name },
                 { label: 'Duration', value: selectedTotalDuration ? formatDurationLabel(selectedTotalDuration) : selectedService?.duration },
                 { label: 'Price', value: formatPrice(selectedTotalPrice) },
               ].map(({ label, value }, i) => (
@@ -323,7 +440,7 @@ export function Booking({ requestedService }: BookingProps) {
                   key={i}
                   className="flex justify-between items-center px-5 py-3"
                   style={{
-                    borderBottom: i < 6 ? '1px solid var(--border)' : 'none',
+                    borderBottom: i < 7 ? '1px solid var(--border)' : 'none',
                     background: i % 2 === 0 ? 'var(--muted)' : 'var(--card)',
                   }}
                 >
@@ -654,24 +771,122 @@ export function Booking({ requestedService }: BookingProps) {
                 </div>
 
                 <div className="space-y-4">
+                  {barbers.length > 0 && (
+                    <div className="space-y-3">
+                      <div>
+                        <h4 className="flex items-center gap-2" style={{ fontFamily: 'var(--font-heading)', color: 'var(--foreground)', fontSize: '1.05rem' }}>
+                          <User className="w-4 h-4" style={{ color: 'var(--gold)' }} />
+                          {selectedStaffRoleLabel}
+                          {selectedStaff && (
+                            <span style={{ fontFamily: 'var(--font-body)', color: 'var(--gold)', fontSize: '0.82rem' }}>
+                              ({selectedStaff.name})
+                            </span>
+                          )}
+                        </h4>
+                      </div>
+                      <div className="flex flex-wrap gap-3">
+                        {barbers.map((barber) => {
+                          const isSelected = selectedStaffId === barber.id;
+                          const barberSlots = selectedDateOption?.staffSlots?.[barber.id] ?? [];
+                          const avatarUrl = barberAvatarUrl(barber);
+
+                          return (
+                            <button
+                              key={barber.id}
+                              type="button"
+                              aria-label={`Select ${barber.name}`}
+                              title={`${barber.name}${barber.isMain ? ` - Main ${selectedStaffRoleLabel.toLowerCase()}` : ` - ${barberSlots.length} slots available`}`}
+                              onClick={() => {
+                                setSelectedStaffId(barber.id);
+                                if (selectedTime && !barberSlots.includes(selectedTime)) {
+                                  setSelectedTime(null);
+                                }
+                              }}
+                              style={{
+                                width: '4.25rem',
+                                height: '4.25rem',
+                                borderRadius: '9999px',
+                                border: isSelected ? '2px solid var(--gold)' : '1px solid var(--border)',
+                                background: isSelected ? 'rgba(212,165,32,0.12)' : 'var(--muted)',
+                                padding: '0.2rem',
+                                cursor: 'pointer',
+                                boxShadow: isSelected ? '0 0 0 4px rgba(212,165,32,0.12)' : 'none',
+                                transition: 'border-color 0.15s, box-shadow 0.15s, transform 0.15s',
+                              }}
+                              onMouseEnter={(e) => {
+                                e.currentTarget.style.borderColor = 'var(--gold)';
+                                e.currentTarget.style.transform = 'translateY(-1px)';
+                              }}
+                              onMouseLeave={(e) => {
+                                e.currentTarget.style.borderColor = isSelected ? 'var(--gold)' : 'var(--border)';
+                                e.currentTarget.style.transform = 'translateY(0)';
+                              }}
+                            >
+                              {avatarUrl ? (
+                                <img
+                                  src={avatarUrl}
+                                  alt={barber.name}
+                                  style={{
+                                    width: '100%',
+                                    height: '100%',
+                                    borderRadius: '9999px',
+                                    objectFit: 'cover',
+                                    display: 'block',
+                                  }}
+                                />
+                              ) : (
+                                <span
+                                  style={{
+                                    width: '100%',
+                                    height: '100%',
+                                    borderRadius: '9999px',
+                                    display: 'flex',
+                                    alignItems: 'center',
+                                    justifyContent: 'center',
+                                    color: 'var(--gold)',
+                                    background: 'var(--card)',
+                                  }}
+                                >
+                                  <User className="w-6 h-6" />
+                                </span>
+                              )}
+                            </button>
+                          );
+                        })}
+                      </div>
+                      {selectedStaff && (
+                        <p style={{ fontFamily: 'var(--font-body)', color: 'var(--muted-foreground)', fontSize: '0.75rem' }}>
+                          {selectedStaff.isMain ? `Main ${selectedStaffRoleLabel.toLowerCase()} selected` : `${selectedStaff.name} selected`}
+                        </p>
+                      )}
+                    </div>
+                  )}
+
                   <div className="flex items-start justify-between gap-4">
                     <h4 className="flex items-center gap-2" style={{ fontFamily: 'var(--font-heading)', color: 'var(--foreground)', fontSize: '1.05rem' }}>
                       <Clock className="w-4 h-4" style={{ color: 'var(--gold)' }} />
-                      Available Times
+                      {selectedStaff ? `${selectedStaff.name}'s Times` : 'Available Times'}
                     </h4>
-                    <span style={{ fontFamily: 'var(--font-body)', color: 'var(--muted-foreground)', fontSize: '0.74rem' }}>
-                      8:00 AM - 10:00 PM
-                    </span>
                   </div>
+                  {selectedTime && selectedTimeEnd && (
+                    <p style={{ fontFamily: 'var(--font-body)', color: 'var(--gold)', fontSize: '0.78rem' }}>
+                      Appointment holds {formatTimeLabel(selectedTime)} - {formatTimeLabel(selectedTimeEnd)}
+                    </p>
+                  )}
                   <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
                     {allTimeSlots.map((time) => {
                       const isAvailable = availableTimeSlotSet.has(time);
                       const isBooked = bookedTimeSlotSet.has(time);
                       const isSelected = selectedTime === time;
+                      const isHeld = !isSelected && heldTimeSlotSet.has(time);
                       return (
                         <button
                           key={time}
-                          onClick={() => isAvailable && setSelectedTime(time)}
+                          onClick={() => {
+                            if (isAvailable) {
+                              setSelectedTime(time);
+                            }
+                          }}
                           style={{
                             ...(isSelected ? selectionActive : selectionBase),
                             minHeight: '3.75rem',
@@ -679,8 +894,11 @@ export function Booking({ requestedService }: BookingProps) {
                             textAlign: 'center',
                             cursor: isAvailable ? 'pointer' : 'not-allowed',
                             opacity: isAvailable ? 1 : 0.48,
+                            border: isHeld ? '1px solid rgba(212,165,32,0.55)' : (isSelected ? selectionActive.border : selectionBase.border),
                             background: isSelected
                               ? 'rgba(212,165,32,0.08)'
+                              : isHeld
+                                ? 'rgba(212,165,32,0.12)'
                               : isAvailable
                                 ? 'var(--muted)'
                                 : 'rgba(154,120,48,0.08)',
@@ -697,6 +915,16 @@ export function Booking({ requestedService }: BookingProps) {
                               {isBooked ? 'Booked' : 'Unavailable'}
                             </span>
                           )}
+                          {isSelected && selectedTimeEnd && selectedTotalDuration > 60 && (
+                            <span style={{ display: 'block', fontFamily: 'var(--font-body)', color: 'var(--gold)', fontSize: '0.68rem', marginTop: '0.15rem' }}>
+                              Start
+                            </span>
+                          )}
+                          {isHeld && (
+                            <span style={{ display: 'block', fontFamily: 'var(--font-body)', color: 'var(--gold)', fontSize: '0.68rem', marginTop: '0.15rem' }}>
+                              Held
+                            </span>
+                          )}
                         </button>
                       );
                     })}
@@ -708,7 +936,7 @@ export function Booking({ requestedService }: BookingProps) {
                   )}
                   {selectedDate && availableTimeSlots.length === 0 && (
                     <p style={{ fontFamily: 'var(--font-body)', color: 'var(--muted-foreground)', fontSize: '0.9rem' }}>
-                      No available slots for this date. Please choose another date.
+                      No available slots for {selectedStaff?.name ?? `this ${selectedStaffRoleLabel.toLowerCase()}`} on this date. Please choose another {selectedStaffRoleLabel.toLowerCase()} or date.
                     </p>
                   )}
                 </div>
@@ -775,6 +1003,7 @@ export function Booking({ requestedService }: BookingProps) {
                   { label: 'Options', value: selectedOptionLabels },
                   { label: 'Date', value: `${dates.find(d => d.date === selectedDate)?.label} (${selectedDate})` },
                   { label: 'Time', value: selectedTime ? formatTimeLabel(selectedTime) : null },
+                  { label: selectedStaffRoleLabel, value: selectedStaff?.name },
                   { label: 'Duration', value: selectedTotalDuration ? formatDurationLabel(selectedTotalDuration) : selectedService?.duration },
                   { label: 'Price', value: formatPrice(selectedTotalPrice) },
                   { label: 'Customer', value: customerDetails.name },
