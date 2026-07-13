@@ -1,4 +1,4 @@
-import { MapPin, Phone, Mail, Clock, MessageCircle, Navigation } from 'lucide-react';
+import { MapPin, Phone, Mail, Clock, MessageCircle, Navigation, CalendarDays } from 'lucide-react';
 import { is_visible_cilent_review } from '../config/visibility';
 
 const contactItems = [
@@ -17,7 +17,7 @@ const contactItems = [
     icon: Phone,
     title: 'Phone',
     content: (
-      <a href="tel:+94715729660" style={{ color: 'var(--gold)', fontFamily: 'var(--font-body)', transition: 'color 0.2s', textDecoration: 'none' }}>
+      <a href="tel:+94715729660" style={{ color: 'var(--emerald)', fontFamily: 'var(--font-body)', textDecoration: 'none' }}>
         071 57 29 660
       </a>
     ),
@@ -26,7 +26,7 @@ const contactItems = [
     icon: MessageCircle,
     title: 'WhatsApp',
     content: (
-      <a href="https://wa.me/94715729660" style={{ color: 'var(--gold)', fontFamily: 'var(--font-body)', transition: 'color 0.2s', textDecoration: 'none' }}>
+      <a href="https://wa.me/94715729660" style={{ color: 'var(--emerald)', fontFamily: 'var(--font-body)', textDecoration: 'none' }}>
         071 57 29 660
       </a>
     ),
@@ -35,7 +35,7 @@ const contactItems = [
     icon: Mail,
     title: 'Email',
     content: (
-      <a href="mailto:srinathdimuthu@gmail.com" style={{ color: 'var(--gold)', fontFamily: 'var(--font-body)', transition: 'color 0.2s', textDecoration: 'none' }}>
+      <a href="mailto:srinathdimuthu@gmail.com" style={{ color: 'var(--emerald)', fontFamily: 'var(--font-body)', textDecoration: 'none' }}>
         srinathdimuthu@gmail.com
       </a>
     ),
@@ -45,7 +45,7 @@ const contactItems = [
     title: 'Opening Hours',
     content: (
       <>
-        Monday – Sunday: 8:00 AM – 10:00 PM<br />
+        Monday - Sunday: 8:00 AM - 10:00 PM<br />
         Poya Day: Closed
       </>
     ),
@@ -62,46 +62,35 @@ export function Contact() {
   return (
     <section
       id="contact"
-      className="salon-contact py-24 relative overflow-hidden"
+      className="salon-contact py-20 sm:py-24 relative overflow-hidden"
       style={{ background: is_visible_cilent_review ? 'var(--background)' : 'var(--section-dark-green)' }}
     >
       <div
         className="absolute top-0 left-0 right-0 h-px pointer-events-none"
-        style={{ background: 'linear-gradient(to right, transparent, rgba(212,165,32,0.3), transparent)' }}
-      />
-      <div
-        className="absolute right-0 bottom-0 w-64 h-64 pointer-events-none"
-        style={{ background: 'radial-gradient(circle, rgba(212,165,32,0.05) 0%, transparent 70%)' }}
+        style={{ background: 'linear-gradient(to right, transparent, rgba(138,95,34,0.18), transparent)' }}
       />
 
       <div className="salon-section-inner max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative">
-        {/* Header */}
-        <div className="salon-section-header text-center mb-14 space-y-3">
-          <p style={{ fontFamily: 'var(--font-body)', color: 'var(--gold)', fontSize: '0.75rem', letterSpacing: '0.14em', textTransform: 'uppercase' }}>
-            ✦ Get In Touch ✦
+        <div className="salon-section-header text-center mb-10 sm:mb-14 space-y-4">
+          <p style={{ fontFamily: 'var(--font-body)', color: 'var(--gold-dark)', fontSize: '0.75rem', textTransform: 'uppercase', fontWeight: 700 }}>
+            Get In Touch
           </p>
-          <h2 style={{ fontFamily: 'var(--font-heading)', color: 'var(--foreground)', fontSize: 'clamp(2rem, 4vw, 2.75rem)' }}>
+          <h2 style={{ fontFamily: 'var(--font-heading)', color: 'var(--emerald)', fontSize: 'clamp(2.2rem, 8vw, 3.25rem)', lineHeight: '1.05' }}>
             Contact Us
           </h2>
-          <p className="max-w-xl mx-auto" style={{ fontFamily: 'var(--font-body)', color: 'var(--muted-foreground)', fontSize: '1rem', lineHeight: '1.7' }}>
-            Get in touch with us for appointments or inquiries
+          <p className="max-w-2xl mx-auto" style={{ fontFamily: 'var(--font-body)', color: 'var(--muted-foreground)', fontSize: '1rem', lineHeight: '1.7' }}>
+            Get in touch with us for appointments or inquiries.
           </p>
-          <div className="flex items-center justify-center gap-3 pt-2">
-            <div className="h-px w-16" style={{ background: 'linear-gradient(to right, transparent, var(--gold-dark))' }} />
-            <div className="w-1.5 h-1.5 rounded-full" style={{ background: 'var(--gold)' }} />
-            <div className="h-px w-16" style={{ background: 'linear-gradient(to left, transparent, var(--gold-dark))' }} />
-          </div>
         </div>
 
-        <div className="salon-contact__grid grid lg:grid-cols-2 gap-12">
-          {/* Left – Contact Info */}
+        <div className="salon-contact__grid grid lg:grid-cols-[0.92fr_1.08fr] gap-6 lg:gap-12">
           <div className="space-y-5">
             <div
-              className="salon-contact__panel p-8 rounded-2xl space-y-6"
+              className="salon-contact__panel p-5 sm:p-8 rounded-2xl space-y-6"
               style={{
-                background: 'var(--card)',
+                background: 'var(--surface)',
                 border: '1px solid var(--border)',
-                boxShadow: '0 2px 24px rgba(0,0,0,0.35)',
+                boxShadow: 'var(--shadow-card)',
               }}
             >
               {contactItems.map(({ icon: Icon, title, content }, i) => (
@@ -109,14 +98,14 @@ export function Contact() {
                   <div
                     className="p-2.5 rounded-xl flex-shrink-0"
                     style={{
-                      background: 'rgba(212,165,32,0.1)',
-                      border: '1px solid rgba(212,165,32,0.2)',
+                      background: 'var(--emerald-soft)',
+                      border: '1px solid rgba(6,68,55,0.12)',
                     }}
                   >
-                    <Icon className="w-5 h-5" style={{ color: 'var(--gold)' }} />
+                    <Icon className="w-5 h-5" style={{ color: 'var(--emerald)' }} />
                   </div>
                   <div>
-                    <h3 style={{ fontFamily: 'var(--font-heading)', color: 'var(--foreground)', fontSize: '0.975rem', marginBottom: '0.3rem' }}>
+                    <h3 style={{ fontFamily: 'var(--font-heading)', color: 'var(--emerald)', fontSize: '1rem', marginBottom: '0.3rem' }}>
                       {title}
                     </h3>
                     <div style={{ fontFamily: 'var(--font-body)', color: 'var(--muted-foreground)', fontSize: '0.875rem', lineHeight: '1.65' }}>
@@ -125,9 +114,24 @@ export function Contact() {
                   </div>
                 </div>
               ))}
+
+              <a
+                href="#booking"
+                className="inline-flex w-full items-center justify-center gap-2 px-5 py-3 rounded-full transition-transform duration-200 hover:-translate-y-0.5"
+                style={{
+                  background: 'var(--emerald)',
+                  color: 'var(--primary-foreground)',
+                  borderRadius: '9999px',
+                  boxShadow: 'var(--shadow-button)',
+                  fontFamily: 'var(--font-body)',
+                  textDecoration: 'none',
+                }}
+              >
+                <CalendarDays className="w-4 h-4" />
+                Book Appointment
+              </a>
             </div>
 
-            {/* Quick action buttons */}
             <div className="salon-contact__quick-actions grid grid-cols-3 gap-3">
               {quickLinks.map(({ icon: Icon, label, href, external }) => (
                 <a
@@ -135,29 +139,21 @@ export function Contact() {
                   href={href}
                   target={external ? '_blank' : undefined}
                   rel={external ? 'noopener noreferrer' : undefined}
-                  className="flex flex-col items-center gap-2.5 p-4 rounded-xl transition-all hover:-translate-y-0.5"
+                  className="flex flex-col items-center gap-2.5 p-4 rounded-xl transition-transform hover:-translate-y-0.5"
                   style={{
-                    background: 'var(--card)',
+                    background: 'var(--surface)',
                     border: '1px solid var(--border)',
                     textDecoration: 'none',
-                    boxShadow: '0 2px 12px rgba(0,0,0,0.3)',
-                  }}
-                  onMouseEnter={(e) => {
-                    (e.currentTarget as HTMLAnchorElement).style.borderColor = 'rgba(212,165,32,0.4)';
-                    (e.currentTarget as HTMLAnchorElement).style.boxShadow = '0 4px 20px rgba(212,165,32,0.12)';
-                  }}
-                  onMouseLeave={(e) => {
-                    (e.currentTarget as HTMLAnchorElement).style.borderColor = 'var(--border)';
-                    (e.currentTarget as HTMLAnchorElement).style.boxShadow = '0 2px 12px rgba(0,0,0,0.3)';
+                    boxShadow: 'var(--shadow-card)',
                   }}
                 >
                   <div
                     className="w-10 h-10 rounded-full flex items-center justify-center"
-                    style={{ background: 'rgba(212,165,32,0.1)', border: '1px solid rgba(212,165,32,0.2)' }}
+                    style={{ background: 'var(--emerald-soft)', border: '1px solid rgba(6,68,55,0.12)' }}
                   >
-                    <Icon className="w-5 h-5" style={{ color: 'var(--gold)' }} />
+                    <Icon className="w-5 h-5" style={{ color: 'var(--emerald)' }} />
                   </div>
-                  <span style={{ fontFamily: 'var(--font-body)', color: 'var(--foreground)', fontSize: '0.78rem' }}>
+                  <span style={{ fontFamily: 'var(--font-body)', color: 'var(--foreground)', fontSize: '0.78rem', textAlign: 'center' }}>
                     {label}
                   </span>
                 </a>
@@ -165,20 +161,20 @@ export function Contact() {
             </div>
           </div>
 
-          {/* Right – Map */}
           <div
             className="salon-contact__map rounded-2xl overflow-hidden"
             style={{
+              background: 'var(--surface)',
               border: '1px solid var(--border)',
-              boxShadow: '0 2px 24px rgba(0,0,0,0.4)',
-              minHeight: '480px',
+              boxShadow: 'var(--shadow-card)',
+              minHeight: '360px',
             }}
           >
             <iframe
               src="https://www.google.com/maps?q=No%2029%20Salon%20Scissor%20Bus%20Stand%20Urubokka&output=embed"
               width="100%"
               height="100%"
-              style={{ border: 0, display: 'block', minHeight: '480px' }}
+              style={{ border: 0, display: 'block', minHeight: '360px' }}
               allowFullScreen
               loading="lazy"
               title="Salon Location"

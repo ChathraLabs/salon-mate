@@ -14,6 +14,8 @@ const serviceIcons = {
   'facial-cleanup': Sparkles,
 };
 
+const specialtyChips = ['Signature cuts', 'Beauty care', 'Bridal styling', 'Skin rituals'];
+
 export function Services({
   onBookService,
   useStateNavigation = false,
@@ -22,36 +24,37 @@ export function Services({
   useStateNavigation?: boolean;
 }) {
   return (
-    <section id="services" className="salon-services py-24 relative overflow-hidden" style={{ background: 'var(--background)' }}>
+    <section id="services" className="salon-services py-20 sm:py-24 relative overflow-hidden" style={{ background: 'var(--background)' }}>
       <div
         className="absolute top-0 left-1/2 -translate-x-1/2 w-full h-px pointer-events-none"
-        style={{ background: 'linear-gradient(to right, transparent, rgba(212,165,32,0.3), transparent)' }}
+        style={{ background: 'linear-gradient(to right, transparent, rgba(138,95,34,0.18), transparent)' }}
       />
 
       <div className="salon-section-inner max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="salon-section-header text-center mb-16 space-y-3">
+        <div className="salon-section-header text-center mb-10 sm:mb-14 space-y-4">
           <p
             style={{
               fontFamily: 'var(--font-body)',
-              color: 'var(--gold)',
+              color: 'var(--gold-dark)',
               fontSize: '0.75rem',
-              letterSpacing: '0.14em',
               textTransform: 'uppercase',
+              fontWeight: 700,
             }}
           >
-            ✦ What We Offer ✦
+            What We Offer
           </p>
           <h2
             style={{
               fontFamily: 'var(--font-heading)',
-              color: 'var(--foreground)',
-              fontSize: 'clamp(2rem, 4vw, 2.75rem)',
+              color: 'var(--emerald)',
+              fontSize: 'clamp(2.2rem, 8vw, 3.25rem)',
+              lineHeight: '1.05',
             }}
           >
-            Our Services
+            Salon services for every occasion
           </h2>
           <p
-            className="max-w-xl mx-auto"
+            className="max-w-2xl mx-auto"
             style={{
               fontFamily: 'var(--font-body)',
               color: 'var(--muted-foreground)',
@@ -59,34 +62,39 @@ export function Services({
               lineHeight: '1.7',
             }}
           >
-            Discover our comprehensive range of beauty and grooming services tailored to your needs
+            Discover our comprehensive range of beauty and grooming services tailored to your needs.
           </p>
-          <div className="flex items-center justify-center gap-3 pt-2">
-            <div className="h-px w-16" style={{ background: 'linear-gradient(to right, transparent, var(--gold-dark))' }} />
-            <div className="w-1.5 h-1.5 rounded-full" style={{ background: 'var(--gold)' }} />
-            <div className="h-px w-16" style={{ background: 'linear-gradient(to left, transparent, var(--gold-dark))' }} />
+          <div className="flex flex-wrap items-center justify-center gap-2.5 pt-2" aria-label="Salon specialties">
+            {specialtyChips.map((label, index) => (
+              <span
+                key={label}
+                className="inline-flex items-center rounded-full px-4 py-2"
+                style={{
+                  background: index === 0 ? 'var(--emerald)' : 'var(--surface)',
+                  color: index === 0 ? 'var(--primary-foreground)' : 'var(--foreground)',
+                  border: '1px solid var(--border)',
+                  boxShadow: 'var(--shadow-soft)',
+                  fontFamily: 'var(--font-body)',
+                  fontSize: '0.875rem',
+                }}
+              >
+                {label}
+              </span>
+            ))}
           </div>
         </div>
 
-        <div className="salon-services__grid flex flex-wrap justify-center gap-5">
+        <div className="salon-services__grid grid gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
           {salonServices.map((service) => {
             const Icon = serviceIcons[service.id as keyof typeof serviceIcons] ?? Sparkles;
             return (
               <div
                 key={service.id}
-                className="salon-service-card group w-full overflow-hidden rounded-2xl transition-all duration-300 hover:-translate-y-1 md:w-[calc((100%-1.25rem)/2)] lg:w-[calc((100%-2.5rem)/3)] xl:w-[calc((100%-3.75rem)/4)]"
+                className="salon-service-card group overflow-hidden rounded-2xl transition-all duration-300 hover:-translate-y-1"
                 style={{
-                  background: 'var(--card)',
+                  background: 'var(--surface)',
                   border: '1px solid var(--border)',
-                  boxShadow: '0 2px 16px rgba(0,0,0,0.4)',
-                }}
-                onMouseEnter={(e) => {
-                  (e.currentTarget as HTMLDivElement).style.border = '1px solid rgba(212,165,32,0.4)';
-                  (e.currentTarget as HTMLDivElement).style.boxShadow = '0 8px 32px rgba(212,165,32,0.12)';
-                }}
-                onMouseLeave={(e) => {
-                  (e.currentTarget as HTMLDivElement).style.border = '1px solid var(--border)';
-                  (e.currentTarget as HTMLDivElement).style.boxShadow = '0 2px 16px rgba(0,0,0,0.4)';
+                  boxShadow: 'var(--shadow-card)',
                 }}
               >
                 <div className="salon-service-card__image relative h-44 overflow-hidden">
@@ -97,41 +105,42 @@ export function Services({
                   />
                   <div
                     className="absolute inset-0"
-                    style={{ background: 'linear-gradient(to top, rgba(6,4,2,0.6) 0%, transparent 50%)' }}
+                    style={{ background: 'linear-gradient(to top, rgba(16,33,29,0.52) 0%, transparent 56%)' }}
                   />
                   <div
                     className="absolute top-3 left-3 p-2.5 rounded-xl"
                     style={{
-                      background: 'linear-gradient(135deg, var(--gold-dark), var(--gold))',
-                      boxShadow: '0 2px 12px rgba(212,165,32,0.4)',
+                      background: 'var(--surface)',
+                      border: '1px solid rgba(255,250,244,0.75)',
+                      boxShadow: 'var(--shadow-soft)',
                     }}
                   >
-                    <Icon className="w-4 h-4" style={{ color: 'var(--primary-foreground)' }} />
+                    <Icon className="w-4 h-4" style={{ color: 'var(--gold-dark)' }} />
                   </div>
                 </div>
 
-                <div className="salon-service-card__body p-5 space-y-3">
-                  <h3 style={{ fontFamily: 'var(--font-heading)', color: 'var(--foreground)', fontSize: '1.05rem' }}>
+                <div className="salon-service-card__body p-5 space-y-3.5">
+                  <h3 style={{ fontFamily: 'var(--font-heading)', color: 'var(--emerald)', fontSize: '1.12rem', lineHeight: '1.2' }}>
                     {service.title}
                   </h3>
-                  <p style={{ fontFamily: 'var(--font-body)', color: 'var(--muted-foreground)', fontSize: '0.85rem', lineHeight: '1.6' }}>
+                  <p style={{ fontFamily: 'var(--font-body)', color: 'var(--muted-foreground)', fontSize: '0.86rem', lineHeight: '1.6' }}>
                     {service.description}
                   </p>
                   <div
-                    className="flex items-center justify-between pt-2"
+                    className="flex items-center justify-between gap-3 pt-2"
                     style={{ borderTop: '1px solid var(--border)' }}
                   >
-                    <span style={{ fontFamily: 'var(--font-body)', color: 'var(--gold)', fontSize: '0.82rem' }}>
+                    <span style={{ fontFamily: 'var(--font-body)', color: 'var(--gold-dark)', fontSize: '0.84rem', fontWeight: 700 }}>
                       From {formatServicePrice(service.basePrice)}
                     </span>
                     <span
-                      className="px-2.5 py-1 rounded-full"
+                      className="px-2.5 py-1 rounded-full whitespace-nowrap"
                       style={{
                         fontFamily: 'var(--font-body)',
-                        color: 'var(--muted-foreground)',
+                        color: 'var(--emerald)',
                         fontSize: '0.72rem',
-                        background: 'rgba(212,165,32,0.08)',
-                        border: '1px solid var(--border)',
+                        background: 'var(--emerald-soft)',
+                        border: '1px solid rgba(6,68,55,0.12)',
                       }}
                     >
                       {formatServiceDuration(service.baseDuration)}
@@ -145,19 +154,17 @@ export function Services({
                       }
                       onBookService?.(service.id);
                     }}
-                    className="salon-service-card__action block text-center transition-all duration-200"
+                    className="salon-service-card__action block text-center transition-transform duration-200 hover:-translate-y-0.5"
                     style={{
                       fontFamily: 'var(--font-body)',
-                      background: 'linear-gradient(135deg, var(--gold-dark), var(--gold))',
+                      background: 'var(--emerald)',
                       color: 'var(--primary-foreground)',
                       borderRadius: '9999px',
-                      padding: '0.6rem 1rem',
+                      padding: '0.65rem 1rem',
                       fontSize: '0.85rem',
                       textDecoration: 'none',
-                      letterSpacing: '0.03em',
+                      boxShadow: 'var(--shadow-button)',
                     }}
-                    onMouseEnter={(e) => (e.currentTarget.style.boxShadow = '0 4px 16px rgba(212,165,32,0.35)')}
-                    onMouseLeave={(e) => (e.currentTarget.style.boxShadow = 'none')}
                   >
                     Book Now
                   </a>

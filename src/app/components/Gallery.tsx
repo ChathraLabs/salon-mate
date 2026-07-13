@@ -2,7 +2,7 @@ import Masonry from 'react-responsive-masonry';
 
 const galleryImages = [
   { src: 'https://images.unsplash.com/photo-1776850476481-2bccba2e35c7?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3Nzg4Nzd8MHwxfHNlYXJjaHwxfHxzYWxvbiUyMGhhaXJjdXQlMjBzdHlsaW5nfGVufDF8fHx8MTc3ODUxODE2N3ww&ixlib=rb-4.1.0&q=80&w=1080', alt: 'Modern salon haircut' },
-  { src: 'https://images.unsplash.com/photo-1588842867976-fd084ca2c87b?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3Nzg4Nzd8MHwxfHNlYXJjaHwxfHxicmlkYWwlMjBtYWtldXAlMjBiZWF1dHl8ZW58MXx8fHwxNzc4NTE4MTc0fDA&ixlib=rb-4.1.0&q=80&w=1080', alt: 'Bridal makeup' },
+  { src: 'https://images.unsplash.com/photo-1588842867976-fd084ca2c87b?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3Nzg4Nzd8MHwxfHxicmlkYWwlMjBtYWtldXAlMjBiZWF1dHl8ZW58MXx8fHwxNzc4NTE4MTc0fDA&ixlib=rb-4.1.0&q=80&w=1080', alt: 'Bridal makeup' },
   { src: 'https://images.unsplash.com/photo-1654097801176-cb1795fd0c5e?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3Nzg4Nzd8MHwxfHNlYXJjaHw1fHxzYWxvbiUyMGhhaXJjdXQlMjBzdHlsaW5nfGVufDF8fHx8MTc3ODUxODE2N3ww&ixlib=rb-4.1.0&q=80&w=1080', alt: 'Hair styling service' },
   { src: 'https://images.unsplash.com/photo-1600948836101-f9ffda59d250?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3Nzg4Nzd8MHwxfHNlYXJjaHwxfHxzYWxvbiUyMGludGVyaW9yJTIwbW9kZXJufGVufDF8fHx8MTc3ODUxODE3NXww&ixlib=rb-4.1.0&q=80&w=1080', alt: 'Salon interior' },
   { src: 'https://images.unsplash.com/photo-1772322586754-34c9e6f5be6f?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3Nzg4Nzd8MHwxfHNlYXJjaHw0fHxuYWlsJTIwY2FyZSUyMG1hbmljdXJlfGVufDF8fHx8MTc3ODUxODE3NXww&ixlib=rb-4.1.0&q=80&w=1080', alt: 'Nail care service' },
@@ -14,37 +14,37 @@ const galleryImages = [
 
 export function Gallery() {
   return (
-    <section id="gallery" className="salon-gallery py-24 relative overflow-hidden" style={{ background: 'var(--section-dark-green)' }}>
+    <section id="gallery" className="salon-gallery py-20 sm:py-24 relative overflow-hidden" style={{ background: 'var(--background)' }}>
       <div
         className="absolute top-0 left-0 right-0 h-px pointer-events-none"
-        style={{ background: 'linear-gradient(to right, transparent, rgba(212,165,32,0.3), transparent)' }}
+        style={{ background: 'linear-gradient(to right, transparent, rgba(138,95,34,0.18), transparent)' }}
       />
 
       <div className="salon-section-inner max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        {/* Header */}
-        <div className="salon-section-header text-center mb-14 space-y-3">
+        <div className="salon-section-header text-center mb-10 sm:mb-14 space-y-4">
           <p
             style={{
               fontFamily: 'var(--font-body)',
-              color: 'var(--gold)',
+              color: 'var(--gold-dark)',
               fontSize: '0.75rem',
-              letterSpacing: '0.14em',
               textTransform: 'uppercase',
+              fontWeight: 700,
             }}
           >
-            ✦ Our Work ✦
+            Our Work
           </p>
           <h2
             style={{
               fontFamily: 'var(--font-heading)',
-              color: 'var(--foreground)',
-              fontSize: 'clamp(2rem, 4vw, 2.75rem)',
+              color: 'var(--emerald)',
+              fontSize: 'clamp(2.2rem, 8vw, 3.25rem)',
+              lineHeight: '1.05',
             }}
           >
             Gallery
           </h2>
           <p
-            className="max-w-xl mx-auto"
+            className="max-w-2xl mx-auto"
             style={{
               fontFamily: 'var(--font-body)',
               color: 'var(--muted-foreground)',
@@ -52,26 +52,39 @@ export function Gallery() {
               lineHeight: '1.7',
             }}
           >
-            Explore our portfolio of stunning transformations and satisfied clients
+            Explore our portfolio of transformations, bridal styling, salon care, and satisfied clients.
           </p>
-          <div className="flex items-center justify-center gap-3 pt-2">
-            <div className="h-px w-16" style={{ background: 'linear-gradient(to right, transparent, var(--gold-dark))' }} />
-            <div className="w-1.5 h-1.5 rounded-full" style={{ background: 'var(--gold)' }} />
-            <div className="h-px w-16" style={{ background: 'linear-gradient(to left, transparent, var(--gold-dark))' }} />
+          <div className="flex flex-wrap items-center justify-center gap-2 pt-2">
+            {['Hair craft', 'Bridal detail', 'Salon moments'].map((label) => (
+              <span
+                key={label}
+                className="rounded-full px-4 py-2"
+                style={{
+                  background: 'var(--surface)',
+                  border: '1px solid var(--border)',
+                  boxShadow: 'var(--shadow-soft)',
+                  color: 'var(--emerald)',
+                  fontFamily: 'var(--font-body)',
+                  fontSize: '0.84rem',
+                }}
+              >
+                {label}
+              </span>
+            ))}
           </div>
         </div>
 
-        <Masonry columnsCount={3} columnsCountBreakPoints={{ 0: 2, 768: 3, 1280: 3 }} gutter="0.75rem">
+        <Masonry columnsCount={3} columnsCountBreakPoints={{ 0: 2, 768: 3, 1280: 3 }} gutter="0.9rem">
           {galleryImages.map((image, index) => (
             <div
               key={index}
-              className="relative overflow-hidden cursor-pointer group"
+              className="relative overflow-hidden group"
               style={{
-                borderRadius: '0.875rem',
+                borderRadius: '1.25rem',
                 border: '1px solid var(--border)',
+                boxShadow: 'var(--shadow-card)',
+                background: 'var(--surface)',
               }}
-              onMouseEnter={(e) => (e.currentTarget.style.borderColor = 'rgba(212,165,32,0.4)')}
-              onMouseLeave={(e) => (e.currentTarget.style.borderColor = 'var(--border)')}
             >
               <img
                 src={image.src}
@@ -79,17 +92,15 @@ export function Gallery() {
                 className="w-full h-auto transition-transform duration-500 group-hover:scale-105"
                 style={{ display: 'block' }}
               />
-              {/* Hover overlay */}
               <div
-                className="absolute inset-0 flex items-end p-4 opacity-0 group-hover:opacity-100 transition-opacity duration-300"
-                style={{ background: 'linear-gradient(to top, rgba(6,4,2,0.85) 0%, transparent 55%)' }}
+                className="absolute inset-0 flex items-end p-3 sm:p-4 opacity-100 sm:opacity-0 sm:group-hover:opacity-100 transition-opacity duration-300"
+                style={{ background: 'linear-gradient(to top, rgba(16,33,29,0.72) 0%, transparent 58%)' }}
               >
                 <p
                   style={{
                     fontFamily: 'var(--font-body)',
-                    color: 'var(--foreground)',
+                    color: 'var(--primary-foreground)',
                     fontSize: '0.825rem',
-                    letterSpacing: '0.03em',
                   }}
                 >
                   {image.alt}
@@ -98,35 +109,6 @@ export function Gallery() {
             </div>
           ))}
         </Masonry>
-
-        <div className="text-center mt-12">
-          <button
-            style={{
-              fontFamily: 'var(--font-body)',
-              border: '1px solid rgba(212,165,32,0.35)',
-              color: 'var(--foreground)',
-              borderRadius: '9999px',
-              padding: '0.8rem 2.25rem',
-              background: 'transparent',
-              cursor: 'pointer',
-              transition: 'all 0.2s',
-              letterSpacing: '0.04em',
-              fontSize: '0.9rem',
-            }}
-            onMouseEnter={(e) => {
-              (e.currentTarget as HTMLButtonElement).style.background = 'rgba(212,165,32,0.1)';
-              (e.currentTarget as HTMLButtonElement).style.borderColor = 'var(--gold)';
-              (e.currentTarget as HTMLButtonElement).style.color = 'var(--gold-light)';
-            }}
-            onMouseLeave={(e) => {
-              (e.currentTarget as HTMLButtonElement).style.background = 'transparent';
-              (e.currentTarget as HTMLButtonElement).style.borderColor = 'rgba(212,165,32,0.35)';
-              (e.currentTarget as HTMLButtonElement).style.color = 'var(--foreground)';
-            }}
-          >
-            View More
-          </button>
-        </div>
       </div>
     </section>
   );

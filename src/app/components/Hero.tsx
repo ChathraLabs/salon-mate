@@ -1,4 +1,4 @@
-import { Star, Users, Award } from 'lucide-react';
+import { Award, CalendarDays, Scissors, Star, Users } from 'lucide-react';
 
 type HeroProps = {
   useStateNavigation?: boolean;
@@ -7,244 +7,220 @@ type HeroProps = {
 };
 
 export function Hero({ useStateNavigation = false, onBookAppointment, onViewServices }: HeroProps) {
+  const handleBookingClick = (event: React.MouseEvent<HTMLAnchorElement>) => {
+    if (useStateNavigation) {
+      event.preventDefault();
+    }
+    onBookAppointment?.();
+  };
+
+  const handleServicesClick = (event: React.MouseEvent<HTMLAnchorElement>) => {
+    if (useStateNavigation) {
+      event.preventDefault();
+    }
+    onViewServices?.();
+  };
+
   return (
     <section
       id="home"
       className="salon-hero relative min-h-screen flex items-center pt-20 overflow-hidden"
-      style={{ background: 'var(--background)' }}
+      style={{
+        background: 'linear-gradient(160deg, var(--cream) 0%, #fffaf4 48%, var(--cream-warm) 100%)',
+      }}
     >
-      {/* Ambient glow blobs */}
       <div
-        className="absolute top-20 right-0 w-96 h-96 pointer-events-none"
-        style={{
-          background: 'radial-gradient(circle, rgba(242,200,58,0.08) 0%, transparent 70%)',
-          borderRadius: '50%',
-        }}
+        className="absolute inset-x-0 top-0 h-36 pointer-events-none"
+        style={{ background: 'linear-gradient(to bottom, rgba(6,68,55,0.08), transparent)' }}
       />
       <div
-        className="absolute bottom-0 left-0 w-72 h-72 pointer-events-none"
+        className="absolute inset-0 pointer-events-none opacity-30"
         style={{
-          background: 'radial-gradient(circle, rgba(212,165,32,0.06) 0%, transparent 70%)',
-          borderRadius: '50%',
-        }}
-      />
-      {/* Subtle diagonal lines texture */}
-      <div
-        className="absolute inset-0 pointer-events-none opacity-5"
-        style={{
-          backgroundImage: 'repeating-linear-gradient(45deg, var(--gold) 0, var(--gold) 1px, transparent 0, transparent 50%)',
-          backgroundSize: '24px 24px',
+          backgroundImage:
+            'linear-gradient(rgba(138,95,34,0.08) 1px, transparent 1px), linear-gradient(90deg, rgba(138,95,34,0.08) 1px, transparent 1px)',
+          backgroundSize: '44px 44px',
+          maskImage: 'linear-gradient(to bottom, transparent, rgba(255,255,255,1) 18%, rgba(255,255,255,1) 68%, transparent)',
         }}
       />
 
-      <div className="salon-section-inner max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-20 w-full relative">
-        <div className="salon-hero__grid grid lg:grid-cols-2 gap-16 items-center">
-
-          {/* ── Left Content ── */}
-          <div className="salon-hero__content space-y-10">
-            {/* Eyebrow badge */}
+      <div className="salon-section-inner max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-14 sm:py-20 w-full relative">
+        <div className="salon-hero__grid grid lg:grid-cols-[0.92fr_1.08fr] gap-10 lg:gap-16 items-center">
+          <div className="salon-hero__content space-y-7 sm:space-y-9">
             <div
-              className="inline-flex items-center gap-2.5 px-4 py-1.5 rounded-full"
+              className="inline-flex items-center gap-2.5 px-4 py-2 rounded-full"
               style={{
-                background: 'rgba(212,165,32,0.1)',
-                border: '1px solid rgba(212,165,32,0.3)',
+                background: 'var(--surface)',
+                border: '1px solid var(--border)',
+                boxShadow: 'var(--shadow-soft)',
                 fontFamily: 'var(--font-body)',
-                color: 'var(--gold)',
+                color: 'var(--gold-dark)',
                 fontSize: '0.75rem',
-                letterSpacing: '0.1em',
                 textTransform: 'uppercase',
               }}
             >
-              <span className="w-1.5 h-1.5 rounded-full" style={{ background: 'var(--gold-light)' }} />
+              <Scissors className="w-3.5 h-3.5" />
               Sri Lanka's Premier Beauty Salon
             </div>
 
-            {/* Heading */}
-            <div className="space-y-2">
+            <div className="space-y-5">
               <h1
                 style={{
                   fontFamily: 'var(--font-heading)',
-                  color: 'var(--foreground)',
-                  fontSize: 'clamp(3rem, 6vw, 5rem)',
-                  lineHeight: '1.05',
-                  letterSpacing: '-0.01em',
+                  color: 'var(--emerald)',
+                  fontSize: 'clamp(3.25rem, 12vw, 5rem)',
+                  lineHeight: '0.96',
                 }}
               >
                 <span className="block">Look</span>
-                <span
-                  className="block italic"
-                  style={{
-                    color: 'var(--gold)',
-                    textShadow: '0 0 40px rgba(212,165,32,0.3)',
-                  }}
-                >
-                  Beautiful.
-                </span>
-                <span className="block">Feel</span>
-                <span
-                  className="block italic"
-                  style={{
-                    color: 'var(--gold-light)',
-                    textShadow: '0 0 40px rgba(242,200,58,0.25)',
-                  }}
-                >
-                  Confident.
+                <span className="block">Beautiful.</span>
+                <span className="block italic" style={{ color: 'var(--gold-dark)' }}>
+                  Feel Confident.
                 </span>
               </h1>
-            </div>
-
-            <p
-              className="max-w-lg leading-relaxed"
-              style={{
-                fontFamily: 'var(--font-body)',
-                color: 'var(--muted-foreground)',
-                fontSize: '1.05rem',
-              }}
-            >
-              Experience professional salon services, bridal styling, hair care, beauty treatments,
-              and tattoo training at Sri Lanka's premier grooming academy.
-            </p>
-
-            {/* CTAs */}
-            <div className="flex flex-col sm:flex-row gap-4">
-              <a
-                href="#booking"
-                onClick={(event) => {
-                  if (useStateNavigation) {
-                    event.preventDefault();
-                  }
-                  onBookAppointment?.();
-                }}
+              <p
+                className="max-w-xl leading-relaxed"
                 style={{
                   fontFamily: 'var(--font-body)',
-                  background: 'linear-gradient(135deg, var(--gold-dark) 0%, var(--gold) 50%, var(--gold-light) 100%)',
+                  color: 'var(--muted-foreground)',
+                  fontSize: '1.05rem',
+                }}
+              >
+                Experience professional salon services, bridal styling, hair care, beauty treatments,
+                and tattoo training at Sri Lanka's premier grooming academy.
+              </p>
+            </div>
+
+            <div
+              className="lg:hidden rounded-2xl p-5"
+              style={{ background: 'var(--surface)', border: '1px solid var(--border)', boxShadow: 'var(--shadow-card)' }}
+            >
+              <p style={{ fontFamily: 'var(--font-body)', color: 'var(--gold-dark)', fontSize: '0.78rem', fontWeight: 700 }}>
+                NEXT AVAILABLE
+              </p>
+              <p style={{ fontFamily: 'var(--font-heading)', color: 'var(--foreground)', fontSize: '1.35rem', marginTop: '0.4rem' }}>
+                Book your next salon visit
+              </p>
+              <a
+                href="#booking"
+                onClick={handleBookingClick}
+                className="mt-4 inline-flex w-full items-center justify-center gap-2 rounded-full px-5 py-3"
+                style={{
+                  fontFamily: 'var(--font-body)',
+                  background: 'linear-gradient(135deg, var(--emerald), var(--emerald-dark))',
+                  color: 'var(--primary-foreground)',
+                  textDecoration: 'none',
+                  boxShadow: 'var(--shadow-button)',
+                }}
+              >
+                <CalendarDays className="w-4 h-4" />
+                Book Appointment
+              </a>
+            </div>
+
+            <div className="flex flex-col sm:flex-row gap-3 sm:gap-4">
+              <a
+                href="#booking"
+                onClick={handleBookingClick}
+                className="inline-flex items-center justify-center gap-2 transition-transform duration-200 hover:-translate-y-0.5"
+                style={{
+                  fontFamily: 'var(--font-body)',
+                  background: 'linear-gradient(135deg, var(--emerald), var(--emerald-dark))',
                   color: 'var(--primary-foreground)',
                   padding: '1rem 2.25rem',
                   borderRadius: '9999px',
                   textDecoration: 'none',
                   textAlign: 'center',
-                  letterSpacing: '0.04em',
-                  boxShadow: '0 4px 24px rgba(212,165,32,0.3)',
-                  transition: 'all 0.3s',
+                  boxShadow: 'var(--shadow-button)',
                 }}
-                onMouseEnter={(e) => (e.currentTarget.style.boxShadow = '0 8px 32px rgba(212,165,32,0.5)')}
-                onMouseLeave={(e) => (e.currentTarget.style.boxShadow = '0 4px 24px rgba(212,165,32,0.3)')}
               >
+                <CalendarDays className="w-4 h-4" />
                 Book Appointment
               </a>
               <a
                 href="#services"
-                onClick={(event) => {
-                  if (useStateNavigation) {
-                    event.preventDefault();
-                  }
-                  onViewServices?.();
-                }}
+                onClick={handleServicesClick}
+                className="inline-flex items-center justify-center transition-colors duration-200"
                 style={{
                   fontFamily: 'var(--font-body)',
-                  border: '1px solid rgba(212,165,32,0.35)',
-                  color: 'var(--foreground)',
+                  border: '1px solid var(--border)',
+                  color: 'var(--emerald)',
                   padding: '1rem 2.25rem',
                   borderRadius: '9999px',
                   textDecoration: 'none',
                   textAlign: 'center',
-                  letterSpacing: '0.04em',
-                  transition: 'all 0.2s',
-                  background: 'transparent',
-                }}
-                onMouseEnter={(e) => {
-                  (e.currentTarget as HTMLAnchorElement).style.borderColor = 'var(--gold)';
-                  (e.currentTarget as HTMLAnchorElement).style.background = 'rgba(212,165,32,0.08)';
-                }}
-                onMouseLeave={(e) => {
-                  (e.currentTarget as HTMLAnchorElement).style.borderColor = 'rgba(212,165,32,0.35)';
-                  (e.currentTarget as HTMLAnchorElement).style.background = 'transparent';
+                  background: 'var(--surface)',
+                  boxShadow: 'var(--shadow-soft)',
                 }}
               >
                 View Services
               </a>
             </div>
 
-            {/* Trust Indicators */}
             <div
-              className="salon-hero__trust grid grid-cols-3 gap-6 pt-6"
-              style={{ borderTop: '1px solid var(--border)' }}
+              className="salon-hero__trust grid grid-cols-3 gap-3 sm:gap-4 pt-3"
+              style={{ fontFamily: 'var(--font-body)' }}
             >
-              <div className="flex flex-col items-center text-center gap-2">
-                <div className="flex items-center gap-0.5">
+              <div className="rounded-2xl p-3 sm:p-4 text-center" style={{ background: 'rgba(255,250,244,0.72)', border: '1px solid var(--border)' }}>
+                <div className="flex items-center justify-center gap-0.5">
                   {[...Array(5)].map((_, i) => (
-                    <Star key={i} className="w-3.5 h-3.5" style={{ fill: 'var(--gold)', color: 'var(--gold)' }} />
+                    <Star key={i} className="w-3 h-3" style={{ fill: 'var(--gold)', color: 'var(--gold)' }} />
                   ))}
                 </div>
-                <p style={{ fontFamily: 'var(--font-body)', color: 'var(--muted-foreground)', fontSize: '0.78rem' }}>
+                <p className="mt-2" style={{ color: 'var(--muted-foreground)', fontSize: '0.76rem' }}>
                   4.8 Rating
                 </p>
               </div>
-              <div className="flex flex-col items-center text-center gap-2">
-                <Users className="w-5 h-5" style={{ color: 'var(--gold)' }} />
-                <p style={{ fontFamily: 'var(--font-body)', color: 'var(--muted-foreground)', fontSize: '0.78rem' }}>
+              <div className="rounded-2xl p-3 sm:p-4 text-center" style={{ background: 'rgba(255,250,244,0.72)', border: '1px solid var(--border)' }}>
+                <Users className="w-5 h-5 mx-auto" style={{ color: 'var(--emerald)' }} />
+                <p className="mt-2" style={{ color: 'var(--muted-foreground)', fontSize: '0.76rem' }}>
                   500+ Clients
                 </p>
               </div>
-              <div className="flex flex-col items-center text-center gap-2">
-                <Award className="w-5 h-5" style={{ color: 'var(--gold)' }} />
-                <p style={{ fontFamily: 'var(--font-body)', color: 'var(--muted-foreground)', fontSize: '0.78rem' }}>
+              <div className="rounded-2xl p-3 sm:p-4 text-center" style={{ background: 'rgba(255,250,244,0.72)', border: '1px solid var(--border)' }}>
+                <Award className="w-5 h-5 mx-auto" style={{ color: 'var(--gold-dark)' }} />
+                <p className="mt-2" style={{ color: 'var(--muted-foreground)', fontSize: '0.76rem' }}>
                   Pro Stylists
                 </p>
               </div>
             </div>
           </div>
 
-          {/* ── Right Image ── */}
-          <div className="salon-hero__image relative lg:h-[620px] h-96">
-            {/* Gold glow behind image */}
+          <div className="salon-hero__image relative h-[28rem] sm:h-[34rem] lg:h-[620px]">
             <div
-              className="absolute inset-0 rounded-3xl"
-              style={{
-                background: 'radial-gradient(ellipse at center, rgba(212,165,32,0.18) 0%, transparent 70%)',
-                transform: 'scale(1.1)',
-              }}
+              className="absolute -inset-3 rounded-[2.4rem] pointer-events-none"
+              style={{ border: '1px solid rgba(189,135,48,0.22)' }}
             />
-            {/* Decorative offset border */}
             <div
-              className="absolute rounded-3xl"
-              style={{
-                inset: '1rem -1rem -1rem 1rem',
-                border: '1px solid rgba(212,165,32,0.2)',
-                borderRadius: '1.5rem',
-              }}
-            />
-            {/* Main image */}
-            <div className="relative h-full rounded-3xl overflow-hidden" style={{ border: '1px solid rgba(212,165,32,0.15)' }}>
+              className="relative h-full rounded-[2rem] overflow-hidden"
+              style={{ border: '1px solid var(--border)', boxShadow: 'var(--shadow-card)' }}
+            >
               <img
                 src="/unsplash.com/salon-reciption.png"
                 alt="Scissor King Dimma salon reception"
                 className="w-full h-full object-cover"
               />
-              {/* Dark-to-transparent overlay */}
               <div
-                className="absolute inset-0"
-                style={{ background: 'linear-gradient(to top, rgba(6,4,2,0.7) 0%, rgba(6,4,2,0.1) 55%, transparent 100%)' }}
-              />
-              {/* Floating badge */}
-              <div
-                className="absolute bottom-6 left-6 px-5 py-3 rounded-2xl"
-                style={{
-                  background: 'rgba(12,9,8,0.88)',
-                  border: '1px solid rgba(212,165,32,0.3)',
-                  backdropFilter: 'blur(8px)',
-                }}
+                className="absolute inset-x-0 bottom-0 p-5 sm:p-6"
+                style={{ background: 'linear-gradient(to top, rgba(16,33,29,0.74), transparent)' }}
               >
-                <p style={{ fontFamily: 'var(--font-heading)', color: 'var(--gold)', fontSize: '0.9rem' }}>
-                  Scissor King Dimma
-                </p>
-                <p style={{ fontFamily: 'var(--font-body)', color: 'var(--muted-foreground)', fontSize: '0.75rem' }}>
-                  Est. 2020 · Urubokka, Sri Lanka
-                </p>
+                <div
+                  className="inline-flex flex-col rounded-2xl px-4 py-3"
+                  style={{
+                    background: 'rgba(255,250,244,0.92)',
+                    border: '1px solid rgba(255,250,244,0.64)',
+                    boxShadow: 'var(--shadow-soft)',
+                  }}
+                >
+                  <span style={{ fontFamily: 'var(--font-heading)', color: 'var(--emerald)', fontSize: '1rem' }}>
+                    Scissor King Dimma
+                  </span>
+                  <span style={{ fontFamily: 'var(--font-body)', color: 'var(--muted-foreground)', fontSize: '0.78rem' }}>
+                    Est. 2020 · Urubokka, Sri Lanka
+                  </span>
+                </div>
               </div>
             </div>
           </div>
-
         </div>
       </div>
     </section>
