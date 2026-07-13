@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { Header } from './components/Header';
 import { Hero } from './components/Hero';
 import { Services } from './components/Services';
@@ -9,58 +9,97 @@ import { Booking } from './components/Booking';
 import { Contact } from './components/Contact';
 import { Footer } from './components/Footer';
 import { MobileMenu } from './components/MobileMenu';
+import { MobileBottomNavigation } from './components/MobileBottomNavigation';
 import { is_visible_cilent_review } from './config/visibility';
+import { useResponsive } from './hooks/useResponsive';
+import type { MobileSection } from './types/mobileNavigation';
 
 export default function App() {
+  const { isMobile } = useResponsive();
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+  const [activeMobileSection, setActiveMobileSection] = useState<MobileSection>('home');
   const [requestedService, setRequestedService] = useState<{ id: string; key: number } | null>(null);
 
-  return (
-    <div className="min-h-screen" style={{ background: 'var(--background)' }}>
-      <Header onMenuClick={() => setIsMobileMenuOpen(true)} />
-      <MobileMenu isOpen={isMobileMenuOpen} onClose={() => setIsMobileMenuOpen(false)} />
+  useEffect(() => {
+    if (!isMobile) return;
+    if (window.location.hash) {
+      window.history.replaceState(null, '', `${window.location.pathname}${window.location.search}`);
+    }
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  }, [activeMobileSection, isMobile]);
 
-      <main>
-        <Hero />
-        <Booking requestedService={requestedService} />
-        <Services onBookService={(id) => setRequestedService({ id, key: Date.now() })} />
-        <Gallery />
-        {is_visible_cilent_review && <Reviews />}
-        <About />
-        <Contact />
+  const handleMobileNavigate = (section: MobileSection) => {
+    setActiveMobileSection(section);
+    setIsMobileMenuOpen(false);
+  };
+
+  const handleBookService = (id: string) => {
+    setRequestedService({ id, key: Date.now() });
+    if (isMobile) {
+      setActiveMobileSection('booking');
+    }
+  };
+
+  const renderMobileSection = () => {
+    switch (activeMobileSection) {
+      case 'services':
+        return <Services onBookService={handleBookService} useStateNavigation />;
+      case 'booking':
+        return <Booking requestedService={requestedService} />;
+      case 'gallery':
+        return <Gallery />;
+      case 'reviews':
+        return is_visible_cilent_review ? <Reviews /> : <Hero />;
+      case 'about':
+        return <About />;
+      case 'contact':
+        return <Contact />;
+      case 'home':
+      default:
+        return (
+          <Hero
+            useStateNavigation
+            onBookAppointment={() => handleMobileNavigate('booking')}
+            onViewServices={() => handleMobileNavigate('services')}
+          />
+        );
+    }
+  };
+
+  return (
+    <div className="salon-app min-h-screen" style={{ background: 'var(--background)' }}>
+      <Header onMenuClick={() => setIsMobileMenuOpen(true)} />
+      <MobileMenu
+        isOpen={isMobileMenuOpen}
+        activeSection={activeMobileSection}
+        onNavigate={handleMobileNavigate}
+        onClose={() => setIsMobileMenuOpen(false)}
+      />
+
+      <main className="salon-main">
+        {isMobile ? (
+          <div className="mobile-section-view">
+            {renderMobileSection()}
+          </div>
+        ) : (
+          <>
+            <Hero />
+            <Booking requestedService={requestedService} />
+            <Services onBookService={handleBookService} />
+            <Gallery />
+            {is_visible_cilent_review && <Reviews />}
+            <About />
+            <Contact />
+          </>
+        )}
       </main>
 
-      <Footer />
-
-      {/* Sticky mobile CTA */}
-      <div
-        className="lg:hidden fixed bottom-0 left-0 right-0 p-4 z-40"
-        style={{
-          background: 'var(--surface-dark)',
-          borderTop: '1px solid rgba(212,165,32,0.2)',
-          backdropFilter: 'blur(8px)',
-        }}
-      >
-        <a
-          href="#booking"
-          style={{
-            display: 'block',
-            width: '100%',
-            background: 'linear-gradient(135deg, var(--gold-dark), var(--gold), var(--gold-light))',
-            color: 'var(--primary-foreground)',
-            padding: '0.875rem 1.5rem',
-            borderRadius: '9999px',
-            textAlign: 'center',
-            fontFamily: 'var(--font-body)',
-            textDecoration: 'none',
-            letterSpacing: '0.04em',
-            boxShadow: '0 4px 20px rgba(212,165,32,0.35)',
-            fontSize: '0.9rem',
-          }}
-        >
-          Book Appointment
-        </a>
-      </div>
+      {!isMobile && <Footer />}
+      <MobileBottomNavigation
+        activeSection={activeMobileSection}
+        onNavigate={handleMobileNavigate}
+        onMoreClick={() => setIsMobileMenuOpen(true)}
+      />
     </div>
   );
 }

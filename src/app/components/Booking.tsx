@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import { Check, ChevronRight, ChevronLeft, Calendar as CalendarIcon, Clock, User, CheckCircle } from 'lucide-react';
 import { Calendar as DatePickerCalendar } from './ui/calendar';
 import {
@@ -147,6 +147,8 @@ const selectionActive: React.CSSProperties = {
 };
 
 export function Booking({ requestedService }: BookingProps) {
+  const bookingSectionRef = useRef<HTMLElement | null>(null);
+  const bookingCardRef = useRef<HTMLDivElement | null>(null);
   const [step, setStep] = useState(1);
   const [services, setServices] = useState<PublicService[]>(fallbackServices);
   const [barbers, setBarbers] = useState<PublicStaffMember[]>([]);
@@ -345,8 +347,35 @@ export function Booking({ requestedService }: BookingProps) {
     }
   }, [availableTimeSlotSet, selectedTime]);
 
-  const handleNext = () => { if (step < stepLabels.length) setStep(step + 1); };
-  const handleBack = () => { if (step > 1) setStep(step - 1); };
+  const keepBookingCardInView = () => {
+    if (typeof window === 'undefined') return;
+
+    window.setTimeout(() => {
+      const target = bookingCardRef.current ?? bookingSectionRef.current;
+      if (!target) return;
+
+      const top = target.getBoundingClientRect().top + window.scrollY - 88;
+      window.scrollTo({ top: Math.max(0, top), behavior: 'smooth' });
+    }, 0);
+  };
+
+  const handleNext = () => {
+    if (step < stepLabels.length) {
+      setStep(step + 1);
+      keepBookingCardInView();
+    }
+  };
+  const handleBack = () => {
+    if (step > 1) {
+      setStep(step - 1);
+      keepBookingCardInView();
+    }
+  };
+  const handleChangeService = () => {
+    setSelectedService(null);
+    setSelectedOptionIds([]);
+    keepBookingCardInView();
+  };
   const handleConfirmBooking = async () => {
     if (!selectedService || !selectedDate || !selectedTime) return;
 
@@ -385,6 +414,7 @@ export function Booking({ requestedService }: BookingProps) {
 
       setBookingCode(data.booking.bookingCode);
       setIsConfirmed(true);
+      keepBookingCardInView();
     } catch (error) {
       setSubmitError(error instanceof Error ? error.message : 'Unable to submit booking.');
     } finally {
@@ -406,9 +436,9 @@ export function Booking({ requestedService }: BookingProps) {
 
   if (isConfirmed) {
     return (
-      <section id="booking" className="py-24 relative" style={{ background: 'var(--section-dark-green)' }}>
+      <section ref={bookingSectionRef} id="booking" className="salon-booking py-24 relative" style={{ background: 'var(--section-dark-green)' }}>
         <div className="max-w-2xl mx-auto px-4 sm:px-6">
-          <div className="text-center p-10 sm:p-14" style={cardStyle}>
+          <div ref={bookingCardRef} className="salon-booking__card text-center p-10 sm:p-14" style={cardStyle}>
             <div
               className="w-20 h-20 rounded-full flex items-center justify-center mx-auto mb-6"
               style={{
@@ -438,7 +468,7 @@ export function Booking({ requestedService }: BookingProps) {
               ].map(({ label, value }, i) => (
                 <div
                   key={i}
-                  className="flex justify-between items-center px-5 py-3"
+                  className="booking-summary-row flex justify-between items-center px-5 py-3"
                   style={{
                     borderBottom: i < 7 ? '1px solid var(--border)' : 'none',
                     background: i % 2 === 0 ? 'var(--muted)' : 'var(--card)',
@@ -448,7 +478,7 @@ export function Booking({ requestedService }: BookingProps) {
                   <span style={{ fontFamily: 'var(--font-body)', color: i === 0 ? 'var(--gold)' : 'var(--foreground)', fontSize: '0.875rem' }}>{value}</span>
                 </div>
               ))}
-              <div className="flex justify-between items-center px-5 py-3" style={{ background: 'var(--muted)' }}>
+              <div className="booking-summary-row flex justify-between items-center px-5 py-3" style={{ background: 'var(--muted)' }}>
                 <span style={{ fontFamily: 'var(--font-body)', color: 'var(--muted-foreground)', fontSize: '0.875rem' }}>Status</span>
                 <span
                   className="px-3 py-1 rounded-full"
@@ -510,15 +540,15 @@ export function Booking({ requestedService }: BookingProps) {
   }
 
   return (
-    <section id="booking" className="py-24 relative overflow-hidden" style={{ background: 'var(--section-dark-green)' }}>
+    <section ref={bookingSectionRef} id="booking" className="salon-booking py-24 relative overflow-hidden" style={{ background: 'var(--section-dark-green)' }}>
       <div
         className="absolute top-0 left-0 right-0 h-px pointer-events-none"
         style={{ background: 'linear-gradient(to right, transparent, rgba(212,165,32,0.3), transparent)' }}
       />
 
-      <div className="max-w-3xl mx-auto px-4 sm:px-6 relative">
+      <div className="salon-booking__inner max-w-3xl mx-auto px-4 sm:px-6 relative">
         {/* Header */}
-        <div className="text-center mb-12 space-y-3">
+        <div className="salon-section-header text-center mb-12 space-y-3">
           <p style={{ fontFamily: 'var(--font-body)', color: 'var(--gold)', fontSize: '0.75rem', letterSpacing: '0.14em', textTransform: 'uppercase' }}>
             ✦ Easy Booking ✦
           </p>
@@ -536,16 +566,16 @@ export function Booking({ requestedService }: BookingProps) {
         </div>
 
         {/* Progress Steps */}
-        <div className="flex items-center justify-center mb-10">
+        <div className="booking-progress flex items-center justify-center mb-10">
           {stepLabels.map((label, i) => {
             const s = i + 1;
             const isCompleted = s < step;
             const isActive = s === step;
             return (
-              <div key={s} className="flex items-center">
-                <div className="flex flex-col items-center gap-1.5">
+              <div key={s} className="booking-progress__item flex items-start">
+                <div className="booking-progress__step flex flex-col items-center gap-1.5">
                   <div
-                    className="w-9 h-9 rounded-full flex items-center justify-center transition-all"
+                    className="booking-progress__dot w-9 h-9 rounded-full flex items-center justify-center transition-all"
                     style={{
                       background: isCompleted
                         ? 'linear-gradient(135deg, var(--gold-dark), var(--gold))'
@@ -583,7 +613,7 @@ export function Booking({ requestedService }: BookingProps) {
                 </div>
                 {s < stepLabels.length && (
                   <div
-                    className="w-10 sm:w-14 h-px mx-1 mb-5 transition-all"
+                    className="booking-progress__connector w-10 sm:w-14 h-px mx-1 transition-all"
                     style={{
                       background: s < step
                         ? 'linear-gradient(to right, var(--gold-dark), var(--gold))'
@@ -597,7 +627,7 @@ export function Booking({ requestedService }: BookingProps) {
         </div>
 
         {/* Card */}
-        <div className="p-6 sm:p-10" style={cardStyle}>
+        <div ref={bookingCardRef} className="salon-booking__card p-6 sm:p-10" style={cardStyle}>
 
           {/* Step 1 – Service */}
           {step === 1 && (
@@ -608,7 +638,7 @@ export function Booking({ requestedService }: BookingProps) {
               </h3>
 
               {!selectedService ? (
-                <div className="grid sm:grid-cols-2 gap-3">
+                <div className="booking-service-grid grid sm:grid-cols-2 gap-3">
                   {services.map((service) => (
                     <button
                       key={service.id}
@@ -636,14 +666,14 @@ export function Booking({ requestedService }: BookingProps) {
                 </div>
               ) : (
                 <div className="space-y-5">
-                  <div className="rounded-2xl overflow-hidden" style={{ border: '1px solid var(--border)' }}>
+                  <div className="booking-option-list rounded-2xl overflow-hidden" style={{ border: '1px solid var(--border)' }}>
                     {selectedServiceOptions.map((option, index) => {
                       const isChecked = selectedOptionIds.includes(option.id);
 
                       return (
                         <label
                           key={option.id}
-                          className="flex items-center gap-4 px-5 py-4 cursor-pointer"
+                          className="booking-option-row flex items-center gap-4 px-5 py-4 cursor-pointer"
                           style={{
                             borderBottom: index < selectedServiceOptions.length - 1 ? '1px solid var(--border)' : 'none',
                             background: isChecked ? 'rgba(212,165,32,0.08)' : index % 2 === 0 ? 'var(--muted)' : 'var(--card)',
@@ -669,7 +699,7 @@ export function Booking({ requestedService }: BookingProps) {
                     })}
                   </div>
 
-                  <div className="grid sm:grid-cols-2 gap-3">
+                  <div className="booking-totals grid sm:grid-cols-2 gap-3">
                     <div className="rounded-xl px-4 py-3" style={{ background: 'rgba(212,165,32,0.08)', border: '1px solid rgba(212,165,32,0.25)' }}>
                       <p style={{ fontFamily: 'var(--font-body)', color: 'var(--muted-foreground)', fontSize: '0.75rem' }}>Total</p>
                       <p style={{ fontFamily: 'var(--font-heading)', color: 'var(--foreground)', fontSize: '1.25rem', marginTop: '0.15rem' }}>
@@ -683,25 +713,6 @@ export function Booking({ requestedService }: BookingProps) {
                       </p>
                     </div>
                   </div>
-
-                  <button
-                    type="button"
-                    onClick={() => {
-                      setSelectedService(null);
-                      setSelectedOptionIds([]);
-                    }}
-                    style={{
-                      fontFamily: 'var(--font-body)',
-                      color: 'var(--gold)',
-                      background: 'transparent',
-                      border: 'none',
-                      cursor: 'pointer',
-                      padding: 0,
-                      fontSize: '0.85rem',
-                    }}
-                  >
-                    Change service
-                  </button>
                 </div>
               )}
             </div>
@@ -715,7 +726,7 @@ export function Booking({ requestedService }: BookingProps) {
                 Select Date & Time
               </h3>
 
-              <div className="grid lg:grid-cols-[0.9fr_1.1fr] gap-6">
+              <div className="booking-date-time-grid grid lg:grid-cols-[0.9fr_1.1fr] gap-6">
                 <div className="space-y-4">
                   <label style={{ fontFamily: 'var(--font-body)', color: 'var(--foreground)', fontSize: '0.875rem', display: 'block' }}>
                     Pick a date
@@ -784,7 +795,7 @@ export function Booking({ requestedService }: BookingProps) {
                           )}
                         </h4>
                       </div>
-                      <div className="flex flex-wrap gap-3">
+                      <div className="booking-staff-selector flex flex-wrap gap-3">
                         {barbers.map((barber) => {
                           const isSelected = selectedStaffId === barber.id;
                           const barberSlots = selectedDateOption?.staffSlots?.[barber.id] ?? [];
@@ -873,7 +884,7 @@ export function Booking({ requestedService }: BookingProps) {
                       Appointment holds {formatTimeLabel(selectedTime)} - {formatTimeLabel(selectedTimeEnd)}
                     </p>
                   )}
-                  <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
+                  <div className="booking-time-grid grid grid-cols-2 sm:grid-cols-3 gap-3">
                     {allTimeSlots.map((time) => {
                       const isAvailable = availableTimeSlotSet.has(time);
                       const isBooked = bookedTimeSlotSet.has(time);
@@ -1011,7 +1022,7 @@ export function Booking({ requestedService }: BookingProps) {
                 ].map(({ label, value }, i, arr) => (
                   <div
                     key={i}
-                    className="flex justify-between items-center px-5 py-3.5"
+                    className="booking-summary-row flex justify-between items-center px-5 py-3.5"
                     style={{
                       borderBottom: i < arr.length - 1 ? '1px solid var(--border)' : 'none',
                       background: i % 2 === 0 ? 'var(--muted)' : 'var(--card)',
@@ -1036,10 +1047,31 @@ export function Booking({ requestedService }: BookingProps) {
           )}
 
           {/* Navigation Buttons */}
-          <div className="flex items-center justify-between mt-8 pt-6" style={{ borderTop: '1px solid var(--border)' }}>
+          <div className="booking-navigation flex items-center justify-between mt-8 pt-6" style={{ borderTop: '1px solid var(--border)' }}>
             {step > 1 ? (
               <button
                 onClick={handleBack}
+                className="flex items-center gap-2"
+                style={{
+                  fontFamily: 'var(--font-body)',
+                  padding: '0.7rem 1.5rem',
+                  borderRadius: '9999px',
+                  border: '1px solid var(--border)',
+                  background: 'transparent',
+                  color: 'var(--foreground)',
+                  cursor: 'pointer',
+                  transition: 'all 0.2s',
+                }}
+                onMouseEnter={(e) => (e.currentTarget.style.borderColor = 'rgba(212,165,32,0.4)')}
+                onMouseLeave={(e) => (e.currentTarget.style.borderColor = 'var(--border)')}
+              >
+                <ChevronLeft size={18} />
+                Back
+              </button>
+            ) : selectedService ? (
+              <button
+                type="button"
+                onClick={handleChangeService}
                 className="flex items-center gap-2"
                 style={{
                   fontFamily: 'var(--font-body)',

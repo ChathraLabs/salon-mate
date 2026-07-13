@@ -62,7 +62,7 @@ export function Contact() {
   return (
     <section
       id="contact"
-      className="py-24 relative overflow-hidden"
+      className="salon-contact py-24 relative overflow-hidden"
       style={{ background: is_visible_cilent_review ? 'var(--background)' : 'var(--section-dark-green)' }}
     >
       <div
@@ -74,9 +74,9 @@ export function Contact() {
         style={{ background: 'radial-gradient(circle, rgba(212,165,32,0.05) 0%, transparent 70%)' }}
       />
 
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative">
+      <div className="salon-section-inner max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative">
         {/* Header */}
-        <div className="text-center mb-14 space-y-3">
+        <div className="salon-section-header text-center mb-14 space-y-3">
           <p style={{ fontFamily: 'var(--font-body)', color: 'var(--gold)', fontSize: '0.75rem', letterSpacing: '0.14em', textTransform: 'uppercase' }}>
             ✦ Get In Touch ✦
           </p>
@@ -93,11 +93,11 @@ export function Contact() {
           </div>
         </div>
 
-        <div className="grid lg:grid-cols-2 gap-12">
+        <div className="salon-contact__grid grid lg:grid-cols-2 gap-12">
           {/* Left – Contact Info */}
           <div className="space-y-5">
             <div
-              className="p-8 rounded-2xl space-y-6"
+              className="salon-contact__panel p-8 rounded-2xl space-y-6"
               style={{
                 background: 'var(--card)',
                 border: '1px solid var(--border)',
@@ -128,7 +128,7 @@ export function Contact() {
             </div>
 
             {/* Quick action buttons */}
-            <div className="grid grid-cols-3 gap-3">
+            <div className="salon-contact__quick-actions grid grid-cols-3 gap-3">
               {quickLinks.map(({ icon: Icon, label, href, external }) => (
                 <a
                   key={label}
@@ -167,7 +167,7 @@ export function Contact() {
 
           {/* Right – Map */}
           <div
-            className="rounded-2xl overflow-hidden"
+            className="salon-contact__map rounded-2xl overflow-hidden"
             style={{
               border: '1px solid var(--border)',
               boxShadow: '0 2px 24px rgba(0,0,0,0.4)',

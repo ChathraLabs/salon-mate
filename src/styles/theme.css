@@ -212,3 +212,428 @@
     background: var(--gold);
   }
 }
+
+@layer base {
+  html {
+    scroll-behavior: smooth;
+    scroll-padding-top: 5rem;
+  }
+
+  body {
+    overflow-x: hidden;
+  }
+
+  button,
+  a,
+  input,
+  textarea,
+  select {
+    -webkit-tap-highlight-color: transparent;
+  }
+
+  a:focus-visible,
+  button:focus-visible,
+  input:focus-visible,
+  textarea:focus-visible,
+  select:focus-visible {
+    outline: 2px solid var(--gold);
+    outline-offset: 3px;
+  }
+}
+
+@layer components {
+  .mobile-bottom-nav {
+    position: fixed;
+    right: 0;
+    bottom: 0;
+    left: 0;
+    z-index: 45;
+    display: grid;
+    grid-template-columns: repeat(5, minmax(0, 1fr));
+    gap: 0.125rem;
+    padding: 0.45rem max(0.5rem, env(safe-area-inset-left)) calc(0.45rem + env(safe-area-inset-bottom)) max(0.5rem, env(safe-area-inset-right));
+    background: rgba(6, 4, 2, 0.94);
+    border-top: 1px solid rgba(212, 165, 32, 0.24);
+    box-shadow: 0 -10px 28px rgba(0, 0, 0, 0.45);
+    backdrop-filter: blur(14px);
+  }
+
+  .mobile-bottom-nav__item {
+    min-width: 0;
+    min-height: 3.25rem;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 0.2rem;
+    border: 0;
+    border-radius: 0.75rem;
+    background: transparent;
+    color: var(--muted-foreground);
+    font-family: var(--font-body);
+    font-size: 0.68rem;
+    line-height: 1.1;
+    text-decoration: none;
+    cursor: pointer;
+  }
+
+  .mobile-bottom-nav__item[aria-current='page'] {
+    color: var(--gold-light);
+    background: rgba(212, 165, 32, 0.1);
+  }
+
+  .mobile-bottom-nav__icon {
+    width: 1.25rem;
+    height: 1.25rem;
+    flex-shrink: 0;
+  }
+
+  .booking-progress__item {
+    align-items: flex-start;
+  }
+
+  .booking-progress__connector {
+    align-self: flex-start;
+    margin-top: calc(2.25rem / 2);
+    transform: translateY(-50%);
+  }
+}
+
+@media (max-width: 767px) {
+  html {
+    scroll-padding-top: 4.75rem;
+  }
+
+  .salon-app {
+    padding-bottom: calc(3.75rem + env(safe-area-inset-bottom));
+  }
+
+  .salon-app section {
+    padding-top: 4.75rem;
+    padding-bottom: 1.25rem;
+  }
+
+  .salon-booking {
+    min-height: auto;
+    padding-bottom: 1.375rem !important;
+  }
+
+  .salon-section-inner,
+  .salon-booking__inner {
+    padding-right: 1rem;
+    padding-left: 1rem;
+  }
+
+  .salon-section-header {
+    margin-bottom: 2rem;
+  }
+
+  .salon-section-header h2 {
+    line-height: 1.15;
+  }
+
+  .salon-header__inner {
+    height: 4rem;
+  }
+
+  .salon-header img {
+    max-height: 2.75rem;
+  }
+
+  .mobile-menu-panel {
+    max-width: min(100vw, 23rem);
+    padding-bottom: env(safe-area-inset-bottom);
+  }
+
+  .mobile-menu-panel__nav {
+    padding-top: 1.25rem;
+    padding-bottom: 1.25rem;
+    overflow-y: auto;
+  }
+
+  .salon-hero {
+    min-height: auto;
+    padding-top: 4rem;
+  }
+
+  .salon-hero .salon-section-inner {
+    padding-top: 2rem;
+    padding-bottom: 2.75rem;
+  }
+
+  .salon-hero__grid {
+    gap: 2rem;
+  }
+
+  .salon-hero__content {
+    gap: 1.6rem;
+  }
+
+  .salon-hero__content h1 {
+    font-size: clamp(2.25rem, 15vw, 3.25rem) !important;
+    line-height: 1.02 !important;
+  }
+
+  .salon-hero__content p {
+    font-size: 0.95rem !important;
+  }
+
+  .salon-hero__image {
+    height: clamp(18rem, 76vw, 24rem) !important;
+  }
+
+  .salon-hero__image > div:nth-child(2) {
+    inset: 0.5rem -0.35rem -0.35rem 0.5rem !important;
+  }
+
+  .salon-hero__trust {
+    gap: 0.75rem;
+    padding-top: 1rem;
+  }
+
+  .salon-service-card {
+    display: grid;
+    grid-template-columns: 7.75rem minmax(0, 1fr);
+    border-radius: 0.875rem !important;
+  }
+
+  .salon-service-card__image {
+    height: 100%;
+    min-height: 11rem;
+  }
+
+  .salon-service-card__body {
+    padding: 0.9rem;
+  }
+
+  .salon-service-card__body h3 {
+    font-size: 0.95rem !important;
+  }
+
+  .salon-service-card__body p {
+    display: -webkit-box;
+    overflow: hidden;
+    -webkit-line-clamp: 3;
+    -webkit-box-orient: vertical;
+    font-size: 0.78rem !important;
+    line-height: 1.45 !important;
+  }
+
+  .salon-service-card__action {
+    min-height: 2.75rem;
+    display: flex !important;
+    align-items: center;
+    justify-content: center;
+  }
+
+  .salon-booking__card {
+    border-radius: 1rem !important;
+    padding: 1rem !important;
+    box-shadow: 0 2px 24px rgba(0, 0, 0, 0.42) !important;
+  }
+
+  .salon-booking textarea {
+    min-height: 6.75rem;
+  }
+
+  .booking-progress {
+    margin-bottom: 1.25rem;
+    overflow: visible;
+    justify-content: center;
+    padding: 0.35rem 0.15rem 0.65rem;
+    scrollbar-width: none;
+  }
+
+  .booking-progress::-webkit-scrollbar {
+    display: none;
+  }
+
+  .booking-progress > div {
+    flex-shrink: 0;
+  }
+
+  .booking-service-grid,
+  .booking-date-time-grid,
+  .booking-totals {
+    grid-template-columns: minmax(0, 1fr) !important;
+  }
+
+  .booking-option-row {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) auto;
+    gap: 0.25rem 0.75rem;
+    padding: 0.9rem !important;
+  }
+
+  .booking-option-row > span:nth-child(2),
+  .booking-option-row > span:nth-child(3) {
+    font-size: 0.74rem !important;
+    min-width: 0 !important;
+    text-align: left !important;
+  }
+
+  .booking-option-row > input {
+    grid-column: 2;
+    grid-row: 1 / span 2;
+    align-self: center;
+    width: 1.3rem;
+    height: 1.3rem;
+  }
+
+  .booking-staff-selector {
+    flex-wrap: nowrap;
+    overflow-x: auto;
+    padding: 0.25rem 0.15rem 0.65rem;
+    scrollbar-width: none;
+  }
+
+  .booking-staff-selector::-webkit-scrollbar {
+    display: none;
+  }
+
+  .booking-staff-selector > button {
+    flex: 0 0 4rem;
+    width: 4rem !important;
+    height: 4rem !important;
+  }
+
+  .booking-time-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+  }
+
+  .booking-time-grid button,
+  .booking-service-grid button {
+    min-height: 3.35rem;
+  }
+
+  .booking-summary-row {
+    align-items: flex-start !important;
+    gap: 1rem;
+  }
+
+  .booking-summary-row > span:first-child {
+    flex: 0 0 6.75rem;
+  }
+
+  .booking-summary-row > span:last-child {
+    min-width: 0;
+    text-align: right;
+    overflow-wrap: anywhere;
+  }
+
+  .booking-navigation {
+    position: static;
+    margin-top: 1rem !important;
+    margin-right: -1rem;
+    margin-left: -1rem;
+    margin-bottom: -1rem;
+    padding: 0.8rem 1rem 1rem !important;
+    background: linear-gradient(to bottom, rgba(20, 16, 9, 0.88), rgba(20, 16, 9, 0.98));
+    border-top: 1px solid var(--border) !important;
+  }
+
+  .booking-navigation button {
+    min-height: 2.85rem;
+  }
+
+  .salon-gallery img {
+    border-radius: 0;
+  }
+
+  .salon-about__grid,
+  .salon-contact__grid {
+    gap: 2rem;
+  }
+
+  .salon-about__media {
+    order: -1;
+  }
+
+  .salon-about__image {
+    height: clamp(18rem, 85vw, 25rem) !important;
+    border-radius: 1rem !important;
+  }
+
+  .salon-about__content {
+    gap: 1.75rem;
+  }
+
+  .salon-about__stats {
+    gap: 0.6rem;
+  }
+
+  .salon-about__stat {
+    padding: 0.85rem 0.55rem !important;
+    border-radius: 0.875rem !important;
+  }
+
+  .salon-about__stat svg {
+    width: 1.25rem;
+    height: 1.25rem;
+    margin-bottom: 0.45rem;
+  }
+
+  .salon-about__stat p:first-of-type {
+    font-size: 1.1rem !important;
+  }
+
+  .salon-about__stat p:last-of-type {
+    font-size: 0.64rem !important;
+    line-height: 1.2;
+  }
+
+  .salon-review-card {
+    padding: 1rem !important;
+    border-radius: 0.875rem !important;
+  }
+
+  .salon-review-card p {
+    font-size: 0.84rem !important;
+    line-height: 1.6 !important;
+  }
+
+  .salon-contact__panel {
+    padding: 1rem !important;
+    border-radius: 0.875rem !important;
+  }
+
+  .salon-contact__quick-actions {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 0.55rem;
+  }
+
+  .salon-contact__quick-actions a {
+    min-height: 4.75rem;
+    padding: 0.75rem 0.35rem !important;
+  }
+
+  .salon-contact__quick-actions span {
+    font-size: 0.7rem !important;
+    text-align: center;
+  }
+
+  .salon-contact__map,
+  .salon-contact__map iframe {
+    min-height: 20rem !important;
+  }
+}
+
+@media (min-width: 768px) and (max-width: 1023px) {
+  .salon-app section {
+    padding-top: 5rem;
+    padding-bottom: 5rem;
+  }
+
+  .salon-service-card {
+    border-radius: 1rem !important;
+  }
+
+  .salon-about__image {
+    height: 28rem !important;
+  }
+
+  .salon-contact__map,
+  .salon-contact__map iframe {
+    min-height: 26rem !important;
+  }
+}

@@ -14,15 +14,15 @@ const galleryImages = [
 
 export function Gallery() {
   return (
-    <section id="gallery" className="py-24 relative overflow-hidden" style={{ background: 'var(--section-dark-green)' }}>
+    <section id="gallery" className="salon-gallery py-24 relative overflow-hidden" style={{ background: 'var(--section-dark-green)' }}>
       <div
         className="absolute top-0 left-0 right-0 h-px pointer-events-none"
         style={{ background: 'linear-gradient(to right, transparent, rgba(212,165,32,0.3), transparent)' }}
       />
 
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+      <div className="salon-section-inner max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         {/* Header */}
-        <div className="text-center mb-14 space-y-3">
+        <div className="salon-section-header text-center mb-14 space-y-3">
           <p
             style={{
               fontFamily: 'var(--font-body)',
@@ -61,7 +61,7 @@ export function Gallery() {
           </div>
         </div>
 
-        <Masonry columnsCount={3} gutter="0.75rem">
+        <Masonry columnsCount={3} columnsCountBreakPoints={{ 0: 2, 768: 3, 1280: 3 }} gutter="0.75rem">
           {galleryImages.map((image, index) => (
             <div
               key={index}

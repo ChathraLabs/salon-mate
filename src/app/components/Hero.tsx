@@ -1,10 +1,16 @@
 import { Star, Users, Award } from 'lucide-react';
 
-export function Hero() {
+type HeroProps = {
+  useStateNavigation?: boolean;
+  onBookAppointment?: () => void;
+  onViewServices?: () => void;
+};
+
+export function Hero({ useStateNavigation = false, onBookAppointment, onViewServices }: HeroProps) {
   return (
     <section
       id="home"
-      className="relative min-h-screen flex items-center pt-20 overflow-hidden"
+      className="salon-hero relative min-h-screen flex items-center pt-20 overflow-hidden"
       style={{ background: 'var(--background)' }}
     >
       {/* Ambient glow blobs */}
@@ -31,11 +37,11 @@ export function Hero() {
         }}
       />
 
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-20 w-full relative">
-        <div className="grid lg:grid-cols-2 gap-16 items-center">
+      <div className="salon-section-inner max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-20 w-full relative">
+        <div className="salon-hero__grid grid lg:grid-cols-2 gap-16 items-center">
 
           {/* ── Left Content ── */}
-          <div className="space-y-10">
+          <div className="salon-hero__content space-y-10">
             {/* Eyebrow badge */}
             <div
               className="inline-flex items-center gap-2.5 px-4 py-1.5 rounded-full"
@@ -103,6 +109,12 @@ export function Hero() {
             <div className="flex flex-col sm:flex-row gap-4">
               <a
                 href="#booking"
+                onClick={(event) => {
+                  if (useStateNavigation) {
+                    event.preventDefault();
+                  }
+                  onBookAppointment?.();
+                }}
                 style={{
                   fontFamily: 'var(--font-body)',
                   background: 'linear-gradient(135deg, var(--gold-dark) 0%, var(--gold) 50%, var(--gold-light) 100%)',
@@ -122,6 +134,12 @@ export function Hero() {
               </a>
               <a
                 href="#services"
+                onClick={(event) => {
+                  if (useStateNavigation) {
+                    event.preventDefault();
+                  }
+                  onViewServices?.();
+                }}
                 style={{
                   fontFamily: 'var(--font-body)',
                   border: '1px solid rgba(212,165,32,0.35)',
@@ -149,7 +167,7 @@ export function Hero() {
 
             {/* Trust Indicators */}
             <div
-              className="grid grid-cols-3 gap-6 pt-6"
+              className="salon-hero__trust grid grid-cols-3 gap-6 pt-6"
               style={{ borderTop: '1px solid var(--border)' }}
             >
               <div className="flex flex-col items-center text-center gap-2">
@@ -178,7 +196,7 @@ export function Hero() {
           </div>
 
           {/* ── Right Image ── */}
-          <div className="relative lg:h-[620px] h-96">
+          <div className="salon-hero__image relative lg:h-[620px] h-96">
             {/* Gold glow behind image */}
             <div
               className="absolute inset-0 rounded-3xl"
