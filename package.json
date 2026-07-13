@@ -16,7 +16,7 @@
     "db:migrate": "prisma migrate dev",
     "db:push": "prisma db push",
     "db:seed": "tsx prisma/seed.ts",
-    "test": "node --import tsx --test \"src/**/*.test.ts\""
+    "test": "node --import tsx --test $(find src -name '*.test.ts' -type f | sort)"
   },
   "prisma": {
     "seed": "tsx prisma/seed.ts"
