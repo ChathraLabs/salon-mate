@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { Menu } from 'lucide-react';
+import { Bell, Menu, Phone, UserRound } from 'lucide-react';
 import logoImage from '../../imports/image-1.png';
 import { is_visible_cilent_review } from '../config/visibility';
 
@@ -37,24 +37,45 @@ export function Header({ onMenuClick }: HeaderProps) {
         right: 0,
         zIndex: 50,
         transition: 'all 0.3s',
-        background: isScrolled
-          ? 'var(--background)'
-          : 'linear-gradient(to bottom, var(--background), rgba(12,9,8,0.92))',
-        borderBottom: isScrolled ? '1px solid var(--border)' : 'none',
-        backdropFilter: 'blur(12px)',
-        boxShadow: isScrolled ? '0 2px 24px rgba(212,165,32,0.08)' : 'none',
+        background: isScrolled ? 'rgba(255,250,244,0.94)' : 'rgba(251,244,234,0.9)',
+        borderBottom: isScrolled ? '1px solid var(--border)' : '1px solid transparent',
+        backdropFilter: 'blur(14px)',
+        boxShadow: isScrolled ? 'var(--shadow-soft)' : 'none',
       }}
     >
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="salon-header__inner flex items-center justify-between h-20">
+        <div className="salon-header__inner flex items-center justify-between h-16 sm:h-20">
 
           {/* Logo */}
-          <div className="flex items-center">
+          <div className="flex flex-1 items-center gap-3 min-w-0 lg:flex-none">
             <img
               src={logoImage.src}
               alt="Scissor King Dimma"
-              className="h-14 sm:h-16 w-auto object-contain"
+              className="h-12 w-12 rounded-full object-contain shadow-sm sm:h-14 sm:w-14 lg:h-16 lg:w-auto lg:rounded-none lg:shadow-none"
             />
+            <div className="min-w-0 lg:hidden">
+              <p
+                className="truncate"
+                style={{
+                  fontFamily: 'var(--font-body)',
+                  color: 'var(--foreground)',
+                  fontWeight: 700,
+                  lineHeight: 1.15,
+                }}
+              >
+                Scissor King Dimma
+              </p>
+              <p
+                className="truncate"
+                style={{
+                  fontFamily: 'var(--font-body)',
+                  color: 'var(--muted-foreground)',
+                  fontSize: '0.78rem',
+                }}
+              >
+                Your style. Our passion.
+              </p>
+            </div>
           </div>
 
           {/* Desktop Navigation */}
@@ -68,17 +89,16 @@ export function Header({ onMenuClick }: HeaderProps) {
                   fontFamily: 'var(--font-body)',
                   color: 'var(--muted-foreground)',
                   fontSize: '0.9rem',
-                  letterSpacing: '0.04em',
+                  letterSpacing: '0.02em',
                   textDecoration: 'none',
                 }}
-                onMouseEnter={(e) => (e.currentTarget.style.color = 'var(--gold-light)')}
+                onMouseEnter={(e) => (e.currentTarget.style.color = 'var(--emerald)')}
                 onMouseLeave={(e) => (e.currentTarget.style.color = 'var(--muted-foreground)')}
               >
                 {item.label}
-                {/* Gold underline on hover */}
                 <span
                   className="absolute -bottom-0.5 left-0 w-0 h-px transition-all duration-300 group-hover:w-full"
-                  style={{ background: 'var(--gold)' }}
+                  style={{ background: 'var(--emerald)' }}
                 />
               </a>
             ))}
@@ -90,42 +110,87 @@ export function Header({ onMenuClick }: HeaderProps) {
               href="#booking"
               style={{
                 fontFamily: 'var(--font-body)',
-                background: 'linear-gradient(135deg, var(--gold) 0%, var(--gold-light) 50%, var(--gold) 100%)',
-                backgroundSize: '200% auto',
+                background: 'var(--emerald)',
                 color: 'var(--primary-foreground)',
-                padding: '0.6rem 1.5rem',
+                padding: '0.7rem 1.5rem',
                 borderRadius: '9999px',
                 textDecoration: 'none',
-                display: 'inline-block',
+                display: 'inline-flex',
+                alignItems: 'center',
+                gap: '0.5rem',
                 fontSize: '0.875rem',
-                letterSpacing: '0.03em',
                 transition: 'all 0.3s',
-                boxShadow: '0 2px 16px rgba(212,165,32,0.25)',
+                boxShadow: 'var(--shadow-button)',
               }}
               onMouseEnter={(e) => {
-                (e.currentTarget as HTMLAnchorElement).style.backgroundPosition = 'right center';
-                (e.currentTarget as HTMLAnchorElement).style.boxShadow = '0 4px 24px rgba(212,165,32,0.4)';
+                e.currentTarget.style.background = 'var(--emerald-dark)';
+                e.currentTarget.style.boxShadow = '0 10px 24px rgba(6,68,55,0.24)';
               }}
               onMouseLeave={(e) => {
-                (e.currentTarget as HTMLAnchorElement).style.backgroundPosition = 'left center';
-                (e.currentTarget as HTMLAnchorElement).style.boxShadow = '0 2px 16px rgba(212,165,32,0.25)';
+                e.currentTarget.style.background = 'var(--emerald)';
+                e.currentTarget.style.boxShadow = 'var(--shadow-button)';
               }}
             >
               Book Appointment
             </a>
           </div>
 
-          {/* Mobile Menu Button */}
-          <button
-            onClick={onMenuClick}
-            className="lg:hidden p-2 transition-colors"
-            style={{ color: 'var(--muted-foreground)', background: 'none', border: 'none', cursor: 'pointer' }}
-            onMouseEnter={(e) => (e.currentTarget.style.color = 'var(--gold)')}
-            onMouseLeave={(e) => (e.currentTarget.style.color = 'var(--muted-foreground)')}
-            aria-label="Open menu"
-          >
-            <Menu size={24} />
-          </button>
+          <div className="lg:hidden flex shrink-0 items-center gap-1.5 sm:gap-2">
+            <a
+              href="tel:+94715729660"
+              aria-label="Call salon"
+              className="h-10 w-10 rounded-full flex items-center justify-center"
+              style={{
+                background: 'var(--surface-strong)',
+                color: 'var(--gold-dark)',
+                border: '1px solid var(--border)',
+                boxShadow: 'var(--shadow-soft)',
+              }}
+            >
+              <Phone size={18} />
+            </a>
+            <button
+              type="button"
+              aria-label="Notifications"
+              className="h-10 w-10 rounded-full flex items-center justify-center relative"
+              style={{
+                background: 'var(--surface-strong)',
+                color: 'var(--gold-dark)',
+                border: '1px solid var(--border)',
+                boxShadow: 'var(--shadow-soft)',
+              }}
+            >
+              <Bell size={18} />
+              <span className="absolute right-1.5 top-1.5 h-2.5 w-2.5 rounded-full" style={{ background: 'var(--destructive)' }} />
+            </button>
+            <button
+              type="button"
+              aria-label="Profile"
+              className="h-10 w-10 rounded-full flex items-center justify-center"
+              style={{
+                background: 'var(--surface-strong)',
+                color: 'var(--gold-dark)',
+                border: '1px solid var(--border)',
+                boxShadow: 'var(--shadow-soft)',
+              }}
+            >
+              <UserRound size={18} />
+            </button>
+            <button
+              onClick={onMenuClick}
+              className="h-10 w-10 rounded-full flex items-center justify-center transition-colors"
+              style={{
+                color: 'var(--emerald)',
+                background: 'var(--surface-strong)',
+                border: '1px solid var(--border)',
+                boxShadow: 'var(--shadow-soft)',
+                cursor: 'pointer',
+              }}
+              aria-label="Open menu"
+            >
+              <Menu size={22} />
+            </button>
+          </div>
         </div>
       </div>
     </header>
