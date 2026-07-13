@@ -110,29 +110,30 @@ function barberAvatarUrl(barber: PublicStaffMember) {
 
 const inputBase: React.CSSProperties = {
   width: '100%',
-  padding: '0.75rem 1rem',
-  borderRadius: '0.75rem',
+  padding: '0.85rem 1rem',
+  borderRadius: '1rem',
   border: '1px solid var(--border)',
   background: 'var(--input-background)',
   color: 'var(--foreground)',
   fontFamily: 'var(--font-body)',
   fontSize: '0.95rem',
   outline: 'none',
-  transition: 'border-color 0.2s',
+  transition: 'border-color 0.2s, box-shadow 0.2s',
+  boxShadow: 'inset 0 1px 0 rgba(255,255,255,0.65)',
 };
 
 const cardStyle: React.CSSProperties = {
-  background: 'var(--card)',
+  background: 'var(--surface)',
   border: '1px solid var(--border)',
   borderRadius: '1.5rem',
-  boxShadow: '0 4px 48px rgba(0,0,0,0.5)',
+  boxShadow: 'var(--shadow-card)',
 };
 
 const selectionBase: React.CSSProperties = {
   padding: '1rem',
-  borderRadius: '0.875rem',
+  borderRadius: '1rem',
   border: '1px solid var(--border)',
-  background: 'var(--muted)',
+  background: 'var(--surface-strong)',
   cursor: 'pointer',
   textAlign: 'left' as const,
   transition: 'all 0.15s',
@@ -141,9 +142,9 @@ const selectionBase: React.CSSProperties = {
 
 const selectionActive: React.CSSProperties = {
   ...selectionBase,
-  border: '1px solid rgba(212,165,32,0.6)',
-  background: 'rgba(212,165,32,0.08)',
-  boxShadow: '0 0 0 2px rgba(212,165,32,0.12)',
+  border: '1px solid rgba(6,68,55,0.45)',
+  background: 'var(--emerald-soft)',
+  boxShadow: '0 0 0 3px rgba(6,68,55,0.1)',
 };
 
 export function Booking({ requestedService }: BookingProps) {
@@ -436,19 +437,19 @@ export function Booking({ requestedService }: BookingProps) {
 
   if (isConfirmed) {
     return (
-      <section ref={bookingSectionRef} id="booking" className="salon-booking py-24 relative" style={{ background: 'var(--section-dark-green)' }}>
+      <section ref={bookingSectionRef} id="booking" className="salon-booking py-24 relative" style={{ background: 'var(--background)' }}>
         <div className="max-w-2xl mx-auto px-4 sm:px-6">
           <div ref={bookingCardRef} className="salon-booking__card text-center p-10 sm:p-14" style={cardStyle}>
             <div
               className="w-20 h-20 rounded-full flex items-center justify-center mx-auto mb-6"
               style={{
-                background: 'linear-gradient(135deg, rgba(212,165,32,0.15), rgba(242,200,58,0.2))',
-                border: '1px solid rgba(212,165,32,0.3)',
+                background: 'var(--emerald-soft)',
+                border: '1px solid rgba(6,68,55,0.2)',
               }}
             >
-              <CheckCircle className="w-10 h-10" style={{ color: 'var(--gold)' }} />
+              <CheckCircle className="w-10 h-10" style={{ color: 'var(--emerald)' }} />
             </div>
-            <h2 style={{ fontFamily: 'var(--font-heading)', color: 'var(--foreground)', fontSize: 'clamp(1.75rem, 4vw, 2.25rem)' }}>
+            <h2 style={{ fontFamily: 'var(--font-heading)', color: 'var(--emerald)', fontSize: 'clamp(1.75rem, 4vw, 2.25rem)' }}>
               Booking Confirmed!
             </h2>
             <p className="mt-3 mb-8" style={{ fontFamily: 'var(--font-body)', color: 'var(--muted-foreground)', fontSize: '1rem' }}>
@@ -471,11 +472,11 @@ export function Booking({ requestedService }: BookingProps) {
                   className="booking-summary-row flex justify-between items-center px-5 py-3"
                   style={{
                     borderBottom: i < 7 ? '1px solid var(--border)' : 'none',
-                    background: i % 2 === 0 ? 'var(--muted)' : 'var(--card)',
+                    background: i % 2 === 0 ? 'var(--muted)' : 'var(--surface-strong)',
                   }}
                 >
                   <span style={{ fontFamily: 'var(--font-body)', color: 'var(--muted-foreground)', fontSize: '0.875rem' }}>{label}</span>
-                  <span style={{ fontFamily: 'var(--font-body)', color: i === 0 ? 'var(--gold)' : 'var(--foreground)', fontSize: '0.875rem' }}>{value}</span>
+                  <span style={{ fontFamily: 'var(--font-body)', color: i === 0 ? 'var(--emerald)' : 'var(--foreground)', fontSize: '0.875rem' }}>{value}</span>
                 </div>
               ))}
               <div className="booking-summary-row flex justify-between items-center px-5 py-3" style={{ background: 'var(--muted)' }}>
@@ -483,8 +484,8 @@ export function Booking({ requestedService }: BookingProps) {
                 <span
                   className="px-3 py-1 rounded-full"
                   style={{
-                    fontFamily: 'var(--font-body)', color: 'var(--gold)', fontSize: '0.78rem',
-                    background: 'rgba(212,165,32,0.1)', border: '1px solid rgba(212,165,32,0.2)',
+                    fontFamily: 'var(--font-body)', color: 'var(--emerald)', fontSize: '0.78rem',
+                    background: 'var(--emerald-soft)', border: '1px solid rgba(6,68,55,0.2)',
                   }}
                 >
                   Pending Confirmation
@@ -493,7 +494,7 @@ export function Booking({ requestedService }: BookingProps) {
             </div>
 
             <p className="mb-8" style={{ fontFamily: 'var(--font-body)', color: 'var(--muted-foreground)', fontSize: '0.875rem' }}>
-              The salon will contact you at <strong style={{ color: 'var(--gold)' }}>{customerDetails.phone}</strong> to confirm.
+              The salon will contact you at <strong style={{ color: 'var(--emerald)' }}>{customerDetails.phone}</strong> to confirm.
             </p>
 
             <div className="flex flex-col sm:flex-row gap-3 justify-center">
@@ -501,15 +502,15 @@ export function Booking({ requestedService }: BookingProps) {
                 onClick={handleNewBooking}
                 style={{
                   fontFamily: 'var(--font-body)',
-                  background: 'linear-gradient(135deg, var(--gold-dark), var(--gold))',
+                  background: 'var(--emerald)',
                   color: 'var(--primary-foreground)',
                   borderRadius: '9999px', padding: '0.8rem 1.75rem',
                   border: 'none', cursor: 'pointer',
-                  boxShadow: '0 4px 16px rgba(212,165,32,0.25)',
+                  boxShadow: 'var(--shadow-button)',
                   transition: 'box-shadow 0.2s',
                 }}
-                onMouseEnter={(e) => (e.currentTarget.style.boxShadow = '0 6px 24px rgba(212,165,32,0.4)')}
-                onMouseLeave={(e) => (e.currentTarget.style.boxShadow = '0 4px 16px rgba(212,165,32,0.25)')}
+                onMouseEnter={(e) => (e.currentTarget.style.boxShadow = '0 10px 24px rgba(6,68,55,0.24)')}
+                onMouseLeave={(e) => (e.currentTarget.style.boxShadow = 'var(--shadow-button)')}
               >
                 Book Another
               </button>
@@ -517,16 +518,17 @@ export function Booking({ requestedService }: BookingProps) {
                 href="tel:+94715729660"
                 style={{
                   fontFamily: 'var(--font-body)',
-                  border: '1px solid rgba(212,165,32,0.35)', color: 'var(--foreground)',
+                  border: '1px solid var(--border)', color: 'var(--foreground)',
                   borderRadius: '9999px', padding: '0.8rem 1.75rem', textAlign: 'center',
                   transition: 'all 0.2s', display: 'block', textDecoration: 'none',
+                  background: 'var(--surface-strong)',
                 }}
                 onMouseEnter={(e) => {
-                  (e.currentTarget as HTMLAnchorElement).style.borderColor = 'var(--gold)';
-                  (e.currentTarget as HTMLAnchorElement).style.color = 'var(--gold-light)';
+                  (e.currentTarget as HTMLAnchorElement).style.borderColor = 'rgba(6,68,55,0.45)';
+                  (e.currentTarget as HTMLAnchorElement).style.color = 'var(--emerald)';
                 }}
                 onMouseLeave={(e) => {
-                  (e.currentTarget as HTMLAnchorElement).style.borderColor = 'rgba(212,165,32,0.35)';
+                  (e.currentTarget as HTMLAnchorElement).style.borderColor = 'var(--border)';
                   (e.currentTarget as HTMLAnchorElement).style.color = 'var(--foreground)';
                 }}
               >
@@ -540,26 +542,26 @@ export function Booking({ requestedService }: BookingProps) {
   }
 
   return (
-    <section ref={bookingSectionRef} id="booking" className="salon-booking py-24 relative overflow-hidden" style={{ background: 'var(--section-dark-green)' }}>
+    <section ref={bookingSectionRef} id="booking" className="salon-booking py-24 relative overflow-hidden" style={{ background: 'var(--background)' }}>
       <div
         className="absolute top-0 left-0 right-0 h-px pointer-events-none"
-        style={{ background: 'linear-gradient(to right, transparent, rgba(212,165,32,0.3), transparent)' }}
+        style={{ background: 'linear-gradient(to right, transparent, rgba(138,95,34,0.22), transparent)' }}
       />
 
       <div className="salon-booking__inner max-w-3xl mx-auto px-4 sm:px-6 relative">
         {/* Header */}
         <div className="salon-section-header text-center mb-12 space-y-3">
-          <p style={{ fontFamily: 'var(--font-body)', color: 'var(--gold)', fontSize: '0.75rem', letterSpacing: '0.14em', textTransform: 'uppercase' }}>
-            ✦ Easy Booking ✦
+          <p style={{ fontFamily: 'var(--font-body)', color: 'var(--gold-dark)', fontSize: '0.75rem', letterSpacing: '0.12em', textTransform: 'uppercase' }}>
+            Easy Booking
           </p>
-          <h2 style={{ fontFamily: 'var(--font-heading)', color: 'var(--foreground)', fontSize: 'clamp(2rem, 4vw, 2.75rem)' }}>
-            Book Your Appointment
+          <h2 style={{ fontFamily: 'var(--font-heading)', color: 'var(--emerald)', fontSize: 'clamp(2.4rem, 7vw, 3.25rem)' }}>
+            Book Appointment
           </h2>
           <p style={{ fontFamily: 'var(--font-body)', color: 'var(--muted-foreground)', fontSize: '1rem' }}>
             Follow these simple steps to secure your appointment
           </p>
           {loadError && (
-            <p style={{ fontFamily: 'var(--font-body)', color: 'var(--gold-light)', fontSize: '0.875rem' }}>
+            <p style={{ fontFamily: 'var(--font-body)', color: 'var(--gold-dark)', fontSize: '0.875rem' }}>
               {loadError}
             </p>
           )}
@@ -578,23 +580,15 @@ export function Booking({ requestedService }: BookingProps) {
                     className="booking-progress__dot w-9 h-9 rounded-full flex items-center justify-center transition-all"
                     style={{
                       background: isCompleted
-                        ? 'linear-gradient(135deg, var(--gold-dark), var(--gold))'
+                        ? 'var(--emerald)'
                         : isActive
-                        ? 'rgba(212,165,32,0.15)'
-                        : 'var(--card)',
-                      border: isActive
-                        ? '2px solid var(--gold)'
-                        : isCompleted
-                        ? 'none'
-                        : '1px solid var(--border)',
-                      color: isCompleted
-                        ? 'var(--primary-foreground)'
-                        : isActive
-                        ? 'var(--gold)'
-                        : 'var(--muted-foreground)',
+                        ? 'var(--emerald)'
+                        : 'var(--surface)',
+                      border: isActive || isCompleted ? 'none' : '1px solid var(--border)',
+                      color: isCompleted || isActive ? 'var(--primary-foreground)' : 'var(--muted-foreground)',
                       fontFamily: 'var(--font-body)',
                       fontSize: '0.85rem',
-                      boxShadow: isActive ? '0 0 0 4px rgba(212,165,32,0.1)' : 'none',
+                      boxShadow: isActive ? '0 0 0 4px rgba(6,68,55,0.1)' : 'none',
                     }}
                   >
                     {isCompleted ? <Check size={15} /> : s}
@@ -604,7 +598,7 @@ export function Booking({ requestedService }: BookingProps) {
                     style={{
                       fontFamily: 'var(--font-body)',
                       fontSize: '0.68rem',
-                      color: isActive ? 'var(--gold)' : 'var(--muted-foreground)',
+                      color: isActive ? 'var(--emerald)' : 'var(--muted-foreground)',
                       letterSpacing: '0.04em',
                     }}
                   >
@@ -615,9 +609,7 @@ export function Booking({ requestedService }: BookingProps) {
                   <div
                     className="booking-progress__connector w-10 sm:w-14 h-px mx-1 transition-all"
                     style={{
-                      background: s < step
-                        ? 'linear-gradient(to right, var(--gold-dark), var(--gold))'
-                        : 'var(--border)',
+                      background: s < step ? 'var(--emerald)' : 'var(--border)',
                     }}
                   />
                 )}
@@ -644,7 +636,7 @@ export function Booking({ requestedService }: BookingProps) {
                       key={service.id}
                       onClick={() => selectService(service)}
                       style={selectionBase}
-                      onMouseEnter={(e) => { (e.currentTarget as HTMLButtonElement).style.borderColor = 'rgba(212,165,32,0.3)'; }}
+                      onMouseEnter={(e) => { (e.currentTarget as HTMLButtonElement).style.borderColor = 'rgba(6,68,55,0.3)'; }}
                       onMouseLeave={(e) => { (e.currentTarget as HTMLButtonElement).style.borderColor = 'var(--border)'; }}
                     >
                       <p style={{ fontFamily: 'var(--font-heading)', color: 'var(--foreground)', fontSize: '0.975rem', marginBottom: '0.35rem' }}>
@@ -656,7 +648,7 @@ export function Booking({ requestedService }: BookingProps) {
                         </span>
                         <span
                           className="px-2 py-0.5 rounded-full"
-                          style={{ fontFamily: 'var(--font-body)', color: 'var(--muted-foreground)', fontSize: '0.72rem', background: 'var(--card)', border: '1px solid var(--border)' }}
+                          style={{ fontFamily: 'var(--font-body)', color: 'var(--muted-foreground)', fontSize: '0.72rem', background: 'var(--surface-strong)', border: '1px solid var(--border)' }}
                         >
                           {service.duration}
                         </span>
@@ -676,7 +668,7 @@ export function Booking({ requestedService }: BookingProps) {
                           className="booking-option-row flex items-center gap-4 px-5 py-4 cursor-pointer"
                           style={{
                             borderBottom: index < selectedServiceOptions.length - 1 ? '1px solid var(--border)' : 'none',
-                            background: isChecked ? 'rgba(212,165,32,0.08)' : index % 2 === 0 ? 'var(--muted)' : 'var(--card)',
+                            background: isChecked ? 'var(--emerald-soft)' : index % 2 === 0 ? 'var(--muted)' : 'var(--surface-strong)',
                           }}
                         >
                           <span className="flex-1" style={{ fontFamily: 'var(--font-heading)', color: 'var(--foreground)', fontSize: '1rem' }}>
@@ -692,7 +684,7 @@ export function Booking({ requestedService }: BookingProps) {
                             type="checkbox"
                             checked={isChecked}
                             onChange={() => handleOptionToggle(option.id)}
-                            className="h-5 w-5 accent-gold"
+                            className="h-5 w-5 accent-emerald"
                           />
                         </label>
                       );
@@ -700,13 +692,13 @@ export function Booking({ requestedService }: BookingProps) {
                   </div>
 
                   <div className="booking-totals grid sm:grid-cols-2 gap-3">
-                    <div className="rounded-xl px-4 py-3" style={{ background: 'rgba(212,165,32,0.08)', border: '1px solid rgba(212,165,32,0.25)' }}>
+                    <div className="rounded-xl px-4 py-3" style={{ background: 'var(--emerald-soft)', border: '1px solid rgba(6,68,55,0.2)' }}>
                       <p style={{ fontFamily: 'var(--font-body)', color: 'var(--muted-foreground)', fontSize: '0.75rem' }}>Total</p>
                       <p style={{ fontFamily: 'var(--font-heading)', color: 'var(--foreground)', fontSize: '1.25rem', marginTop: '0.15rem' }}>
                         {formatPrice(selectedTotalPrice)}
                       </p>
                     </div>
-                    <div className="rounded-xl px-4 py-3" style={{ background: 'var(--muted)', border: '1px solid var(--border)' }}>
+                    <div className="rounded-xl px-4 py-3" style={{ background: 'var(--surface-strong)', border: '1px solid var(--border)' }}>
                       <p style={{ fontFamily: 'var(--font-body)', color: 'var(--muted-foreground)', fontSize: '0.75rem' }}>Time</p>
                       <p style={{ fontFamily: 'var(--font-heading)', color: 'var(--foreground)', fontSize: '1.25rem', marginTop: '0.15rem' }}>
                         {selectedTotalDuration ? formatDurationLabel(selectedTotalDuration) : 'Select options'}
@@ -748,7 +740,7 @@ export function Booking({ requestedService }: BookingProps) {
                       caption: 'relative flex w-full items-center justify-center pt-1',
                       caption_label: 'text-sm font-medium text-foreground',
                       nav: 'flex items-center gap-1',
-                      nav_button: 'absolute top-0 inline-flex size-7 items-center justify-center rounded-md border border-border bg-transparent p-0 text-gold opacity-75 transition hover:bg-secondary hover:opacity-100',
+                      nav_button: 'absolute top-0 inline-flex size-7 items-center justify-center rounded-md border border-border bg-transparent p-0 text-emerald opacity-75 transition hover:bg-secondary hover:opacity-100',
                       nav_button_previous: 'left-1',
                       nav_button_next: 'right-1',
                       table: 'w-full border-collapse',
@@ -756,9 +748,9 @@ export function Booking({ requestedService }: BookingProps) {
                       head_cell: 'text-muted-foreground rounded-md text-center text-[0.75rem] font-normal',
                       row: 'grid grid-cols-7 mt-2',
                       cell: 'relative p-0 text-center text-sm',
-                      day: 'mx-auto flex size-9 items-center justify-center rounded-md p-0 text-sm font-normal text-foreground transition hover:bg-secondary hover:text-gold-light disabled:pointer-events-none disabled:opacity-30',
-                      day_selected: 'bg-gold text-primary-foreground hover:bg-gold hover:text-primary-foreground focus:bg-gold focus:text-primary-foreground',
-                      day_today: 'border border-gold/50 text-gold',
+                      day: 'mx-auto flex size-9 items-center justify-center rounded-md p-0 text-sm font-normal text-foreground transition hover:bg-secondary hover:text-emerald disabled:pointer-events-none disabled:opacity-30',
+                      day_selected: 'bg-emerald text-primary-foreground hover:bg-emerald hover:text-primary-foreground focus:bg-emerald focus:text-primary-foreground',
+                      day_today: 'border border-emerald/50 text-emerald',
                       day_outside: 'text-muted-foreground opacity-30',
                       day_disabled: 'text-muted-foreground opacity-30',
                     }}
@@ -767,8 +759,8 @@ export function Booking({ requestedService }: BookingProps) {
                     <div
                       className="rounded-xl px-4 py-3"
                       style={{
-                        background: 'rgba(212,165,32,0.08)',
-                        border: '1px solid rgba(212,165,32,0.25)',
+                        background: 'var(--emerald-soft)',
+                        border: '1px solid rgba(6,68,55,0.2)',
                       }}
                     >
                       <p style={{ fontFamily: 'var(--font-heading)', color: 'var(--foreground)', fontSize: '1rem' }}>
@@ -789,7 +781,7 @@ export function Booking({ requestedService }: BookingProps) {
                           <User className="w-4 h-4" style={{ color: 'var(--gold)' }} />
                           {selectedStaffRoleLabel}
                           {selectedStaff && (
-                            <span style={{ fontFamily: 'var(--font-body)', color: 'var(--gold)', fontSize: '0.82rem' }}>
+                            <span style={{ fontFamily: 'var(--font-body)', color: 'var(--emerald)', fontSize: '0.82rem' }}>
                               ({selectedStaff.name})
                             </span>
                           )}
@@ -817,19 +809,19 @@ export function Booking({ requestedService }: BookingProps) {
                                 width: '4.25rem',
                                 height: '4.25rem',
                                 borderRadius: '9999px',
-                                border: isSelected ? '2px solid var(--gold)' : '1px solid var(--border)',
-                                background: isSelected ? 'rgba(212,165,32,0.12)' : 'var(--muted)',
+                                border: isSelected ? '2px solid var(--emerald)' : '1px solid var(--border)',
+                                background: isSelected ? 'var(--emerald-soft)' : 'var(--surface-strong)',
                                 padding: '0.2rem',
                                 cursor: 'pointer',
-                                boxShadow: isSelected ? '0 0 0 4px rgba(212,165,32,0.12)' : 'none',
+                                boxShadow: isSelected ? '0 0 0 4px rgba(6,68,55,0.1)' : 'none',
                                 transition: 'border-color 0.15s, box-shadow 0.15s, transform 0.15s',
                               }}
                               onMouseEnter={(e) => {
-                                e.currentTarget.style.borderColor = 'var(--gold)';
+                                e.currentTarget.style.borderColor = 'var(--emerald)';
                                 e.currentTarget.style.transform = 'translateY(-1px)';
                               }}
                               onMouseLeave={(e) => {
-                                e.currentTarget.style.borderColor = isSelected ? 'var(--gold)' : 'var(--border)';
+                                e.currentTarget.style.borderColor = isSelected ? 'var(--emerald)' : 'var(--border)';
                                 e.currentTarget.style.transform = 'translateY(0)';
                               }}
                             >
@@ -854,8 +846,8 @@ export function Booking({ requestedService }: BookingProps) {
                                     display: 'flex',
                                     alignItems: 'center',
                                     justifyContent: 'center',
-                                    color: 'var(--gold)',
-                                    background: 'var(--card)',
+                                    color: 'var(--emerald)',
+                                    background: 'var(--surface)',
                                   }}
                                 >
                                   <User className="w-6 h-6" />
@@ -880,7 +872,7 @@ export function Booking({ requestedService }: BookingProps) {
                     </h4>
                   </div>
                   {selectedTime && selectedTimeEnd && (
-                    <p style={{ fontFamily: 'var(--font-body)', color: 'var(--gold)', fontSize: '0.78rem' }}>
+                    <p style={{ fontFamily: 'var(--font-body)', color: 'var(--emerald)', fontSize: '0.78rem' }}>
                       Appointment holds {formatTimeLabel(selectedTime)} - {formatTimeLabel(selectedTimeEnd)}
                     </p>
                   )}
@@ -905,20 +897,20 @@ export function Booking({ requestedService }: BookingProps) {
                             textAlign: 'center',
                             cursor: isAvailable ? 'pointer' : 'not-allowed',
                             opacity: isAvailable ? 1 : 0.48,
-                            border: isHeld ? '1px solid rgba(212,165,32,0.55)' : (isSelected ? selectionActive.border : selectionBase.border),
+                            border: isHeld ? '1px solid rgba(6,68,55,0.35)' : (isSelected ? selectionActive.border : selectionBase.border),
                             background: isSelected
-                              ? 'rgba(212,165,32,0.08)'
+                              ? 'var(--emerald)'
                               : isHeld
-                                ? 'rgba(212,165,32,0.12)'
+                                ? 'var(--emerald-soft)'
                               : isAvailable
-                                ? 'var(--muted)'
-                                : 'rgba(154,120,48,0.08)',
+                                ? 'var(--surface-strong)'
+                                : 'rgba(102,112,109,0.08)',
                           }}
-                          onMouseEnter={(e) => { if (isAvailable && !isSelected) (e.currentTarget as HTMLButtonElement).style.borderColor = 'rgba(212,165,32,0.3)'; }}
+                          onMouseEnter={(e) => { if (isAvailable && !isSelected) (e.currentTarget as HTMLButtonElement).style.borderColor = 'rgba(6,68,55,0.3)'; }}
                           onMouseLeave={(e) => { if (isAvailable && !isSelected) (e.currentTarget as HTMLButtonElement).style.borderColor = 'var(--border)'; }}
                           disabled={!isAvailable}
                         >
-                          <span style={{ fontFamily: 'var(--font-body)', color: isAvailable ? 'var(--foreground)' : 'var(--muted-foreground)', fontSize: '0.875rem' }}>
+                          <span style={{ fontFamily: 'var(--font-body)', color: isSelected ? 'var(--primary-foreground)' : isAvailable ? 'var(--foreground)' : 'var(--muted-foreground)', fontSize: '0.875rem' }}>
                             {formatTimeLabel(time)}
                           </span>
                           {!isAvailable && (
@@ -927,12 +919,12 @@ export function Booking({ requestedService }: BookingProps) {
                             </span>
                           )}
                           {isSelected && selectedTimeEnd && selectedTotalDuration > 60 && (
-                            <span style={{ display: 'block', fontFamily: 'var(--font-body)', color: 'var(--gold)', fontSize: '0.68rem', marginTop: '0.15rem' }}>
+                            <span style={{ display: 'block', fontFamily: 'var(--font-body)', color: 'var(--primary-foreground)', fontSize: '0.68rem', marginTop: '0.15rem' }}>
                               Start
                             </span>
                           )}
                           {isHeld && (
-                            <span style={{ display: 'block', fontFamily: 'var(--font-body)', color: 'var(--gold)', fontSize: '0.68rem', marginTop: '0.15rem' }}>
+                            <span style={{ display: 'block', fontFamily: 'var(--font-body)', color: 'var(--emerald)', fontSize: '0.68rem', marginTop: '0.15rem' }}>
                               Held
                             </span>
                           )}
@@ -978,8 +970,14 @@ export function Booking({ requestedService }: BookingProps) {
                       onChange={(e) => setCustomerDetails({ ...customerDetails, [key]: e.target.value })}
                       placeholder={placeholder}
                       style={inputBase}
-                      onFocus={(e) => (e.currentTarget.style.borderColor = 'var(--gold)')}
-                      onBlur={(e) => (e.currentTarget.style.borderColor = 'var(--border)')}
+                      onFocus={(e) => {
+                        e.currentTarget.style.borderColor = 'var(--emerald)';
+                        e.currentTarget.style.boxShadow = '0 0 0 3px rgba(6,68,55,0.1), inset 0 1px 0 rgba(255,255,255,0.65)';
+                      }}
+                      onBlur={(e) => {
+                        e.currentTarget.style.borderColor = 'var(--border)';
+                        e.currentTarget.style.boxShadow = 'inset 0 1px 0 rgba(255,255,255,0.65)';
+                      }}
                     />
                   </div>
                 ))}
@@ -993,8 +991,14 @@ export function Booking({ requestedService }: BookingProps) {
                     rows={3}
                     placeholder="Any special requests or requirements..."
                     style={{ ...inputBase, resize: 'vertical' }}
-                    onFocus={(e) => (e.currentTarget.style.borderColor = 'var(--gold)')}
-                    onBlur={(e) => (e.currentTarget.style.borderColor = 'var(--border)')}
+                    onFocus={(e) => {
+                      e.currentTarget.style.borderColor = 'var(--emerald)';
+                      e.currentTarget.style.boxShadow = '0 0 0 3px rgba(6,68,55,0.1), inset 0 1px 0 rgba(255,255,255,0.65)';
+                    }}
+                    onBlur={(e) => {
+                      e.currentTarget.style.borderColor = 'var(--border)';
+                      e.currentTarget.style.boxShadow = 'inset 0 1px 0 rgba(255,255,255,0.65)';
+                    }}
                   />
                 </div>
               </div>
@@ -1025,7 +1029,7 @@ export function Booking({ requestedService }: BookingProps) {
                     className="booking-summary-row flex justify-between items-center px-5 py-3.5"
                     style={{
                       borderBottom: i < arr.length - 1 ? '1px solid var(--border)' : 'none',
-                      background: i % 2 === 0 ? 'var(--muted)' : 'var(--card)',
+                      background: i % 2 === 0 ? 'var(--muted)' : 'var(--surface-strong)',
                     }}
                   >
                     <span style={{ fontFamily: 'var(--font-body)', color: 'var(--muted-foreground)', fontSize: '0.875rem' }}>{label}</span>
@@ -1034,12 +1038,12 @@ export function Booking({ requestedService }: BookingProps) {
                 ))}
               </div>
               {submitError && (
-                <p style={{ fontFamily: 'var(--font-body)', color: 'var(--gold-light)', fontSize: '0.9rem' }}>
+                <p style={{ fontFamily: 'var(--font-body)', color: 'var(--destructive)', fontSize: '0.9rem' }}>
                   {submitError}
                 </p>
               )}
               {isUsingFallbackBookingOptions && (
-                <p style={{ fontFamily: 'var(--font-body)', color: 'var(--gold-light)', fontSize: '0.9rem' }}>
+                <p style={{ fontFamily: 'var(--font-body)', color: 'var(--gold-dark)', fontSize: '0.9rem' }}>
                   Online booking is not connected yet. These slots are shown for preview only.
                 </p>
               )}
@@ -1057,12 +1061,12 @@ export function Booking({ requestedService }: BookingProps) {
                   padding: '0.7rem 1.5rem',
                   borderRadius: '9999px',
                   border: '1px solid var(--border)',
-                  background: 'transparent',
+                  background: 'var(--surface-strong)',
                   color: 'var(--foreground)',
                   cursor: 'pointer',
                   transition: 'all 0.2s',
                 }}
-                onMouseEnter={(e) => (e.currentTarget.style.borderColor = 'rgba(212,165,32,0.4)')}
+                onMouseEnter={(e) => (e.currentTarget.style.borderColor = 'rgba(6,68,55,0.35)')}
                 onMouseLeave={(e) => (e.currentTarget.style.borderColor = 'var(--border)')}
               >
                 <ChevronLeft size={18} />
@@ -1078,12 +1082,12 @@ export function Booking({ requestedService }: BookingProps) {
                   padding: '0.7rem 1.5rem',
                   borderRadius: '9999px',
                   border: '1px solid var(--border)',
-                  background: 'transparent',
+                  background: 'var(--surface-strong)',
                   color: 'var(--foreground)',
                   cursor: 'pointer',
                   transition: 'all 0.2s',
                 }}
-                onMouseEnter={(e) => (e.currentTarget.style.borderColor = 'rgba(212,165,32,0.4)')}
+                onMouseEnter={(e) => (e.currentTarget.style.borderColor = 'rgba(6,68,55,0.35)')}
                 onMouseLeave={(e) => (e.currentTarget.style.borderColor = 'var(--border)')}
               >
                 <ChevronLeft size={18} />
@@ -1101,16 +1105,16 @@ export function Booking({ requestedService }: BookingProps) {
                   padding: '0.7rem 1.75rem',
                   borderRadius: '9999px',
                   background: canProceed
-                    ? 'linear-gradient(135deg, var(--gold-dark), var(--gold))'
-                    : 'var(--card)',
+                    ? 'var(--emerald)'
+                    : 'var(--surface-strong)',
                   color: canProceed ? 'var(--primary-foreground)' : 'var(--muted-foreground)',
                   border: canProceed ? 'none' : '1px solid var(--border)',
                   cursor: canProceed ? 'pointer' : 'not-allowed',
                   transition: 'all 0.2s',
-                  boxShadow: canProceed ? '0 4px 16px rgba(212,165,32,0.25)' : 'none',
+                  boxShadow: canProceed ? 'var(--shadow-button)' : 'none',
                 }}
-                onMouseEnter={(e) => { if (canProceed) (e.currentTarget as HTMLButtonElement).style.boxShadow = '0 6px 24px rgba(212,165,32,0.4)'; }}
-                onMouseLeave={(e) => { if (canProceed) (e.currentTarget as HTMLButtonElement).style.boxShadow = '0 4px 16px rgba(212,165,32,0.25)'; }}
+                onMouseEnter={(e) => { if (canProceed) (e.currentTarget as HTMLButtonElement).style.boxShadow = '0 10px 24px rgba(6,68,55,0.24)'; }}
+                onMouseLeave={(e) => { if (canProceed) (e.currentTarget as HTMLButtonElement).style.boxShadow = 'var(--shadow-button)'; }}
               >
                 Next
                 <ChevronRight size={18} />
@@ -1124,18 +1128,18 @@ export function Booking({ requestedService }: BookingProps) {
                   fontFamily: 'var(--font-body)',
                   padding: '0.7rem 2rem',
                   borderRadius: '9999px',
-                  background: isUsingFallbackBookingOptions ? 'var(--card)' : 'linear-gradient(135deg, var(--gold-dark), var(--gold))',
+                  background: isUsingFallbackBookingOptions ? 'var(--surface-strong)' : 'var(--emerald)',
                   color: isUsingFallbackBookingOptions ? 'var(--muted-foreground)' : 'var(--primary-foreground)',
                   border: isUsingFallbackBookingOptions ? '1px solid var(--border)' : 'none',
                   cursor: isSubmitting || isUsingFallbackBookingOptions ? 'not-allowed' : 'pointer',
-                  boxShadow: isUsingFallbackBookingOptions ? 'none' : '0 4px 16px rgba(212,165,32,0.25)',
+                  boxShadow: isUsingFallbackBookingOptions ? 'none' : 'var(--shadow-button)',
                   transition: 'box-shadow 0.2s',
                 }}
                 onMouseEnter={(e) => {
-                  if (!isUsingFallbackBookingOptions) e.currentTarget.style.boxShadow = '0 6px 24px rgba(212,165,32,0.4)';
+                  if (!isUsingFallbackBookingOptions) e.currentTarget.style.boxShadow = '0 10px 24px rgba(6,68,55,0.24)';
                 }}
                 onMouseLeave={(e) => {
-                  if (!isUsingFallbackBookingOptions) e.currentTarget.style.boxShadow = '0 4px 16px rgba(212,165,32,0.25)';
+                  if (!isUsingFallbackBookingOptions) e.currentTarget.style.boxShadow = 'var(--shadow-button)';
                 }}
               >
                 {isSubmitting ? 'Submitting...' : isUsingFallbackBookingOptions ? 'Booking Offline' : 'Confirm Booking'}
