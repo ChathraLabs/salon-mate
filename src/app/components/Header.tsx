@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { Menu, Phone } from 'lucide-react';
+import { Bell, Phone, UserRound } from 'lucide-react';
 import logoImage from '../../imports/image-1.png';
 import { is_visible_cilent_review } from '../config/visibility';
 
@@ -150,6 +150,25 @@ export function Header({ onMenuClick }: HeaderProps) {
               <Phone size={18} />
             </a>
             <button
+              type="button"
+              aria-label="Notifications"
+              className="relative h-10 w-10 rounded-full flex items-center justify-center"
+              style={{
+                background: 'var(--surface-strong)',
+                color: 'var(--gold-dark)',
+                border: '1px solid var(--border)',
+                boxShadow: 'var(--shadow-soft)',
+                cursor: 'pointer',
+              }}
+            >
+              <Bell size={18} />
+              <span
+                aria-hidden="true"
+                className="absolute right-1.5 top-1.5 h-2.5 w-2.5 rounded-full"
+                style={{ background: 'var(--destructive)', border: '2px solid var(--surface-strong)' }}
+              />
+            </button>
+            <button
               onClick={onMenuClick}
               className="h-10 w-10 rounded-full flex items-center justify-center transition-colors"
               style={{
@@ -159,9 +178,9 @@ export function Header({ onMenuClick }: HeaderProps) {
                 boxShadow: 'var(--shadow-soft)',
                 cursor: 'pointer',
               }}
-              aria-label="Open menu"
+              aria-label="Open profile menu"
             >
-              <Menu size={22} />
+              <UserRound size={19} />
             </button>
           </div>
         </div>
