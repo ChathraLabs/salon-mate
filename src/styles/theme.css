@@ -7,7 +7,86 @@
   --font-heading: 'Playfair Display', 'Cormorant Garamond', Georgia, serif;
   --font-body: 'Inter', 'Lato', system-ui, sans-serif;
 
-  /* ── Cream / Emerald Public Theme ───────────────────── */
+  /* ── Default/Admin Dark Luxury Theme ────────────────── */
+  --cream: #0C0908;
+  --cream-warm: #161009;
+  --surface: #141009;
+  --surface-strong: #1E180C;
+  --surface-soft: #161009;
+
+  --emerald: #D4A520;
+  --emerald-dark: #B8860B;
+  --emerald-soft: rgba(212, 165, 32, 0.12);
+
+  --gold: #D4A520;
+  --gold-light: #F2C83A;
+  --gold-dark: #B8860B;
+  --gold-glow: rgba(242, 200, 58, 0.15);
+
+  --background: #0C0908;
+  --section-dark-green: #161009;
+  --foreground: #F0E4B8;
+
+  --card: #141009;
+  --card-foreground: #F0E4B8;
+
+  --popover: #141009;
+  --popover-foreground: #F0E4B8;
+
+  --primary: #D4A520;
+  --primary-foreground: #0C0908;
+
+  --secondary: #1E180C;
+  --secondary-foreground: #D4A520;
+
+  --muted: #161009;
+  --muted-foreground: #9A7830;
+
+  --accent: #F2C83A;
+  --accent-foreground: #0C0908;
+
+  --surface-dark: #060402;
+  --surface-dark-foreground: #F0E4B8;
+
+  --destructive: #c0392b;
+  --destructive-foreground: #ffffff;
+
+  --border: rgba(212, 165, 32, 0.18);
+  --input: transparent;
+  --input-background: #1A1208;
+  --switch-background: #3A2E10;
+  --ring: #D4A520;
+
+  --shadow-soft: 0 2px 24px rgba(212, 165, 32, 0.08);
+  --shadow-card: 0 4px 48px rgba(0, 0, 0, 0.5);
+  --shadow-button: 0 4px 24px rgba(212, 165, 32, 0.3);
+
+  /* Chart */
+  --chart-1: oklch(0.646 0.222 41.116);
+  --chart-2: oklch(0.6 0.118 184.704);
+  --chart-3: oklch(0.398 0.07 227.392);
+  --chart-4: oklch(0.828 0.189 84.429);
+  --chart-5: oklch(0.769 0.188 70.08);
+
+  /* Radius */
+  --radius: 0.75rem;
+
+  /* Font weights */
+  --font-weight-medium: 500;
+  --font-weight-normal: 400;
+
+  /* Sidebar */
+  --sidebar: #141009;
+  --sidebar-foreground: #F0E4B8;
+  --sidebar-primary: #D4A520;
+  --sidebar-primary-foreground: #0C0908;
+  --sidebar-accent: #1E180C;
+  --sidebar-accent-foreground: #D4A520;
+  --sidebar-border: rgba(212, 165, 32, 0.18);
+  --sidebar-ring: #D4A520;
+}
+
+.salon-app {
   --cream: #fbf4ea;
   --cream-warm: #f7eadb;
   --surface: #fffaf4;
@@ -61,29 +140,7 @@
   --shadow-card: 0 8px 24px rgba(32, 22, 12, 0.1);
   --shadow-button: 0 8px 18px rgba(6, 68, 55, 0.18);
 
-  /* Chart */
-  --chart-1: oklch(0.646 0.222 41.116);
-  --chart-2: oklch(0.6 0.118 184.704);
-  --chart-3: oklch(0.398 0.07 227.392);
-  --chart-4: oklch(0.828 0.189 84.429);
-  --chart-5: oklch(0.769 0.188 70.08);
-
-  /* Radius */
   --radius: 1rem;
-
-  /* Font weights */
-  --font-weight-medium: 500;
-  --font-weight-normal: 400;
-
-  /* Sidebar */
-  --sidebar: var(--surface);
-  --sidebar-foreground: #10211d;
-  --sidebar-primary: var(--emerald);
-  --sidebar-primary-foreground: #fffaf4;
-  --sidebar-accent: #f1dfc8;
-  --sidebar-accent-foreground: var(--emerald);
-  --sidebar-border: rgba(138, 95, 34, 0.18);
-  --sidebar-ring: var(--emerald);
 }
 
 @theme inline {
@@ -445,7 +502,7 @@
   .salon-booking__card {
     border-radius: 1rem !important;
     padding: 1rem !important;
-    box-shadow: 0 2px 24px rgba(0, 0, 0, 0.42) !important;
+    box-shadow: var(--shadow-card) !important;
   }
 
   .salon-booking textarea {
@@ -544,7 +601,7 @@
     margin-left: -1rem;
     margin-bottom: -1rem;
     padding: 0.8rem 1rem 1rem !important;
-    background: linear-gradient(to bottom, rgba(20, 16, 9, 0.88), rgba(20, 16, 9, 0.98));
+    background: linear-gradient(to bottom, rgba(255, 250, 244, 0.86), rgba(255, 250, 244, 0.98));
     border-top: 1px solid var(--border) !important;
   }
 
