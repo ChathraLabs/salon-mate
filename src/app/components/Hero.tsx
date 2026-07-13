@@ -121,7 +121,7 @@ export function Hero({ useStateNavigation = false, onBookAppointment, onViewServ
               <a
                 href="#booking"
                 onClick={handleBookingClick}
-                className="inline-flex items-center justify-center gap-2 transition-transform duration-200 hover:-translate-y-0.5"
+                className="hidden lg:inline-flex items-center justify-center gap-2 transition-transform duration-200 hover:-translate-y-0.5"
                 style={{
                   fontFamily: 'var(--font-body)',
                   background: 'linear-gradient(135deg, var(--emerald), var(--emerald-dark))',
@@ -139,7 +139,7 @@ export function Hero({ useStateNavigation = false, onBookAppointment, onViewServ
               <a
                 href="#services"
                 onClick={handleServicesClick}
-                className="inline-flex items-center justify-center transition-colors duration-200"
+                className="inline-flex w-full sm:w-auto items-center justify-center transition-colors duration-200"
                 style={{
                   fontFamily: 'var(--font-body)',
                   border: '1px solid var(--border)',
