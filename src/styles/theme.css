@@ -373,12 +373,35 @@
 }
 
 @media (max-width: 767px) {
+  html,
+  body {
+    height: 100%;
+    overflow: hidden;
+  }
+
   html {
     scroll-padding-top: 4.75rem;
   }
 
   .salon-app {
-    padding-bottom: calc(4rem + env(safe-area-inset-bottom));
+    height: 100dvh;
+    min-height: 100dvh;
+    overflow: hidden;
+    padding-bottom: 0;
+  }
+
+  .salon-main {
+    height: 100%;
+    min-height: 0;
+  }
+
+  .mobile-section-view {
+    height: 100dvh;
+    overflow-x: hidden;
+    overflow-y: auto;
+    padding-bottom: calc(4.35rem + env(safe-area-inset-bottom));
+    scroll-behavior: auto;
+    -webkit-overflow-scrolling: touch;
   }
 
   .salon-app section {
