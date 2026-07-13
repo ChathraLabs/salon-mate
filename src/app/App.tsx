@@ -67,7 +67,7 @@ export default function App() {
   };
 
   return (
-    <div className="salon-app min-h-screen" style={{ background: 'var(--background)' }}>
+    <div className="salon-app min-h-screen" style={{ background: 'var(--background)', color: 'var(--foreground)' }}>
       <Header onMenuClick={() => setIsMobileMenuOpen(true)} />
       <MobileMenu
         isOpen={isMobileMenuOpen}
