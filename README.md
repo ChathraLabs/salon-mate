@@ -22,3 +22,7 @@ Run `npm run db:migrate` to create database tables during local development.
 Run `npm run db:seed` to seed default services, business hours, and the first owner account.
 
 Admin pages are available at `/admin/login` and `/admin/bookings`.
+
+## Deployment
+
+See [DEPLOYMENT.md](./DEPLOYMENT.md) for the full Vercel and production database setup flow.

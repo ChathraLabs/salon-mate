@@ -11,7 +11,7 @@ export function About() {
   return (
     <section
       id="about"
-      className="py-24 relative overflow-hidden"
+      className="salon-about py-24 relative overflow-hidden"
       style={{ background: is_visible_cilent_review ? 'var(--section-dark-green)' : 'var(--background)' }}
     >
       {/* Top gold line */}
@@ -25,11 +25,11 @@ export function About() {
         style={{ background: 'radial-gradient(circle, rgba(212,165,32,0.06) 0%, transparent 70%)' }}
       />
 
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative">
-        <div className="grid lg:grid-cols-2 gap-16 items-center">
+      <div className="salon-section-inner max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative">
+        <div className="salon-about__grid grid lg:grid-cols-2 gap-16 items-center">
 
           {/* ── Left Image ── */}
-          <div className="relative">
+          <div className="salon-about__media relative">
             {/* Glow frame */}
             <div
               className="absolute rounded-3xl pointer-events-none"
@@ -48,7 +48,7 @@ export function About() {
               }}
             />
             <div
-              className="relative h-[520px] rounded-3xl overflow-hidden"
+              className="salon-about__image relative h-[520px] rounded-3xl overflow-hidden"
               style={{ border: '1px solid rgba(212,165,32,0.2)', boxShadow: '0 8px 48px rgba(0,0,0,0.5)' }}
             >
               <img
@@ -65,7 +65,7 @@ export function About() {
           </div>
 
           {/* ── Right Content ── */}
-          <div className="space-y-10">
+          <div className="salon-about__content space-y-10">
             <div className="space-y-5">
               <p
                 style={{
@@ -121,11 +121,11 @@ export function About() {
             </div>
 
             {/* Stats */}
-            <div className="grid grid-cols-3 gap-4">
+            <div className="salon-about__stats grid grid-cols-3 gap-4">
               {stats.map(({ icon: Icon, value, label, color }, i) => (
                 <div
                   key={i}
-                  className="text-center p-5 rounded-2xl transition-all hover:-translate-y-0.5"
+                  className="salon-about__stat text-center p-5 rounded-2xl transition-all hover:-translate-y-0.5"
                   style={{
                     background: 'var(--card)',
                     border: '1px solid var(--border)',

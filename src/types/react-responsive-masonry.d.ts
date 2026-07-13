@@ -4,6 +4,7 @@ declare module "react-responsive-masonry" {
   interface MasonryProps {
     children?: ReactNode;
     columnsCount?: number;
+    columnsCountBreakPoints?: Record<number, number>;
     gutter?: string;
     className?: string;
     style?: CSSProperties;

@@ -47,7 +47,7 @@ const reviews = [
 
 export function Reviews() {
   return (
-    <section id="reviews" className="py-24 relative overflow-hidden" style={{ background: 'var(--background)' }}>
+    <section id="reviews" className="salon-reviews py-24 relative overflow-hidden" style={{ background: 'var(--background)' }}>
       <div
         className="absolute top-0 left-0 right-0 h-px pointer-events-none"
         style={{ background: 'linear-gradient(to right, transparent, rgba(212,165,32,0.3), transparent)' }}
@@ -58,9 +58,9 @@ export function Reviews() {
         style={{ background: 'radial-gradient(circle, rgba(212,165,32,0.05) 0%, transparent 70%)' }}
       />
 
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative">
+      <div className="salon-section-inner max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative">
         {/* Header */}
-        <div className="text-center mb-14 space-y-3">
+        <div className="salon-section-header text-center mb-14 space-y-3">
           <p
             style={{
               fontFamily: 'var(--font-body)',
@@ -116,11 +116,11 @@ export function Reviews() {
           </div>
         </div>
 
-        <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-5">
+        <div className="salon-reviews__grid grid md:grid-cols-2 lg:grid-cols-3 gap-5">
           {reviews.map((review, index) => (
             <div
               key={index}
-              className="relative p-7 rounded-2xl transition-all hover:-translate-y-0.5"
+              className="salon-review-card relative p-7 rounded-2xl transition-all hover:-translate-y-0.5"
               style={{
                 background: 'var(--card)',
                 border: '1px solid var(--border)',

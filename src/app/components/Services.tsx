@@ -14,16 +14,22 @@ const serviceIcons = {
   'facial-cleanup': Sparkles,
 };
 
-export function Services({ onBookService }: { onBookService?: (serviceId: string) => void }) {
+export function Services({
+  onBookService,
+  useStateNavigation = false,
+}: {
+  onBookService?: (serviceId: string) => void;
+  useStateNavigation?: boolean;
+}) {
   return (
-    <section id="services" className="py-24 relative overflow-hidden" style={{ background: 'var(--background)' }}>
+    <section id="services" className="salon-services py-24 relative overflow-hidden" style={{ background: 'var(--background)' }}>
       <div
         className="absolute top-0 left-1/2 -translate-x-1/2 w-full h-px pointer-events-none"
         style={{ background: 'linear-gradient(to right, transparent, rgba(212,165,32,0.3), transparent)' }}
       />
 
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="text-center mb-16 space-y-3">
+      <div className="salon-section-inner max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div className="salon-section-header text-center mb-16 space-y-3">
           <p
             style={{
               fontFamily: 'var(--font-body)',
@@ -62,13 +68,13 @@ export function Services({ onBookService }: { onBookService?: (serviceId: string
           </div>
         </div>
 
-        <div className="flex flex-wrap justify-center gap-5">
+        <div className="salon-services__grid flex flex-wrap justify-center gap-5">
           {salonServices.map((service) => {
             const Icon = serviceIcons[service.id as keyof typeof serviceIcons] ?? Sparkles;
             return (
               <div
                 key={service.id}
-                className="group w-full overflow-hidden rounded-2xl transition-all duration-300 hover:-translate-y-1 md:w-[calc((100%-1.25rem)/2)] lg:w-[calc((100%-2.5rem)/3)] xl:w-[calc((100%-3.75rem)/4)]"
+                className="salon-service-card group w-full overflow-hidden rounded-2xl transition-all duration-300 hover:-translate-y-1 md:w-[calc((100%-1.25rem)/2)] lg:w-[calc((100%-2.5rem)/3)] xl:w-[calc((100%-3.75rem)/4)]"
                 style={{
                   background: 'var(--card)',
                   border: '1px solid var(--border)',
@@ -83,7 +89,7 @@ export function Services({ onBookService }: { onBookService?: (serviceId: string
                   (e.currentTarget as HTMLDivElement).style.boxShadow = '0 2px 16px rgba(0,0,0,0.4)';
                 }}
               >
-                <div className="relative h-44 overflow-hidden">
+                <div className="salon-service-card__image relative h-44 overflow-hidden">
                   <img
                     src={service.image}
                     alt={service.title}
@@ -104,7 +110,7 @@ export function Services({ onBookService }: { onBookService?: (serviceId: string
                   </div>
                 </div>
 
-                <div className="p-5 space-y-3">
+                <div className="salon-service-card__body p-5 space-y-3">
                   <h3 style={{ fontFamily: 'var(--font-heading)', color: 'var(--foreground)', fontSize: '1.05rem' }}>
                     {service.title}
                   </h3>
@@ -133,8 +139,13 @@ export function Services({ onBookService }: { onBookService?: (serviceId: string
                   </div>
                   <a
                     href="#booking"
-                    onClick={() => onBookService?.(service.id)}
-                    className="block text-center transition-all duration-200"
+                    onClick={(event) => {
+                      if (useStateNavigation) {
+                        event.preventDefault();
+                      }
+                      onBookService?.(service.id);
+                    }}
+                    className="salon-service-card__action block text-center transition-all duration-200"
                     style={{
                       fontFamily: 'var(--font-body)',
                       background: 'linear-gradient(135deg, var(--gold-dark), var(--gold))',
