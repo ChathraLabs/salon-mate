@@ -1,4 +1,5 @@
-import { Scissors, Heart, Sparkles, Hand, Palette, Droplet, Crown, Wind, Gem, Flower2 } from 'lucide-react';
+import { useRef, useState } from 'react';
+import { Scissors, Heart, Sparkles, Hand, Palette, Droplet, Crown, Wind } from 'lucide-react';
 import { formatServiceDuration, formatServicePrice, salonServices } from '../config/services';
 
 const serviceIcons = {
@@ -14,14 +15,18 @@ const serviceIcons = {
   'facial-cleanup': Sparkles,
 };
 
-const specialtyChips = [
-  { label: 'All', icon: Sparkles },
-  { label: 'Hair', icon: Scissors },
-  { label: 'Beauty', icon: Gem },
-  { label: 'Bridal', icon: Crown },
-  { label: 'Skin', icon: Flower2 },
-  { label: 'Tattoo', icon: Heart },
-];
+const servicePillLabels: Record<string, string> = {
+  'hair-cutting': 'Cut',
+  'hair-styling': 'Styling',
+  'manicure-pedicure': 'Nails',
+  'waxing-threading': 'Waxing',
+  'fire-cut-dreadlocks': 'Fire Cut',
+  'tattoo-piercing': 'Tattoo',
+  makeup: 'Makeup',
+  'bridal-dressing': 'Bridal',
+  'groom-dressing': 'Groom',
+  'facial-cleanup': 'Facial',
+};
 
 export function Services({
   onBookService,
@@ -30,6 +35,18 @@ export function Services({
   onBookService?: (serviceId: string) => void;
   useStateNavigation?: boolean;
 }) {
+  const [selectedServiceId, setSelectedServiceId] = useState(salonServices[0]?.id ?? '');
+  const serviceCardRefs = useRef<Record<string, HTMLDivElement | null>>({});
+
+  const handleServicePillClick = (serviceId: string) => {
+    setSelectedServiceId(serviceId);
+    serviceCardRefs.current[serviceId]?.scrollIntoView({
+      behavior: 'smooth',
+      block: 'center',
+      inline: 'nearest',
+    });
+  };
+
   return (
     <section id="services" className="salon-services py-20 sm:py-24 relative overflow-hidden" style={{ background: 'var(--background)' }}>
       <div
@@ -61,24 +78,32 @@ export function Services({
           >
             Choose the perfect treatment for your next visit.
           </p>
-          <div className="salon-services__category-strip" aria-label="Salon service categories">
-            {specialtyChips.map(({ label, icon: Icon }, index) => (
-              <span
-                key={label}
-                className="salon-services__category-pill"
-                style={{
-                  background: index === 0 ? 'var(--emerald)' : 'var(--surface)',
-                  color: index === 0 ? 'var(--primary-foreground)' : 'var(--foreground)',
-                  border: '1px solid var(--border)',
-                  boxShadow: 'var(--shadow-soft)',
-                  fontFamily: 'var(--font-body)',
-                  fontSize: '0.875rem',
-                }}
-              >
-                <Icon aria-hidden="true" />
-                {label}
-              </span>
-            ))}
+          <div className="salon-services__category-strip" aria-label="Salon services">
+            {salonServices.map((service) => {
+              const Icon = serviceIcons[service.id as keyof typeof serviceIcons] ?? Sparkles;
+              const isSelected = selectedServiceId === service.id;
+
+              return (
+                <button
+                  key={service.id}
+                  type="button"
+                  className="salon-services__category-pill"
+                  onClick={() => handleServicePillClick(service.id)}
+                  aria-pressed={isSelected}
+                  style={{
+                    background: isSelected ? 'var(--emerald)' : 'var(--surface)',
+                    color: isSelected ? 'var(--primary-foreground)' : 'var(--foreground)',
+                    border: isSelected ? '1px solid var(--emerald)' : '1px solid var(--border)',
+                    boxShadow: isSelected ? 'var(--shadow-button)' : 'var(--shadow-soft)',
+                    fontFamily: 'var(--font-body)',
+                    fontSize: '0.875rem',
+                  }}
+                >
+                  <Icon aria-hidden="true" />
+                  {servicePillLabels[service.id] ?? service.title}
+                </button>
+              );
+            })}
           </div>
         </div>
 
@@ -88,11 +113,14 @@ export function Services({
             return (
               <div
                 key={service.id}
+                ref={(node) => {
+                  serviceCardRefs.current[service.id] = node;
+                }}
                 className="salon-service-card group overflow-hidden rounded-2xl transition-all duration-300 hover:-translate-y-1"
                 style={{
                   background: 'var(--surface)',
-                  border: '1px solid var(--border)',
-                  boxShadow: 'var(--shadow-card)',
+                  border: selectedServiceId === service.id ? '1px solid var(--emerald)' : '1px solid var(--border)',
+                  boxShadow: selectedServiceId === service.id ? '0 14px 34px rgba(6, 68, 55, 0.22)' : 'var(--shadow-card)',
                 }}
               >
                 <div className="salon-service-card__image relative h-44 overflow-hidden">

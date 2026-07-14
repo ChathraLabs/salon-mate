@@ -1,16 +1,13 @@
 import {
   ArrowRight,
   Award,
-  BadgeCheck,
   CalendarCheck,
   CalendarDays,
   Clock,
   Heart,
   Images,
-  Leaf,
   MessageCircle,
   Scissors,
-  ShieldCheck,
   Sparkles,
   Star,
   Users,
@@ -440,31 +437,6 @@ export function Hero({
                 </a>
               ))}
             </div>
-          </div>
-
-          <div
-            className="salon-trust-strip"
-            style={{ background: 'rgba(255,250,244,0.9)', border: '1px solid var(--border)', boxShadow: 'var(--shadow-soft)' }}
-          >
-            {[
-              { title: 'Expert Stylists', body: 'Trained & Certified', icon: BadgeCheck },
-              { title: 'Premium Products', body: 'Quality You Trust', icon: Leaf },
-              { title: 'Hygiene First', body: 'Clean & Safe', icon: ShieldCheck },
-            ].map(({ title, body, icon: Icon }) => (
-              <div key={title} className="salon-trust-strip__item">
-                <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full" style={{ background: '#ffe9df', color: 'var(--emerald)' }}>
-                  <Icon className="w-5 h-5" />
-                </span>
-                <span className="min-w-0">
-                  <span className="block" style={{ color: 'var(--foreground)', fontFamily: 'var(--font-body)', fontWeight: 900, fontSize: '0.78rem' }}>
-                    {title}
-                  </span>
-                  <span className="block" style={{ color: 'var(--muted-foreground)', fontFamily: 'var(--font-body)', fontSize: '0.72rem' }}>
-                    {body}
-                  </span>
-                </span>
-              </div>
-            ))}
           </div>
         </div>
       </div>

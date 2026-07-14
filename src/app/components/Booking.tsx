@@ -763,36 +763,37 @@ export function Booking({ requestedService, onFlowActiveChange }: BookingProps) 
                     <h4>Select Date</h4>
                     {selectedDateChip && <span>{selectedDateChip.month} {selectedDate?.slice(0, 4)}</span>}
                   </div>
-                  <div className="booking-date-strip" role="listbox" aria-label="Available dates">
-                    {dates.map((dateOption) => {
-                      const chip = getDateChipParts(dateOption.date, dateOption.label);
-                      const isSelected = selectedDate === dateOption.date;
-                      const isAvailableForStaff = !selectedStaffId || (dateOption.staffSlots?.[selectedStaffId]?.length ?? 0) > 0;
-                      const isDisabled = shouldChooseStaffFirst ? (!selectedStaffId || !isAvailableForStaff) : false;
-
-                      return (
-                        <button
-                          key={dateOption.date}
-                          type="button"
-                          className={`booking-date-chip ${isSelected ? 'is-selected' : ''}`}
-                          onClick={() => {
-                            if (isDisabled) return;
-                            setSelectedDate(dateOption.date);
-                            setSelectedTime(null);
-                          }}
-                          disabled={isDisabled}
-                          aria-label={`Select ${chip.fullLabel}`}
-                          aria-selected={isSelected}
-                          aria-pressed={isSelected}
-                        >
-                          <span>{chip.weekday}</span>
-                          <strong>{chip.day || dateOption.label}</strong>
-                        </button>
-                      );
-                    })}
-                  </div>
-                  {shouldChooseStaffFirst && !selectedStaffId && (
+                  {shouldChooseStaffFirst && !selectedStaffId ? (
                     <p className="booking-helper-text">Choose your {selectedStaffRoleLabel.toLowerCase()} to see available dates.</p>
+                  ) : (
+                    <div className="booking-date-strip" role="listbox" aria-label="Available dates">
+                      {dates.map((dateOption) => {
+                        const chip = getDateChipParts(dateOption.date, dateOption.label);
+                        const isSelected = selectedDate === dateOption.date;
+                        const isAvailableForStaff = !selectedStaffId || (dateOption.staffSlots?.[selectedStaffId]?.length ?? 0) > 0;
+                        const isDisabled = shouldChooseStaffFirst ? (!selectedStaffId || !isAvailableForStaff) : false;
+
+                        return (
+                          <button
+                            key={dateOption.date}
+                            type="button"
+                            className={`booking-date-chip ${isSelected ? 'is-selected' : ''}`}
+                            onClick={() => {
+                              if (isDisabled) return;
+                              setSelectedDate(dateOption.date);
+                              setSelectedTime(null);
+                            }}
+                            disabled={isDisabled}
+                            aria-label={`Select ${chip.fullLabel}`}
+                            aria-selected={isSelected}
+                            aria-pressed={isSelected}
+                          >
+                            <span>{chip.weekday}</span>
+                            <strong>{chip.day || dateOption.label}</strong>
+                          </button>
+                        );
+                      })}
+                    </div>
                   )}
                 </div>
 
@@ -801,37 +802,40 @@ export function Booking({ requestedService, onFlowActiveChange }: BookingProps) 
                     <h4>Select Time</h4>
                     {selectedTime && selectedTimeEnd && <span>{formatTimeLabel(selectedTime)} - {formatTimeLabel(selectedTimeEnd)}</span>}
                   </div>
-                  <div className="booking-time-strip" role="listbox" aria-label="Available times">
-                    {allTimeSlots.map((time) => {
-                      const isAvailable = availableTimeSlotSet.has(time);
-                      const isBooked = bookedTimeSlotSet.has(time);
-                      const isSelected = selectedTime === time;
-                      const isHeld = !isSelected && heldTimeSlotSet.has(time);
-                      const isDisabled = !selectedDate || (shouldChooseStaffFirst && !selectedStaffId) || !isAvailable;
+                  {shouldChooseStaffFirst && !selectedStaffId ? (
+                    <p className="booking-helper-text">Choose your {selectedStaffRoleLabel.toLowerCase()} before selecting a time.</p>
+                  ) : (
+                    <div className="booking-time-strip" role="listbox" aria-label="Available times">
+                      {allTimeSlots.map((time) => {
+                        const isAvailable = availableTimeSlotSet.has(time);
+                        const isBooked = bookedTimeSlotSet.has(time);
+                        const isSelected = selectedTime === time;
+                        const isHeld = !isSelected && heldTimeSlotSet.has(time);
+                        const isDisabled = !selectedDate || (shouldChooseStaffFirst && !selectedStaffId) || !isAvailable;
 
-                      return (
-                        <button
-                          key={time}
-                          type="button"
-                          onClick={() => {
-                            if (!isDisabled) {
-                              setSelectedTime(time);
-                            }
-                          }}
-                          className={`booking-time-chip ${isSelected ? 'is-selected' : ''} ${isHeld ? 'is-held' : ''}`}
-                          disabled={isDisabled}
-                          aria-label={`${formatTimeLabel(time)} ${isBooked ? 'booked' : isAvailable ? 'available' : 'unavailable'}`}
-                          aria-selected={isSelected}
-                          aria-pressed={isSelected}
-                        >
-                          <strong>{formatTimeLabel(time)}</strong>
-                          {!isAvailable && <span>{isBooked ? 'Booked' : 'Unavailable'}</span>}
-                          {isHeld && <span>Held</span>}
-                        </button>
-                      );
-                    })}
-                  </div>
-                  {shouldChooseStaffFirst && !selectedStaffId && <p className="booking-helper-text">Choose your {selectedStaffRoleLabel.toLowerCase()} before selecting a time.</p>}
+                        return (
+                          <button
+                            key={time}
+                            type="button"
+                            onClick={() => {
+                              if (!isDisabled) {
+                                setSelectedTime(time);
+                              }
+                            }}
+                            className={`booking-time-chip ${isSelected ? 'is-selected' : ''} ${isHeld ? 'is-held' : ''}`}
+                            disabled={isDisabled}
+                            aria-label={`${formatTimeLabel(time)} ${isBooked ? 'booked' : isAvailable ? 'available' : 'unavailable'}`}
+                            aria-selected={isSelected}
+                            aria-pressed={isSelected}
+                          >
+                            <strong>{formatTimeLabel(time)}</strong>
+                            {!isAvailable && <span>{isBooked ? 'Booked' : 'Unavailable'}</span>}
+                            {isHeld && <span>Held</span>}
+                          </button>
+                        );
+                      })}
+                    </div>
+                  )}
                   {selectedStaffId && !selectedDate && <p className="booking-helper-text">Pick a date to see available time slots.</p>}
                   {selectedDate && availableTimeSlots.length === 0 && (
                     <p className="booking-helper-text">
