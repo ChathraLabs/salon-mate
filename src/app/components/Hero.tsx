@@ -39,7 +39,12 @@ const popularServices = popularServiceIds
   .filter(Boolean)
   .map((service) => service!);
 
-const staffPreview = Object.values(salonStaffProfiles).slice(0, 3);
+const todayStaffAvailability = [
+  { staff: salonStaffProfiles.dimuthu, time: '10:30 AM' },
+  { staff: salonStaffProfiles.sanju, time: '11:00 AM' },
+  { staff: salonStaffProfiles.salindee, time: '12:30 PM' },
+  { staff: salonStaffProfiles.vinu, time: '2:00 PM' },
+];
 
 export function Hero({
   useStateNavigation = false,
@@ -300,7 +305,7 @@ export function Hero({
               style={{ background: 'rgba(189,135,48,0.1)', color: 'var(--emerald)', fontFamily: 'var(--font-body)', fontSize: '0.72rem', fontWeight: 800 }}
             >
               <Star className="w-3.5 h-3.5" style={{ fill: 'var(--gold)', color: 'var(--gold)' }} />
-              NEXT AVAILABLE
+              TODAY BOOKINGS
             </div>
             <div className="mt-4 flex items-start gap-3">
               <div
@@ -311,35 +316,33 @@ export function Hero({
               </div>
               <div className="min-w-0">
                 <p style={{ fontFamily: 'var(--font-body)', color: 'var(--foreground)', fontWeight: 800, fontSize: '1.02rem' }}>
-                  Tomorrow, May 31
+                  Today Bookings
                 </p>
                 <p style={{ fontFamily: 'var(--font-body)', color: 'var(--muted-foreground)', fontSize: '0.94rem' }}>
-                  10:30 AM - 12:00 PM
+                  Member availability at a glance
                 </p>
               </div>
             </div>
             <div className="my-4 h-px" style={{ background: 'var(--border)' }} />
-            <div className="flex items-center gap-3">
-              <div className="flex -space-x-2">
-                {staffPreview.map((staff) => (
+            <div className="salon-today-availability">
+              {todayStaffAvailability.map(({ staff, time }) => (
+                <div key={staff.name} className="salon-today-availability__item">
                   <img
-                    key={staff.name}
                     src={staff.avatarUrl}
                     alt={staff.name}
-                    className="h-9 w-9 rounded-full object-cover"
+                    className="h-8 w-8 rounded-full object-cover"
                     style={{ border: '2px solid var(--surface)' }}
                   />
-                ))}
-                <span
-                  className="flex h-9 w-9 items-center justify-center rounded-full"
-                  style={{ background: '#e2e2e2', color: 'var(--foreground)', border: '2px solid var(--surface)', fontFamily: 'var(--font-body)', fontSize: '0.78rem' }}
-                >
-                  +3
-                </span>
-              </div>
-              <p style={{ fontFamily: 'var(--font-body)', color: 'var(--muted-foreground)', fontSize: '0.82rem', lineHeight: 1.25 }}>
-                Top Stylists<br />available
-              </p>
+                  <div className="min-w-0">
+                    <p style={{ fontFamily: 'var(--font-body)', color: 'var(--foreground)', fontSize: '0.78rem', fontWeight: 800 }}>
+                      {staff.name.split(' ')[0]}
+                    </p>
+                    <p style={{ fontFamily: 'var(--font-body)', color: 'var(--muted-foreground)', fontSize: '0.72rem', lineHeight: 1.1 }}>
+                      {time}
+                    </p>
+                  </div>
+                </div>
+              ))}
             </div>
             <a
               href="#booking"

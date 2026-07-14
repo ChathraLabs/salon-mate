@@ -8,8 +8,8 @@ import {
   User,
   CheckCircle,
   Scissors,
-  ShieldCheck,
   Sparkles,
+  Tag,
 } from 'lucide-react';
 import {
   formatServiceDuration as formatDurationLabel,
@@ -24,6 +24,7 @@ import { getBookingStepState, getDateChipParts } from './bookingPresentation';
 
 type BookingProps = {
   requestedService?: { id: string; key: number } | null;
+  onFlowActiveChange?: (isActive: boolean) => void;
 };
 
 const fallbackServices: PublicService[] = publicSalonServices;
@@ -114,7 +115,7 @@ function barberAvatarUrl(barber: PublicStaffMember) {
   return null;
 }
 
-export function Booking({ requestedService }: BookingProps) {
+export function Booking({ requestedService, onFlowActiveChange }: BookingProps) {
   const bookingSectionRef = useRef<HTMLElement | null>(null);
   const bookingCardRef = useRef<HTMLDivElement | null>(null);
   const [step, setStep] = useState(1);
@@ -157,7 +158,7 @@ export function Booking({ requestedService }: BookingProps) {
           setServices(publicSalonServices);
           setDates(availabilityData.days);
           setBarbers(availabilityData.staff ?? []);
-          setSelectedStaffId((current) => current ?? availabilityData.staff?.find((member: PublicStaffMember) => member.isMain)?.id ?? availabilityData.staff?.[0]?.id ?? null);
+          setSelectedStaffId((current) => current ?? null);
           setLoadError(null);
         }
       } catch (error) {
@@ -199,6 +200,12 @@ export function Booking({ requestedService }: BookingProps) {
     setSubmitError(null);
   };
 
+  const handleServiceSelect = (service: PublicService) => {
+    selectService(service);
+    setStep(2);
+    keepBookingCardInView();
+  };
+
   const handleOptionToggle = (optionId: string) => {
     setSelectedOptionIds((current) => (
       current.includes(optionId)
@@ -211,16 +218,18 @@ export function Booking({ requestedService }: BookingProps) {
   const availableTimeSlots = useMemo(() => {
     const day = dates.find((date) => date.date === selectedDate);
     if (!day) return [];
+    if (barbers.length > 0 && !selectedStaffId) return [];
     return selectedStaffId ? (day.staffSlots?.[selectedStaffId] ?? []) : day.slots;
-  }, [dates, selectedDate, selectedStaffId]);
+  }, [barbers.length, dates, selectedDate, selectedStaffId]);
   const allTimeSlots = useMemo(() => {
     return dates.find((date) => date.date === selectedDate)?.allSlots ?? (selectedDate ? defaultTimeSlots : []);
   }, [dates, selectedDate]);
   const bookedTimeSlots = useMemo(() => {
     const day = dates.find((date) => date.date === selectedDate);
     if (!day) return [];
+    if (barbers.length > 0 && !selectedStaffId) return [];
     return selectedStaffId ? (day.staffBookedSlots?.[selectedStaffId] ?? []) : day.bookedSlots;
-  }, [dates, selectedDate, selectedStaffId]);
+  }, [barbers.length, dates, selectedDate, selectedStaffId]);
   const selectedDateOption = useMemo(() => {
     return dates.find((date) => date.date === selectedDate) ?? null;
   }, [dates, selectedDate]);
@@ -242,6 +251,13 @@ export function Booking({ requestedService }: BookingProps) {
   const selectedDateChip = selectedDateOption ? getDateChipParts(selectedDateOption.date, selectedDateOption.label) : null;
   const selectedServiceImage = selectedService ? getSalonService(selectedService.id)?.image : null;
   const selectedOptionCountLabel = selectedOptions.length === 1 ? '1 Service' : `${selectedOptions.length} Services`;
+  const shouldChooseStaffFirst = barbers.length > 0;
+  const staffSlotTotals = useMemo(() => {
+    return barbers.reduce<Record<string, number>>((totals, barber) => {
+      totals[barber.id] = dates.reduce((count, date) => count + (date.staffSlots?.[barber.id]?.length ?? 0), 0);
+      return totals;
+    }, {});
+  }, [barbers, dates]);
   const selectedTimeEnd = useMemo(() => {
     if (!selectedTime || selectedTotalDuration <= 0) return null;
     return timeFromMinutes(minutesFromTime(selectedTime) + selectedTotalDuration);
@@ -286,7 +302,7 @@ export function Booking({ requestedService }: BookingProps) {
           setBarbers(nextStaff);
           setSelectedStaffId((current) => {
             if (current && nextStaff.some((member: PublicStaffMember) => member.id === current)) return current;
-            return nextStaff.find((member: PublicStaffMember) => member.isMain)?.id ?? nextStaff[0]?.id ?? null;
+            return null;
           });
           setLoadError(null);
         }
@@ -314,6 +330,24 @@ export function Booking({ requestedService }: BookingProps) {
     }
   }, [availableTimeSlotSet, selectedTime]);
 
+  useEffect(() => {
+    if (!shouldChooseStaffFirst) return;
+
+    if (!selectedStaffId) {
+      if (selectedDate) setSelectedDate(null);
+      if (selectedTime) setSelectedTime(null);
+      return;
+    }
+
+    if (selectedDate) {
+      const slots = selectedDateOption?.staffSlots?.[selectedStaffId] ?? [];
+      if (slots.length === 0) {
+        setSelectedDate(null);
+        setSelectedTime(null);
+      }
+    }
+  }, [selectedDate, selectedDateOption, selectedStaffId, selectedTime, shouldChooseStaffFirst]);
+
   const keepBookingCardInView = () => {
     if (typeof window === 'undefined') return;
 
@@ -332,7 +366,26 @@ export function Booking({ requestedService }: BookingProps) {
       keepBookingCardInView();
     }
   };
+
+  const handleStepNext = () => {
+    if (step === stepLabels.length) {
+      handleConfirmBooking();
+      return;
+    }
+
+    handleNext();
+  };
   const handleBack = () => {
+    if (step === 2) {
+      setStep(1);
+      setSelectedService(null);
+      setSelectedOptionIds([]);
+      setSelectedDate(null);
+      setSelectedTime(null);
+      keepBookingCardInView();
+      return;
+    }
+
     if (step > 1) {
       setStep(step - 1);
       keepBookingCardInView();
@@ -400,6 +453,15 @@ export function Booking({ requestedService }: BookingProps) {
     !!(customerDetails.name && customerDetails.phone),
     true,
   ][step - 1];
+  const isBookingFlowActive = step > 1 || selectedService !== null;
+
+  useEffect(() => {
+    onFlowActiveChange?.(isBookingFlowActive);
+  }, [isBookingFlowActive, onFlowActiveChange]);
+
+  useEffect(() => () => {
+    onFlowActiveChange?.(false);
+  }, [onFlowActiveChange]);
 
   const summaryRows = [
     { icon: Scissors, label: 'Service', value: selectedService?.name ?? 'Select service' },
@@ -422,7 +484,7 @@ export function Booking({ requestedService }: BookingProps) {
 
   if (isConfirmed) {
     return (
-      <section ref={bookingSectionRef} id="booking" className="salon-booking booking-app-shell booking-confirmation-shell">
+      <section ref={bookingSectionRef} id="booking" className="salon-booking booking-app-shell booking-confirmation-shell mobile-booking-page">
         <div className="salon-booking__inner booking-app-inner">
           <div ref={bookingCardRef} className="booking-confirmation-card booking-app-card">
             <div className="booking-confirmation-icon">
@@ -470,10 +532,9 @@ export function Booking({ requestedService }: BookingProps) {
   }
 
   return (
-    <section ref={bookingSectionRef} id="booking" className="salon-booking booking-app-shell">
+    <section ref={bookingSectionRef} id="booking" className="salon-booking booking-app-shell mobile-booking-page">
       <div className="salon-booking__inner booking-app-inner">
         <div className="booking-app-header">
-          <p className="booking-app-eyebrow">Easy Booking</p>
           <h2>
             Book Appointment
             <Sparkles aria-hidden="true" />
@@ -499,6 +560,28 @@ export function Booking({ requestedService }: BookingProps) {
           })}
         </div>
 
+        {isBookingFlowActive && (
+          <div className="booking-step-actions">
+            <button
+              type="button"
+              onClick={step > 1 ? handleBack : handleChangeService}
+              className="booking-secondary-action"
+            >
+              <ChevronLeft size={18} aria-hidden="true" />
+              Back
+            </button>
+            <button
+              type="button"
+              onClick={handleStepNext}
+              disabled={!canProceed || (step === stepLabels.length && (isSubmitting || isUsingFallbackBookingOptions))}
+              className="booking-primary-action"
+            >
+              Next
+              <ChevronRight size={18} aria-hidden="true" />
+            </button>
+          </div>
+        )}
+
         <div className={selectedService ? 'booking-content-grid booking-content-grid--with-summary' : 'booking-content-grid'}>
           <div ref={bookingCardRef} className="booking-app-card">
             {step === 1 && (
@@ -520,17 +603,13 @@ export function Booking({ requestedService }: BookingProps) {
                         <button
                           key={service.id}
                           type="button"
-                          onClick={() => selectService(service)}
+                          onClick={() => handleServiceSelect(service)}
                           className="booking-service-card"
                         >
                           {serviceImage && <img src={serviceImage} alt="" />}
-                          <span>
+                          <span className="booking-service-card__copy">
                             <strong>{service.name}</strong>
-                            <small>{service.description}</small>
                           </span>
-                          <em>{service.duration}</em>
-                          <b>{formatPrice(service.price)}</b>
-                          <ChevronRight size={18} aria-hidden="true" />
                         </button>
                       );
                     })}
@@ -589,17 +668,97 @@ export function Booking({ requestedService }: BookingProps) {
                 {isAvailabilityLoading && <p className="booking-notice">Refreshing available slots...</p>}
 
                 {selectedService && (
-                  <div className="booking-selected-service booking-selected-service--compact">
-                    {selectedServiceImage && <img src={selectedServiceImage} alt="" />}
-                    <div>
-                      <p>{selectedService.name}</p>
-                      <span>{selectedOptionLabels}</span>
+                  <div className="booking-selected-service booking-selected-service--compact booking-selected-service--with-options">
+                    <div className="booking-selected-service__main">
+                      {selectedServiceImage && <img src={selectedServiceImage} alt="" />}
+                      <div className="booking-selected-service__copy">
+                        <p>{selectedService.name}</p>
+                        <span className="booking-selected-service__description">{selectedService.description}</span>
+                        <small className="booking-selected-service__meta">
+                          <Clock size={13} aria-hidden="true" />
+                          {formatDurationLabel(selectedTotalDuration)}
+                          <b>{formatPrice(selectedTotalPrice)}</b>
+                        </small>
+                      </div>
+                      <div className="booking-selected-service__side">
+                        <span className="booking-count-pill">{selectedOptionCountLabel}</span>
+                        <ChevronRight size={16} aria-hidden="true" />
+                      </div>
                     </div>
-                    <span className="booking-count-pill">{selectedOptionCountLabel}</span>
+                    <div className="booking-service-options" aria-label={`${selectedService.name} options`}>
+                      {selectedServiceOptions.map((option) => {
+                        const isChecked = selectedOptionIds.includes(option.id);
+
+                        return (
+                          <label key={option.id} className={`booking-service-option-row ${isChecked ? 'is-selected' : ''}`}>
+                            <input
+                              type="checkbox"
+                              checked={isChecked}
+                              onChange={() => handleOptionToggle(option.id)}
+                            />
+                            <span>{option.name}</span>
+                            <small>{formatDurationLabel(option.duration)}</small>
+                            <b>{formatPrice(option.price)}</b>
+                          </label>
+                        );
+                      })}
+                      <div className="booking-service-total-row">
+                        <span>
+                          <Tag size={14} aria-hidden="true" />
+                          Total
+                        </span>
+                        <small>{formatDurationLabel(selectedTotalDuration)}</small>
+                        <b>{formatPrice(selectedTotalPrice)}</b>
+                      </div>
+                    </div>
                   </div>
                 )}
 
-                <div className="booking-control-block">
+                {barbers.length > 0 && (
+                  <div className="booking-control-block booking-control-block--picker-card booking-control-block--staff-card">
+                    <div className="booking-control-heading">
+                      <h4>Choose Your {selectedStaffRoleLabel}</h4>
+                    </div>
+                    <div className="booking-stylist-strip" role="listbox" aria-label={`Choose ${selectedStaffRoleLabel}`}>
+                      {barbers.map((barber) => {
+                        const isSelected = selectedStaffId === barber.id;
+                        const dateSlots = selectedDateOption?.staffSlots?.[barber.id] ?? [];
+                        const availableSlotCount = selectedDate ? dateSlots.length : (staffSlotTotals[barber.id] ?? 0);
+                        const avatarUrl = barberAvatarUrl(barber);
+
+                        return (
+                          <button
+                            key={barber.id}
+                            type="button"
+                            className={`booking-stylist-card ${isSelected ? 'is-selected' : ''}`}
+                            aria-label={`Select ${barber.name}`}
+                            aria-selected={isSelected}
+                            aria-pressed={isSelected}
+                            title={`${barber.name} - ${availableSlotCount} slots available`}
+                            onClick={() => {
+                              setSelectedStaffId(barber.id);
+                              if (selectedDate && dateSlots.length === 0) {
+                                setSelectedDate(null);
+                              }
+                              if (selectedTime && !dateSlots.includes(selectedTime)) {
+                                setSelectedTime(null);
+                              }
+                            }}
+                          >
+                            <span className="booking-stylist-avatar">
+                              {avatarUrl ? <img src={avatarUrl} alt="" /> : <User aria-hidden="true" />}
+                              {isSelected && <Check size={15} aria-hidden="true" />}
+                            </span>
+                            <strong>{barber.name.split(' ')[0]}</strong>
+                            <small>{barber.isMain ? `Main ${selectedStaffRoleLabel.toLowerCase()}` : `${availableSlotCount} slots`}</small>
+                          </button>
+                        );
+                      })}
+                    </div>
+                  </div>
+                )}
+
+                <div className={`booking-control-block booking-control-block--picker-card ${shouldChooseStaffFirst && !selectedStaffId ? 'is-disabled' : ''}`}>
                   <div className="booking-control-heading">
                     <h4>Select Date</h4>
                     {selectedDateChip && <span>{selectedDateChip.month} {selectedDate?.slice(0, 4)}</span>}
@@ -608,6 +767,8 @@ export function Booking({ requestedService }: BookingProps) {
                     {dates.map((dateOption) => {
                       const chip = getDateChipParts(dateOption.date, dateOption.label);
                       const isSelected = selectedDate === dateOption.date;
+                      const isAvailableForStaff = !selectedStaffId || (dateOption.staffSlots?.[selectedStaffId]?.length ?? 0) > 0;
+                      const isDisabled = shouldChooseStaffFirst ? (!selectedStaffId || !isAvailableForStaff) : false;
 
                       return (
                         <button
@@ -615,11 +776,14 @@ export function Booking({ requestedService }: BookingProps) {
                           type="button"
                           className={`booking-date-chip ${isSelected ? 'is-selected' : ''}`}
                           onClick={() => {
+                            if (isDisabled) return;
                             setSelectedDate(dateOption.date);
                             setSelectedTime(null);
                           }}
+                          disabled={isDisabled}
                           aria-label={`Select ${chip.fullLabel}`}
                           aria-selected={isSelected}
+                          aria-pressed={isSelected}
                         >
                           <span>{chip.weekday}</span>
                           <strong>{chip.day || dateOption.label}</strong>
@@ -627,9 +791,12 @@ export function Booking({ requestedService }: BookingProps) {
                       );
                     })}
                   </div>
+                  {shouldChooseStaffFirst && !selectedStaffId && (
+                    <p className="booking-helper-text">Choose your {selectedStaffRoleLabel.toLowerCase()} to see available dates.</p>
+                  )}
                 </div>
 
-                <div className="booking-control-block">
+                <div className={`booking-control-block booking-control-block--picker-card ${shouldChooseStaffFirst && (!selectedStaffId || !selectedDate) ? 'is-disabled' : ''}`}>
                   <div className="booking-control-heading">
                     <h4>Select Time</h4>
                     {selectedTime && selectedTimeEnd && <span>{formatTimeLabel(selectedTime)} - {formatTimeLabel(selectedTimeEnd)}</span>}
@@ -640,18 +807,22 @@ export function Booking({ requestedService }: BookingProps) {
                       const isBooked = bookedTimeSlotSet.has(time);
                       const isSelected = selectedTime === time;
                       const isHeld = !isSelected && heldTimeSlotSet.has(time);
+                      const isDisabled = !selectedDate || (shouldChooseStaffFirst && !selectedStaffId) || !isAvailable;
 
                       return (
                         <button
                           key={time}
                           type="button"
                           onClick={() => {
-                            if (isAvailable) setSelectedTime(time);
+                            if (!isDisabled) {
+                              setSelectedTime(time);
+                            }
                           }}
                           className={`booking-time-chip ${isSelected ? 'is-selected' : ''} ${isHeld ? 'is-held' : ''}`}
-                          disabled={!isAvailable}
+                          disabled={isDisabled}
                           aria-label={`${formatTimeLabel(time)} ${isBooked ? 'booked' : isAvailable ? 'available' : 'unavailable'}`}
                           aria-selected={isSelected}
+                          aria-pressed={isSelected}
                         >
                           <strong>{formatTimeLabel(time)}</strong>
                           {!isAvailable && <span>{isBooked ? 'Booked' : 'Unavailable'}</span>}
@@ -660,53 +831,14 @@ export function Booking({ requestedService }: BookingProps) {
                       );
                     })}
                   </div>
-                  {!selectedDate && <p className="booking-helper-text">Pick a date to see available time slots.</p>}
+                  {shouldChooseStaffFirst && !selectedStaffId && <p className="booking-helper-text">Choose your {selectedStaffRoleLabel.toLowerCase()} before selecting a time.</p>}
+                  {selectedStaffId && !selectedDate && <p className="booking-helper-text">Pick a date to see available time slots.</p>}
                   {selectedDate && availableTimeSlots.length === 0 && (
                     <p className="booking-helper-text">
                       No available slots for {selectedStaff?.name ?? `this ${selectedStaffRoleLabel.toLowerCase()}`} on this date. Please choose another {selectedStaffRoleLabel.toLowerCase()} or date.
                     </p>
                   )}
                 </div>
-
-                {barbers.length > 0 && (
-                  <div className="booking-control-block">
-                    <div className="booking-control-heading">
-                      <h4>Choose Your {selectedStaffRoleLabel}</h4>
-                      {selectedStaff && <span>{selectedStaff.name}</span>}
-                    </div>
-                    <div className="booking-stylist-strip" role="listbox" aria-label={`Choose ${selectedStaffRoleLabel}`}>
-                      {barbers.map((barber) => {
-                        const isSelected = selectedStaffId === barber.id;
-                        const barberSlots = selectedDateOption?.staffSlots?.[barber.id] ?? [];
-                        const avatarUrl = barberAvatarUrl(barber);
-
-                        return (
-                          <button
-                            key={barber.id}
-                            type="button"
-                            className={`booking-stylist-card ${isSelected ? 'is-selected' : ''}`}
-                            aria-label={`Select ${barber.name}`}
-                            aria-selected={isSelected}
-                            title={`${barber.name}${barber.isMain ? ` - Main ${selectedStaffRoleLabel.toLowerCase()}` : ` - ${barberSlots.length} slots available`}`}
-                            onClick={() => {
-                              setSelectedStaffId(barber.id);
-                              if (selectedTime && !barberSlots.includes(selectedTime)) {
-                                setSelectedTime(null);
-                              }
-                            }}
-                          >
-                            <span className="booking-stylist-avatar">
-                              {avatarUrl ? <img src={avatarUrl} alt="" /> : <User aria-hidden="true" />}
-                              {isSelected && <Check size={15} aria-hidden="true" />}
-                            </span>
-                            <strong>{barber.name.split(' ')[0]}</strong>
-                            <small>{barber.isMain ? 'Main stylist' : `${barberSlots.length} slots`}</small>
-                          </button>
-                        );
-                      })}
-                    </div>
-                  </div>
-                )}
               </div>
             )}
 
@@ -772,44 +904,16 @@ export function Booking({ requestedService }: BookingProps) {
               </div>
             )}
 
-            <div className="booking-navigation">
-              {step > 1 ? (
-                <button type="button" onClick={handleBack} className="booking-secondary-action">
-                  <ChevronLeft size={18} aria-hidden="true" />
-                  Back
-                </button>
-              ) : selectedService ? (
-                <button type="button" onClick={handleChangeService} className="booking-secondary-action">
-                  <ChevronLeft size={18} aria-hidden="true" />
-                  Back
-                </button>
-              ) : <span />}
-
-              {step < stepLabels.length ? (
-                <button type="button" onClick={handleNext} disabled={!canProceed} className="booking-primary-action">
-                  Continue
-                  <ChevronRight size={18} aria-hidden="true" />
-                </button>
-              ) : (
-                <button
-                  type="button"
-                  onClick={handleConfirmBooking}
-                  disabled={isSubmitting || isUsingFallbackBookingOptions}
-                  className="booking-primary-action"
-                >
-                  {isSubmitting ? 'Submitting...' : isUsingFallbackBookingOptions ? 'Booking Offline' : 'Confirm Booking'}
-                  <ChevronRight size={18} aria-hidden="true" />
-                </button>
-              )}
-            </div>
           </div>
 
           {selectedService && (
             <aside className="booking-live-summary" aria-label="Booking summary">
               <div className="booking-live-summary__header">
                 <h3>Booking Summary</h3>
-                <span>Total Amount</span>
-                <strong>{formatPrice(selectedTotalPrice)}</strong>
+                <div className="booking-live-summary__amount">
+                  <span>Total Amount</span>
+                  <strong>{formatPrice(selectedTotalPrice)}</strong>
+                </div>
               </div>
               <div className="booking-live-summary__rows">
                 {summaryRows.map(({ icon: Icon, label, value }) => (
@@ -819,11 +923,6 @@ export function Booking({ requestedService }: BookingProps) {
                     <strong>{value}</strong>
                   </div>
                 ))}
-              </div>
-              <div className="booking-safety-pill">
-                <ShieldCheck size={17} aria-hidden="true" />
-                <strong>Hygiene First</strong>
-                <span>Clean & Safe</span>
               </div>
             </aside>
           )}

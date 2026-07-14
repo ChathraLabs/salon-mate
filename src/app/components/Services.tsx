@@ -1,4 +1,4 @@
-import { Scissors, Heart, Sparkles, Hand, Palette, Droplet, Crown, Wind } from 'lucide-react';
+import { Scissors, Heart, Sparkles, Hand, Palette, Droplet, Crown, Wind, Gem, Flower2 } from 'lucide-react';
 import { formatServiceDuration, formatServicePrice, salonServices } from '../config/services';
 
 const serviceIcons = {
@@ -14,7 +14,14 @@ const serviceIcons = {
   'facial-cleanup': Sparkles,
 };
 
-const specialtyChips = ['Signature cuts', 'Beauty care', 'Bridal styling', 'Skin rituals'];
+const specialtyChips = [
+  { label: 'All', icon: Sparkles },
+  { label: 'Hair', icon: Scissors },
+  { label: 'Beauty', icon: Gem },
+  { label: 'Bridal', icon: Crown },
+  { label: 'Skin', icon: Flower2 },
+  { label: 'Tattoo', icon: Heart },
+];
 
 export function Services({
   onBookService,
@@ -31,18 +38,7 @@ export function Services({
       />
 
       <div className="salon-section-inner max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="salon-section-header text-center mb-10 sm:mb-14 space-y-4">
-          <p
-            style={{
-              fontFamily: 'var(--font-body)',
-              color: 'var(--gold-dark)',
-              fontSize: '0.75rem',
-              textTransform: 'uppercase',
-              fontWeight: 700,
-            }}
-          >
-            What We Offer
-          </p>
+        <div className="salon-section-header salon-services__header mb-10 sm:mb-14">
           <h2
             style={{
               fontFamily: 'var(--font-heading)',
@@ -51,10 +47,11 @@ export function Services({
               lineHeight: '1.05',
             }}
           >
-            Salon services for every occasion
+            Services
+            <Sparkles aria-hidden="true" />
           </h2>
           <p
-            className="max-w-2xl mx-auto"
+            className="max-w-2xl"
             style={{
               fontFamily: 'var(--font-body)',
               color: 'var(--muted-foreground)',
@@ -62,13 +59,13 @@ export function Services({
               lineHeight: '1.7',
             }}
           >
-            Discover our comprehensive range of beauty and grooming services tailored to your needs.
+            Choose the perfect treatment for your next visit.
           </p>
-          <div className="flex flex-wrap items-center justify-center gap-2.5 pt-2" aria-label="Salon specialties">
-            {specialtyChips.map((label, index) => (
+          <div className="salon-services__category-strip" aria-label="Salon service categories">
+            {specialtyChips.map(({ label, icon: Icon }, index) => (
               <span
                 key={label}
-                className="inline-flex items-center rounded-full px-4 py-2"
+                className="salon-services__category-pill"
                 style={{
                   background: index === 0 ? 'var(--emerald)' : 'var(--surface)',
                   color: index === 0 ? 'var(--primary-foreground)' : 'var(--foreground)',
@@ -78,6 +75,7 @@ export function Services({
                   fontSize: '0.875rem',
                 }}
               >
+                <Icon aria-hidden="true" />
                 {label}
               </span>
             ))}

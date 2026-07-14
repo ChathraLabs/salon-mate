@@ -20,6 +20,7 @@ export default function App() {
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [activeMobileSection, setActiveMobileSection] = useState<MobileSection>('home');
   const [requestedService, setRequestedService] = useState<{ id: string; key: number } | null>(null);
+  const [isBookingFlowActive, setIsBookingFlowActive] = useState(false);
 
   useEffect(() => {
     if (!isMobile) return;
@@ -27,6 +28,12 @@ export default function App() {
       window.history.replaceState(null, '', `${window.location.pathname}${window.location.search}`);
     }
   }, [isMobile]);
+
+  useEffect(() => {
+    if (activeMobileSection !== 'booking') {
+      setIsBookingFlowActive(false);
+    }
+  }, [activeMobileSection]);
 
   const handleMobileNavigate = (section: MobileSection) => {
     setActiveMobileSection(section);
@@ -48,7 +55,7 @@ export default function App() {
       case 'services':
         return <Services onBookService={handleBookService} useStateNavigation />;
       case 'booking':
-        return <Booking requestedService={requestedService} />;
+        return <Booking requestedService={requestedService} onFlowActiveChange={setIsBookingFlowActive} />;
       case 'gallery':
         return <Gallery />;
       case 'reviews':
@@ -101,11 +108,13 @@ export default function App() {
       </main>
 
       {!isMobile && <Footer />}
-      <MobileBottomNavigation
-        activeSection={activeMobileSection}
-        onNavigate={handleMobileNavigate}
-        onMoreClick={() => setIsMobileMenuOpen(true)}
-      />
+      {!(activeMobileSection === 'booking' && isBookingFlowActive) && (
+        <MobileBottomNavigation
+          activeSection={activeMobileSection}
+          onNavigate={handleMobileNavigate}
+          onMoreClick={() => setIsMobileMenuOpen(true)}
+        />
+      )}
     </div>
   );
 }
