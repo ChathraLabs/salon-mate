@@ -376,6 +376,7 @@ export async function updateAvailability(input: {
   exception?: {
     id?: string;
     date: string;
+    endDate?: string;
     staffId?: string | null;
     type: "BLOCKED" | "SPECIAL_OPEN";
     startsAt?: string | null;
@@ -396,10 +397,19 @@ export async function updateAvailability(input: {
 
     if (input.exception) {
       const exceptionDate = dateTimeFromLocalParts(input.exception.date, "00:00");
+      const endExceptionDate = dateTimeFromLocalParts(input.exception.endDate ?? input.exception.date, "00:00");
       const staffId = input.exception.staffId ?? null;
       const startsAt = input.exception.startsAt ?? null;
       const endsAt = input.exception.endsAt ?? null;
       const reason = input.exception.reason ?? null;
+
+      if (endExceptionDate < exceptionDate) {
+        throw new Error("End date must be the same as or after the start date.");
+      }
+      const rangeDays = Math.floor((endExceptionDate.getTime() - exceptionDate.getTime()) / 86400000) + 1;
+      if (rangeDays > 31) {
+        throw new Error("Availability blocks can cover up to 31 days at a time.");
+      }
 
       if (input.exception.id) {
         await tx.$executeRaw`
@@ -415,30 +425,18 @@ export async function updateAvailability(input: {
           WHERE "id" = ${input.exception.id}
         `;
       } else {
-        await tx.$executeRaw`
-          INSERT INTO "AvailabilityException" (
-            "id",
-            "date",
-            "staffId",
-            "type",
-            "startsAt",
-            "endsAt",
-            "reason",
-            "createdAt",
-            "updatedAt"
-          )
-          VALUES (
-            ${randomUUID()},
-            ${exceptionDate},
-            ${staffId},
-            ${input.exception.type}::"AvailabilityExceptionType",
-            ${startsAt},
-            ${endsAt},
-            ${reason},
-            NOW(),
-            NOW()
-          )
-        `;
+        for (let dayIndex = 0; dayIndex < rangeDays; dayIndex += 1) {
+          const rangeDate = new Date(exceptionDate.getTime() + dayIndex * 86400000);
+          await tx.$executeRaw`
+            INSERT INTO "AvailabilityException" (
+              "id", "date", "staffId", "type", "startsAt", "endsAt", "reason", "createdAt", "updatedAt"
+            )
+            VALUES (
+              ${randomUUID()}, ${rangeDate}, ${staffId}, ${input.exception.type}::"AvailabilityExceptionType",
+              ${startsAt}, ${endsAt}, ${reason}, NOW(), NOW()
+            )
+          `;
+        }
       }
     }
 

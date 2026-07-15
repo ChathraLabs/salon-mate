@@ -6,6 +6,12 @@ export type PublicService = {
   price: number;
   durationMinutes: number;
   duration: string;
+  options?: Array<{
+    id: string;
+    name: string;
+    duration: number;
+    price: number;
+  }>;
 };
 
 export type PublicStaffMember = {

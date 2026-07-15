@@ -64,6 +64,22 @@ model Service {
   createdAt       DateTime  @default(now())
   updatedAt       DateTime  @updatedAt
   bookings        Booking[]
+  options         ServiceOption[]
+}
+
+model ServiceOption {
+  id              String   @id
+  serviceId       String
+  name            String
+  durationMinutes Int
+  priceCents      Int
+  sortOrder       Int      @default(0)
+  active          Boolean  @default(true)
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+  service         Service  @relation(fields: [serviceId], references: [id], onDelete: Cascade)
+
+  @@index([serviceId, sortOrder])
 }
 
 model BusinessHour {

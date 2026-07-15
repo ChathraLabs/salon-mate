@@ -2,7 +2,7 @@
 
 import { useEffect, useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
-import { ArrowRight, CalendarDays, CheckCircle2, Clock3, Mail, Scissors, Star } from "lucide-react";
+import { ArrowRight, CalendarDays, CheckCircle2, ChevronRight, Clock3, Mail, Plus, Scissors, Star } from "lucide-react";
 import { AdminShell } from "./components/AdminShell";
 import { salonServices } from "../config/services";
 import type { AdminBookingRow } from "@/types/admin";
@@ -47,8 +47,8 @@ function firstName(name?: string | null) {
 function statusStyle(status: AdminBookingRow["status"]) {
   if (status === "CONFIRMED") return { color: "#9ad56b", background: "rgba(78,160,63,0.12)", border: "rgba(78,160,63,0.26)" };
   if (status === "COMPLETED") return { color: "#75b7ff", background: "rgba(44,126,210,0.12)", border: "rgba(44,126,210,0.28)" };
-  if (status === "PENDING") return { color: "var(--gold-light)", background: "rgba(212,165,32,0.1)", border: "rgba(212,165,32,0.22)" };
-  return { color: "rgba(240,228,184,0.65)", background: "rgba(240,228,184,0.06)", border: "rgba(240,228,184,0.12)" };
+  if (status === "PENDING") return { color: "var(--gold-light)", background: "rgba(6,68,55,0.08)", border: "rgba(212,165,32,0.22)" };
+  return { color: "var(--muted-foreground)", background: "var(--emerald-soft)", border: "var(--border)" };
 }
 
 function StatusPill({ status }: { status: AdminBookingRow["status"] }) {
@@ -75,8 +75,8 @@ function Panel({ title, action, children }: { title: string; action?: string; ch
     <section
       className="rounded-xl p-5"
       style={{
-        border: "1px solid rgba(240,228,184,0.12)",
-        background: "linear-gradient(135deg, rgba(240,228,184,0.035), rgba(255,255,255,0.015))",
+        border: "1px solid var(--border)",
+        background: "linear-gradient(135deg, rgba(255,255,255,0.72), rgba(255,255,255,0.015))",
       }}
     >
       <div className="mb-4 flex items-center justify-between gap-3">
@@ -85,7 +85,7 @@ function Panel({ title, action, children }: { title: string; action?: string; ch
           <button
             className="rounded-md px-3 py-1.5"
             style={{
-              border: "1px solid rgba(212,165,32,0.55)",
+              border: "1px solid rgba(6,68,55,0.35)",
               color: "var(--gold-light)",
               background: "transparent",
               fontFamily: "var(--font-body)",
@@ -115,19 +115,19 @@ function StatCard({
     <div
       className="rounded-xl p-5"
       style={{
-        border: "1px solid rgba(240,228,184,0.12)",
-        background: "linear-gradient(135deg, rgba(240,228,184,0.04), rgba(255,255,255,0.015))",
+        border: "1px solid var(--border)",
+        background: "linear-gradient(135deg, rgba(255,255,255,0.72), rgba(255,255,255,0.015))",
       }}
     >
       <div className="flex items-start justify-between gap-4">
         <div>
           <p style={{ fontFamily: "var(--font-body)", color: "var(--foreground)" }}>{title} <span style={{ color: "var(--gold)" }}>✦</span></p>
           <p className="mt-2" style={{ fontFamily: "var(--font-body)", fontSize: "2rem", fontWeight: 700 }}>{value}</p>
-          <p style={{ color: "rgba(240,228,184,0.62)", fontFamily: "var(--font-body)", fontSize: "0.88rem" }}>{note}</p>
+          <p style={{ color: "var(--muted-foreground)", fontFamily: "var(--font-body)", fontSize: "0.88rem" }}>{note}</p>
         </div>
         <div
           className="flex h-14 w-14 items-center justify-center rounded-full"
-          style={{ border: "1px solid rgba(212,165,32,0.28)", background: "rgba(212,165,32,0.08)" }}
+          style={{ border: "1px solid rgba(6,68,55,0.18)", background: "rgba(6,68,55,0.08)" }}
         >
           <Icon className="h-6 w-6" style={{ color: "var(--gold-light)" }} />
         </div>
@@ -186,10 +186,35 @@ export default function AdminDashboardPage() {
 
   return (
     <AdminShell active="dashboard" footerText={lastUpdated ? `Last updated: ${lastUpdated}` : "Last updated: Loading..."}>
-      <div className="space-y-6">
+      <div className="admin-mobile-dashboard">
+        <header><div><h1>Dashboard</h1><p>Here’s what’s happening at your salon today.</p></div><span>{new Intl.DateTimeFormat("en-LK", { month: "short", day: "numeric" }).format(new Date())}</span></header>
+        {error && <p className="admin-mobile-dashboard__error">{error}</p>}
+        <section className="admin-mobile-dashboard__stats">
+          <a href="/admin/bookings"><span><CalendarDays /></span><small>Today</small><strong>{loading ? "…" : todayBookings.length}</strong><p>Bookings</p></a>
+          <a href="/admin/bookings"><span><Clock3 /></span><small>Waiting</small><strong>{loading ? "…" : pendingBookings.length}</strong><p>Pending</p></a>
+          <a href="/admin/bookings"><span><CheckCircle2 /></span><small>Finished</small><strong>{loading ? "…" : completedToday.length}</strong><p>Completed</p></a>
+          <a href="/admin/services"><span><Scissors /></span><small>Available</small><strong>{serviceCount}</strong><p>Services</p></a>
+        </section>
+
+        <section className="admin-mobile-dashboard__section">
+          <header><div><h2>Today’s Appointments</h2><p>{todayBookings.length ? `${todayBookings.length} appointments scheduled` : "Your schedule is clear"}</p></div><a href="/admin/bookings">View all <ArrowRight /></a></header>
+          <div className="admin-mobile-dashboard__appointments">
+            {schedule.length === 0 ? <div className="admin-mobile-dashboard__empty"><CalendarDays /><strong>No appointments today</strong><p>New bookings will appear here.</p></div> : schedule.slice(0, 3).map((booking) => <a href="/admin/bookings" key={booking.id}>
+              <time>{formatTime(booking.startsAt)}</time><div><strong>{booking.customer.name}</strong><p>{booking.service.name} · {firstName(booking.assignedStaff?.name)}</p></div><StatusPill status={booking.status} /><ChevronRight />
+            </a>)}
+          </div>
+        </section>
+
+        <section className="admin-mobile-dashboard__section admin-mobile-dashboard__quick">
+          <header><div><h2>Quick Actions</h2><p>Common management tasks</p></div></header>
+          <div><a href="/admin/bookings"><CalendarDays /><span><strong>Manage Bookings</strong><small>Review requests and status</small></span><ChevronRight /></a><a href="/admin/services"><Plus /><span><strong>Add a Service</strong><small>Update salon offerings</small></span><ChevronRight /></a></div>
+        </section>
+      </div>
+
+      <div className="admin-desktop-dashboard space-y-6">
         <header>
           <h1 style={{ fontFamily: "var(--font-heading)", fontSize: "2.35rem" }}>Dashboard</h1>
-          <p style={{ color: "rgba(240,228,184,0.68)", fontFamily: "var(--font-body)" }}>
+          <p style={{ color: "var(--muted-foreground)", fontFamily: "var(--font-body)" }}>
             Welcome back! Here's what's happening with your salon today.
           </p>
         </header>
@@ -206,34 +231,34 @@ export default function AdminDashboardPage() {
         <div className="grid gap-4 lg:grid-cols-2">
           <div
             className="rounded-xl p-5"
-            style={{ border: "1px solid rgba(240,228,184,0.12)", background: "rgba(240,228,184,0.025)" }}
+            style={{ border: "1px solid var(--border)", background: "rgba(255,255,255,0.62)" }}
           >
             <div className="flex items-center gap-4">
-              <div className="flex h-14 w-14 items-center justify-center rounded-full" style={{ border: "1px solid rgba(240,228,184,0.1)" }}>
+              <div className="flex h-14 w-14 items-center justify-center rounded-full" style={{ border: "1px solid var(--border)" }}>
                 <Star className="h-6 w-6" style={{ color: "var(--gold-light)" }} />
               </div>
               <div>
                 <p style={{ fontFamily: "var(--font-body)" }}>Reviews</p>
                 <p style={{ fontFamily: "var(--font-body)", fontSize: "1.6rem", fontWeight: 700 }}>248</p>
-                <p style={{ color: "rgba(240,228,184,0.62)", fontFamily: "var(--font-body)" }}>Total reviews</p>
+                <p style={{ color: "var(--muted-foreground)", fontFamily: "var(--font-body)" }}>Total reviews</p>
               </div>
-              <p className="ml-auto text-right" style={{ color: "#9ad56b", fontFamily: "var(--font-body)" }}>+12<br /><span style={{ color: "rgba(240,228,184,0.62)", fontSize: "0.8rem" }}>vs last 7 days</span></p>
+              <p className="ml-auto text-right" style={{ color: "#9ad56b", fontFamily: "var(--font-body)" }}>+12<br /><span style={{ color: "var(--muted-foreground)", fontSize: "0.8rem" }}>vs last 7 days</span></p>
             </div>
           </div>
           <div
             className="rounded-xl p-5"
-            style={{ border: "1px solid rgba(240,228,184,0.12)", background: "rgba(240,228,184,0.025)" }}
+            style={{ border: "1px solid var(--border)", background: "rgba(255,255,255,0.62)" }}
           >
             <div className="flex items-center gap-4">
-              <div className="flex h-14 w-14 items-center justify-center rounded-full" style={{ border: "1px solid rgba(240,228,184,0.1)" }}>
+              <div className="flex h-14 w-14 items-center justify-center rounded-full" style={{ border: "1px solid var(--border)" }}>
                 <Mail className="h-6 w-6" style={{ color: "var(--gold-light)" }} />
               </div>
               <div>
                 <p style={{ fontFamily: "var(--font-body)" }}>Contacts</p>
                 <p style={{ fontFamily: "var(--font-body)", fontSize: "1.6rem", fontWeight: 700 }}>23</p>
-                <p style={{ color: "rgba(240,228,184,0.62)", fontFamily: "var(--font-body)" }}>Total contacts</p>
+                <p style={{ color: "var(--muted-foreground)", fontFamily: "var(--font-body)" }}>Total contacts</p>
               </div>
-              <p className="ml-auto text-right" style={{ color: "#9ad56b", fontFamily: "var(--font-body)" }}>+5<br /><span style={{ color: "rgba(240,228,184,0.62)", fontSize: "0.8rem" }}>vs last 7 days</span></p>
+              <p className="ml-auto text-right" style={{ color: "#9ad56b", fontFamily: "var(--font-body)" }}>+5<br /><span style={{ color: "var(--muted-foreground)", fontSize: "0.8rem" }}>vs last 7 days</span></p>
             </div>
           </div>
         </div>
@@ -241,21 +266,21 @@ export default function AdminDashboardPage() {
         <div className="grid gap-4 xl:grid-cols-2">
           <Panel title="Recent Bookings" action="View All">
             {recentBookings.length === 0 ? (
-              <p style={{ color: "rgba(240,228,184,0.62)", fontFamily: "var(--font-body)" }}>No bookings yet.</p>
+              <p style={{ color: "var(--muted-foreground)", fontFamily: "var(--font-body)" }}>No bookings yet.</p>
             ) : (
-              <div className="divide-y" style={{ borderColor: "rgba(240,228,184,0.1)" }}>
+              <div className="divide-y" style={{ borderColor: "var(--border)" }}>
                 {recentBookings.map((booking) => (
                   <div key={booking.id} className="flex items-center gap-4 py-3">
-                    <div className="flex h-10 w-10 items-center justify-center rounded-full" style={{ background: "rgba(212,165,32,0.16)", border: "1px solid rgba(212,165,32,0.3)" }}>
+                    <div className="flex h-10 w-10 items-center justify-center rounded-full" style={{ background: "rgba(6,68,55,0.12)", border: "1px solid rgba(6,68,55,0.18)" }}>
                       {booking.customer.name.charAt(0)}
                     </div>
                     <div className="min-w-0 flex-1">
                       <p style={{ fontFamily: "var(--font-heading)" }}>{booking.customer.name}</p>
-                      <p className="truncate" style={{ color: "rgba(240,228,184,0.62)", fontFamily: "var(--font-body)", fontSize: "0.9rem" }}>
+                      <p className="truncate" style={{ color: "var(--muted-foreground)", fontFamily: "var(--font-body)", fontSize: "0.9rem" }}>
                         {booking.service.name} · {firstName(booking.assignedStaff?.name)}
                       </p>
                     </div>
-                    <p className="hidden text-sm sm:block" style={{ color: "rgba(240,228,184,0.62)", fontFamily: "var(--font-body)" }}>{formatDate(booking.startsAt)}<br />{formatTime(booking.startsAt)}</p>
+                    <p className="hidden text-sm sm:block" style={{ color: "var(--muted-foreground)", fontFamily: "var(--font-body)" }}>{formatDate(booking.startsAt)}<br />{formatTime(booking.startsAt)}</p>
                     <StatusPill status={booking.status} />
                   </div>
                 ))}
@@ -268,15 +293,15 @@ export default function AdminDashboardPage() {
 
           <Panel title="Today's Schedule" action="View Calendar">
             {schedule.length === 0 ? (
-              <p style={{ color: "rgba(240,228,184,0.62)", fontFamily: "var(--font-body)" }}>No appointments scheduled for today.</p>
+              <p style={{ color: "var(--muted-foreground)", fontFamily: "var(--font-body)" }}>No appointments scheduled for today.</p>
             ) : (
               <div className="space-y-1">
                 {schedule.map((booking) => (
-                  <div key={booking.id} className="grid grid-cols-[5.5rem_1fr_auto] items-center gap-3 rounded-lg px-2 py-3" style={{ background: "rgba(240,228,184,0.025)" }}>
+                  <div key={booking.id} className="grid grid-cols-[5.5rem_1fr_auto] items-center gap-3 rounded-lg px-2 py-3" style={{ background: "rgba(255,255,255,0.62)" }}>
                     <p style={{ color: "var(--gold-light)", fontFamily: "var(--font-body)" }}>{formatTime(booking.startsAt)}</p>
                     <div>
                       <p style={{ fontFamily: "var(--font-heading)" }}>{booking.customer.name}</p>
-                      <p style={{ color: "rgba(240,228,184,0.62)", fontFamily: "var(--font-body)", fontSize: "0.9rem" }}>
+                      <p style={{ color: "var(--muted-foreground)", fontFamily: "var(--font-body)", fontSize: "0.9rem" }}>
                         {booking.service.name} · {firstName(booking.assignedStaff?.name)}
                       </p>
                     </div>
@@ -294,26 +319,26 @@ export default function AdminDashboardPage() {
         <div className="grid gap-4 xl:grid-cols-2">
           <Panel title="Recent Reviews" action="View All">
             {fallbackReviews.map((review) => (
-              <div key={review.name} className="flex items-center gap-4 border-b py-3 last:border-b-0" style={{ borderColor: "rgba(240,228,184,0.1)" }}>
-                <div className="flex h-10 w-10 items-center justify-center rounded-full" style={{ color: "var(--gold-light)", border: "1px solid rgba(212,165,32,0.28)", background: "rgba(212,165,32,0.08)" }}>{review.name[0]}</div>
+              <div key={review.name} className="flex items-center gap-4 border-b py-3 last:border-b-0" style={{ borderColor: "var(--border)" }}>
+                <div className="flex h-10 w-10 items-center justify-center rounded-full" style={{ color: "var(--gold-light)", border: "1px solid rgba(6,68,55,0.18)", background: "rgba(6,68,55,0.08)" }}>{review.name[0]}</div>
                 <div className="min-w-0 flex-1">
                   <p style={{ fontFamily: "var(--font-heading)" }}>{review.name} <span style={{ color: "var(--gold-light)" }}>★★★★★</span></p>
-                  <p className="truncate" style={{ color: "rgba(240,228,184,0.62)", fontFamily: "var(--font-body)" }}>{review.text}</p>
+                  <p className="truncate" style={{ color: "var(--muted-foreground)", fontFamily: "var(--font-body)" }}>{review.text}</p>
                 </div>
-                <p style={{ color: "rgba(240,228,184,0.62)", fontFamily: "var(--font-body)", fontSize: "0.85rem" }}>{review.age}</p>
+                <p style={{ color: "var(--muted-foreground)", fontFamily: "var(--font-body)", fontSize: "0.85rem" }}>{review.age}</p>
               </div>
             ))}
           </Panel>
 
           <Panel title="Recent Contacts" action="View All">
             {fallbackContacts.map((contact) => (
-              <div key={contact.name} className="flex items-center gap-4 border-b py-3 last:border-b-0" style={{ borderColor: "rgba(240,228,184,0.1)" }}>
-                <div className="flex h-10 w-10 items-center justify-center rounded-full" style={{ color: "var(--gold-light)", border: "1px solid rgba(212,165,32,0.28)", background: "rgba(212,165,32,0.08)" }}><Mail className="h-4 w-4" /></div>
+              <div key={contact.name} className="flex items-center gap-4 border-b py-3 last:border-b-0" style={{ borderColor: "var(--border)" }}>
+                <div className="flex h-10 w-10 items-center justify-center rounded-full" style={{ color: "var(--gold-light)", border: "1px solid rgba(6,68,55,0.18)", background: "rgba(6,68,55,0.08)" }}><Mail className="h-4 w-4" /></div>
                 <div className="min-w-0 flex-1">
                   <p style={{ fontFamily: "var(--font-heading)" }}>{contact.name}</p>
-                  <p className="truncate" style={{ color: "rgba(240,228,184,0.62)", fontFamily: "var(--font-body)" }}>{contact.value}</p>
+                  <p className="truncate" style={{ color: "var(--muted-foreground)", fontFamily: "var(--font-body)" }}>{contact.value}</p>
                 </div>
-                <p style={{ color: "rgba(240,228,184,0.62)", fontFamily: "var(--font-body)", fontSize: "0.85rem" }}>{contact.age}</p>
+                <p style={{ color: "var(--muted-foreground)", fontFamily: "var(--font-body)", fontSize: "0.85rem" }}>{contact.age}</p>
               </div>
             ))}
           </Panel>

@@ -71,7 +71,7 @@ export default function App() {
             useStateNavigation
             onBookAppointment={() => handleMobileNavigate('booking')}
             onViewServices={() => handleMobileNavigate('services')}
-            onViewGallery={() => handleMobileNavigate('gallery')}
+            onViewAbout={() => handleMobileNavigate('about')}
             onContact={() => handleMobileNavigate('contact')}
             onBookService={handleBookService}
           />

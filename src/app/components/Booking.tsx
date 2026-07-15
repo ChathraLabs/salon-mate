@@ -4,6 +4,7 @@ import {
   ChevronRight,
   ChevronLeft,
   Calendar as CalendarIcon,
+  CalendarPlus,
   Clock,
   User,
   CheckCircle,
@@ -19,6 +20,8 @@ import {
   Scissors,
   Sparkles,
   Tag,
+  Ticket,
+  ShieldCheck,
   Wind,
 } from 'lucide-react';
 import {
@@ -108,6 +111,10 @@ function fallbackAvailabilityDays(days = 7): AvailabilityDay[] {
 
 function optionsForService(service: PublicService | null): SalonServiceOption[] {
   if (!service) return [];
+
+  if (service.options?.length) {
+    return service.options.map((option, index) => ({ ...option, defaultSelected: index === 0 }));
+  }
 
   return getSalonService(service.id)?.options ?? [
     {
@@ -528,9 +535,23 @@ export function Booking({ requestedService, onFlowActiveChange }: BookingProps) 
     return (
       <section ref={bookingSectionRef} id="booking" className="salon-booking booking-app-shell booking-confirmation-shell mobile-booking-page">
         <div className="salon-booking__inner booking-app-inner">
+          <div className="booking-app-stepper booking-confirmation-stepper" aria-label="Booking completed">
+            {stepLabels.map((label, index) => (
+              <div key={label} className="booking-step booking-step--completed">
+                <div className="booking-step__dot">
+                  {index < stepLabels.length - 1 ? <Check size={17} aria-hidden="true" /> : stepLabels.length}
+                </div>
+                <span>{label}</span>
+                {index < stepLabels.length - 1 && <div className="booking-step__line" aria-hidden="true" />}
+              </div>
+            ))}
+          </div>
+
           <div ref={bookingCardRef} className="booking-confirmation-card booking-app-card">
             <div className="booking-confirmation-icon">
               <CheckCircle aria-hidden="true" />
+              <Sparkles className="booking-confirmation-icon__sparkle booking-confirmation-icon__sparkle--one" aria-hidden="true" />
+              <Sparkles className="booking-confirmation-icon__sparkle booking-confirmation-icon__sparkle--two" aria-hidden="true" />
             </div>
             <p className="booking-app-eyebrow">Request sent</p>
             <h2>Booking Confirmed!</h2>
@@ -540,17 +561,17 @@ export function Booking({ requestedService, onFlowActiveChange }: BookingProps) 
 
             <div className="booking-summary-card">
               <div className="booking-summary-row">
-                <span>Booking ID</span>
+                <span className="booking-summary-row__label"><span className="booking-summary-row__icon"><Ticket aria-hidden="true" /></span>Booking ID</span>
                 <strong>{bookingCode}</strong>
               </div>
-              {confirmRows.slice(0, 7).map(({ label, value }) => (
+              {confirmRows.slice(0, 7).map(({ icon: Icon, label, value }) => (
                 <div key={label} className="booking-summary-row">
-                  <span>{label}</span>
+                  <span className="booking-summary-row__label"><span className="booking-summary-row__icon"><Icon aria-hidden="true" /></span>{label}</span>
                   <strong>{value}</strong>
                 </div>
               ))}
               <div className="booking-summary-row">
-                <span>Status</span>
+                <span className="booking-summary-row__label"><span className="booking-summary-row__icon"><ShieldCheck aria-hidden="true" /></span>Status</span>
                 <strong className="booking-status-pill">Pending Confirmation</strong>
               </div>
             </div>
@@ -561,9 +582,11 @@ export function Booking({ requestedService, onFlowActiveChange }: BookingProps) 
 
             <div className="booking-confirmation-actions">
               <button type="button" onClick={handleNewBooking} className="booking-primary-action">
+                <CalendarPlus aria-hidden="true" />
                 Book Another
               </button>
               <a href="tel:+94715729660" className="booking-secondary-action">
+                <Phone aria-hidden="true" />
                 Call Salon
               </a>
             </div>

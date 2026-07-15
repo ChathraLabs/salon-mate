@@ -7,7 +7,7 @@ import {
   CalendarDays,
   Clock,
   Heart,
-  Images,
+  Info,
   MessageCircle,
   Scissors,
   Sparkles,
@@ -22,15 +22,13 @@ type HeroProps = {
   useStateNavigation?: boolean;
   onBookAppointment?: () => void;
   onViewServices?: () => void;
-  onViewGallery?: () => void;
+  onViewAbout?: () => void;
   onContact?: () => void;
   onBookService?: (serviceId: string) => void;
 };
 
 const featureTabs = [
-  { label: 'Services', icon: Scissors, action: 'services' },
-  { label: 'Book', icon: CalendarCheck, action: 'booking' },
-  { label: 'Gallery', icon: Images, action: 'gallery' },
+  { label: 'About Us', icon: Info, action: 'about' },
   { label: 'Contact', icon: MessageCircle, action: 'contact' },
 ] as const;
 
@@ -103,7 +101,7 @@ export function Hero({
   useStateNavigation = false,
   onBookAppointment,
   onViewServices,
-  onViewGallery,
+  onViewAbout,
   onContact,
   onBookService,
 }: HeroProps) {
@@ -183,22 +181,12 @@ export function Hero({
   };
 
   const handleFeatureTabClick = (event: React.MouseEvent<HTMLAnchorElement>, action: (typeof featureTabs)[number]['action']) => {
-    if (action === 'booking') {
-      handleBookingClick(event);
-      return;
-    }
-
-    if (action === 'services') {
-      handleServicesClick(event);
-      return;
-    }
-
     if (useStateNavigation) {
       event.preventDefault();
     }
 
-    if (action === 'gallery') {
-      onViewGallery?.();
+    if (action === 'about') {
+      onViewAbout?.();
       return;
     }
 
@@ -241,7 +229,7 @@ export function Hero({
           {featureTabs.map(({ label, icon: Icon, action }, index) => (
             <a
               key={label}
-              href={action === 'booking' ? '#booking' : `#${action}`}
+              href={`#${action}`}
               onClick={(event) => handleFeatureTabClick(event, action)}
               className="salon-hero__feature-tab"
               aria-label={label}
