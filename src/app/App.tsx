@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { Header } from './components/Header';
 import { Hero } from './components/Hero';
 import { Services } from './components/Services';
@@ -16,27 +16,37 @@ import type { MobileSection } from './types/mobileNavigation';
 
 export default function App() {
   const { isMobile } = useResponsive();
+  const mobileViewportRef = useRef<HTMLDivElement | null>(null);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [activeMobileSection, setActiveMobileSection] = useState<MobileSection>('home');
   const [requestedService, setRequestedService] = useState<{ id: string; key: number } | null>(null);
+  const [isBookingFlowActive, setIsBookingFlowActive] = useState(false);
 
   useEffect(() => {
     if (!isMobile) return;
     if (window.location.hash) {
       window.history.replaceState(null, '', `${window.location.pathname}${window.location.search}`);
     }
-    window.scrollTo({ top: 0, behavior: 'smooth' });
-  }, [activeMobileSection, isMobile]);
+  }, [isMobile]);
+
+  useEffect(() => {
+    if (activeMobileSection !== 'booking') {
+      setIsBookingFlowActive(false);
+    }
+  }, [activeMobileSection]);
 
   const handleMobileNavigate = (section: MobileSection) => {
     setActiveMobileSection(section);
     setIsMobileMenuOpen(false);
+    window.requestAnimationFrame(() => {
+      mobileViewportRef.current?.scrollTo({ top: 0, left: 0, behavior: 'auto' });
+    });
   };
 
   const handleBookService = (id: string) => {
     setRequestedService({ id, key: Date.now() });
     if (isMobile) {
-      setActiveMobileSection('booking');
+      handleMobileNavigate('booking');
     }
   };
 
@@ -45,7 +55,7 @@ export default function App() {
       case 'services':
         return <Services onBookService={handleBookService} useStateNavigation />;
       case 'booking':
-        return <Booking requestedService={requestedService} />;
+        return <Booking requestedService={requestedService} onFlowActiveChange={setIsBookingFlowActive} />;
       case 'gallery':
         return <Gallery />;
       case 'reviews':
@@ -61,13 +71,16 @@ export default function App() {
             useStateNavigation
             onBookAppointment={() => handleMobileNavigate('booking')}
             onViewServices={() => handleMobileNavigate('services')}
+            onViewGallery={() => handleMobileNavigate('gallery')}
+            onContact={() => handleMobileNavigate('contact')}
+            onBookService={handleBookService}
           />
         );
     }
   };
 
   return (
-    <div className="salon-app min-h-screen" style={{ background: 'var(--background)' }}>
+    <div className="salon-app min-h-screen" style={{ background: 'var(--background)', color: 'var(--foreground)' }}>
       <Header onMenuClick={() => setIsMobileMenuOpen(true)} />
       <MobileMenu
         isOpen={isMobileMenuOpen}
@@ -78,7 +91,7 @@ export default function App() {
 
       <main className="salon-main">
         {isMobile ? (
-          <div className="mobile-section-view">
+          <div ref={mobileViewportRef} className="mobile-section-view" key={activeMobileSection}>
             {renderMobileSection()}
           </div>
         ) : (
@@ -95,11 +108,13 @@ export default function App() {
       </main>
 
       {!isMobile && <Footer />}
-      <MobileBottomNavigation
-        activeSection={activeMobileSection}
-        onNavigate={handleMobileNavigate}
-        onMoreClick={() => setIsMobileMenuOpen(true)}
-      />
+      {!(activeMobileSection === 'booking' && isBookingFlowActive) && (
+        <MobileBottomNavigation
+          activeSection={activeMobileSection}
+          onNavigate={handleMobileNavigate}
+          onMoreClick={() => setIsMobileMenuOpen(true)}
+        />
+      )}
     </div>
   );
 }

@@ -10,7 +10,7 @@ interface MobileBottomNavigationProps {
 const primaryItems = [
   { label: 'Home', section: 'home', icon: Home },
   { label: 'Services', section: 'services', icon: Scissors },
-  { label: 'Book', section: 'booking', icon: CalendarCheck },
+  { label: 'Bookings', section: 'booking', icon: CalendarCheck },
   { label: 'Gallery', section: 'gallery', icon: Images },
 ] satisfies Array<{
   label: string;
