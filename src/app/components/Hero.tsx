@@ -1,3 +1,4 @@
+import { useEffect, useState } from 'react';
 import {
   ArrowRight,
   Award,
@@ -11,8 +12,10 @@ import {
   Sparkles,
   Star,
   Users,
+  X,
 } from 'lucide-react';
-import { formatServiceDuration, formatServicePrice, salonServices, salonStaffProfiles } from '../config/services';
+import { formatServiceDuration, formatServicePrice, salonServices, salonStaffProfiles, staffKeyForName, type SalonStaffKey } from '../config/services';
+import type { AvailabilityDay, PublicStaffMember } from '@/types/booking';
 
 type HeroProps = {
   useStateNavigation?: boolean;
@@ -37,11 +40,63 @@ const popularServices = popularServiceIds
   .map((service) => service!);
 
 const todayStaffAvailability = [
-  { staff: salonStaffProfiles.dimuthu, time: '10:30 AM' },
-  { staff: salonStaffProfiles.sanju, time: '11:00 AM' },
-  { staff: salonStaffProfiles.salindee, time: '12:30 PM' },
-  { staff: salonStaffProfiles.vinu, time: '2:00 PM' },
-];
+  { key: 'dimuthu', staff: salonStaffProfiles.dimuthu, time: '10:30 AM' },
+  { key: 'sanju', staff: salonStaffProfiles.sanju, time: '11:00 AM' },
+  { key: 'salindee', staff: salonStaffProfiles.salindee, time: '12:30 PM' },
+  { key: 'vinu', staff: salonStaffProfiles.vinu, time: '2:00 PM' },
+] satisfies Array<{ key: SalonStaffKey; staff: { name: string; avatarUrl: string }; time: string }>;
+
+function formatAvailabilityTime(time: string) {
+  const [hourText, minute] = time.split(':');
+  const hour = Number(hourText);
+  if (!Number.isFinite(hour)) return time;
+
+  const suffix = hour >= 12 ? 'PM' : 'AM';
+  const displayHour = hour % 12 === 0 ? 12 : hour % 12;
+  return `${displayHour}:${minute} ${suffix}`;
+}
+
+function getStaffKey(member: PublicStaffMember) {
+  return staffKeyForName(member.name);
+}
+
+function getStaffFirstName(name: string) {
+  return name.split(' ')[0] ?? name;
+}
+
+const emptyAvailabilityDays: AvailabilityDay[] = [];
+const emptyStaffMembers: PublicStaffMember[] = [];
+
+type TodayAvailabilityCard = {
+  key: SalonStaffKey;
+  staff: { name: string; avatarUrl: string };
+  liveStaff: PublicStaffMember | null;
+  availableSlots: string[];
+  bookedSlots: string[];
+  displayTime: string;
+};
+
+function buildTodayAvailabilityCards(
+  days: AvailabilityDay[],
+  staffMembers: PublicStaffMember[],
+): TodayAvailabilityCard[] {
+  const today = days[0] ?? null;
+
+  return todayStaffAvailability.map((entry) => {
+    const liveStaff = staffMembers.find((member) => getStaffKey(member) === entry.key) ?? null;
+    const availableSlots = liveStaff ? (today?.staffSlots?.[liveStaff.id] ?? []) : [];
+    const bookedSlots = liveStaff ? (today?.staffBookedSlots?.[liveStaff.id] ?? []) : [];
+    const displayTime = availableSlots[0] ? formatAvailabilityTime(availableSlots[0]) : entry.time;
+
+    return {
+      ...entry,
+      liveStaff,
+      availableSlots,
+      bookedSlots,
+      displayTime,
+    };
+  });
+}
 
 export function Hero({
   useStateNavigation = false,
@@ -51,6 +106,51 @@ export function Hero({
   onContact,
   onBookService,
 }: HeroProps) {
+  const [availabilityDays, setAvailabilityDays] = useState<AvailabilityDay[]>(emptyAvailabilityDays);
+  const [availabilityStaff, setAvailabilityStaff] = useState<PublicStaffMember[]>(emptyStaffMembers);
+  const [availabilityError, setAvailabilityError] = useState<string | null>(null);
+  const [isAvailabilityLoading, setIsAvailabilityLoading] = useState(false);
+  const [selectedStaffKey, setSelectedStaffKey] = useState<SalonStaffKey | null>(null);
+
+  const todayAvailabilityCards = buildTodayAvailabilityCards(availabilityDays, availabilityStaff);
+  const selectedStaffAvailability = selectedStaffKey
+    ? todayAvailabilityCards.find((card) => card.key === selectedStaffKey) ?? null
+    : null;
+
+  useEffect(() => {
+    const controller = new AbortController();
+
+    async function loadTodayAvailability() {
+      setIsAvailabilityLoading(true);
+
+      try {
+        const response = await fetch('/api/availability?duration=45', { signal: controller.signal });
+        const data = await response.json();
+
+        if (!response.ok) {
+          throw new Error(data.error ?? 'Unable to load staff availability.');
+        }
+
+        setAvailabilityDays(data.days ?? emptyAvailabilityDays);
+        setAvailabilityStaff(data.staff ?? emptyStaffMembers);
+        setAvailabilityError(null);
+      } catch (error) {
+        if (controller.signal.aborted) return;
+        setAvailabilityError(error instanceof Error ? error.message : 'Unable to load staff availability.');
+      } finally {
+        if (!controller.signal.aborted) {
+          setIsAvailabilityLoading(false);
+        }
+      }
+    }
+
+    loadTodayAvailability();
+
+    return () => {
+      controller.abort();
+    };
+  }, []);
+
   const handleBookingClick = (event: React.MouseEvent<HTMLAnchorElement>) => {
     if (useStateNavigation) {
       event.preventDefault();
@@ -264,7 +364,7 @@ export function Hero({
               style={{ border: '1px solid var(--border)', boxShadow: 'var(--shadow-card)' }}
             >
               <img
-                src="/unsplash.com/services/Bridal%20Dressing.png"
+                src="/salon-home2.jpg"
                 alt="Scissor King Dimma bridal styling"
                 className="w-full h-full object-cover"
               />
@@ -322,23 +422,29 @@ export function Hero({
             </div>
             <div className="my-4 h-px" style={{ background: 'var(--border)' }} />
             <div className="salon-today-availability">
-              {todayStaffAvailability.map(({ staff, time }) => (
-                <div key={staff.name} className="salon-today-availability__item">
+              {todayAvailabilityCards.map(({ key, staff, displayTime, availableSlots, liveStaff }) => (
+                <button
+                  key={staff.name}
+                  type="button"
+                  className="salon-today-availability__item"
+                  onClick={() => setSelectedStaffKey(key)}
+                  aria-label={`View ${getStaffFirstName(staff.name)} availability`}
+                >
                   <img
-                    src={staff.avatarUrl}
-                    alt={staff.name}
+                    src={liveStaff?.avatarUrl ?? staff.avatarUrl}
+                    alt=""
                     className="h-8 w-8 rounded-full object-cover"
                     style={{ border: '2px solid var(--surface)' }}
                   />
                   <div className="min-w-0">
                     <p style={{ fontFamily: 'var(--font-body)', color: 'var(--foreground)', fontSize: '0.78rem', fontWeight: 800 }}>
-                      {staff.name.split(' ')[0]}
+                      {getStaffFirstName(liveStaff?.name ?? staff.name)}
                     </p>
                     <p style={{ fontFamily: 'var(--font-body)', color: 'var(--muted-foreground)', fontSize: '0.72rem', lineHeight: 1.1 }}>
-                      {time}
+                      {availabilityError ? 'Tap to view' : availableSlots.length > 0 ? displayTime : 'No slots'}
                     </p>
                   </div>
-                </div>
+                </button>
               ))}
             </div>
             <a
@@ -359,6 +465,82 @@ export function Hero({
               <ArrowRight className="w-4 h-4" />
             </a>
           </div>
+
+          {selectedStaffAvailability && (
+            <div className="salon-staff-availability-modal" role="presentation" onClick={() => setSelectedStaffKey(null)}>
+              <div
+                className="salon-staff-availability-modal__panel"
+                role="dialog"
+                aria-modal="true"
+                aria-labelledby="staff-availability-title"
+                onClick={(event) => event.stopPropagation()}
+              >
+                <div className="salon-staff-availability-modal__header">
+                  <img
+                    src={selectedStaffAvailability.liveStaff?.avatarUrl ?? selectedStaffAvailability.staff.avatarUrl}
+                    alt=""
+                  />
+                  <div>
+                    <p id="staff-availability-title">{getStaffFirstName(selectedStaffAvailability.liveStaff?.name ?? selectedStaffAvailability.staff.name)}</p>
+                    <span>
+                      {isAvailabilityLoading
+                        ? 'Checking today'
+                        : selectedStaffAvailability.availableSlots.length > 0
+                          ? `${selectedStaffAvailability.availableSlots.length} times available today`
+                          : 'No available times today'}
+                    </span>
+                  </div>
+                  <button type="button" onClick={() => setSelectedStaffKey(null)} aria-label="Close availability">
+                    <X aria-hidden="true" />
+                  </button>
+                </div>
+
+                {availabilityError ? (
+                  <p className="salon-staff-availability-modal__notice">{availabilityError}</p>
+                ) : (
+                  <>
+                    <div className="salon-staff-availability-modal__section">
+                      <div className="salon-staff-availability-modal__section-title">
+                        <Clock aria-hidden="true" />
+                        Available Times
+                      </div>
+                      {selectedStaffAvailability.availableSlots.length > 0 ? (
+                        <div className="salon-staff-availability-modal__chips" aria-label="Available times">
+                          {selectedStaffAvailability.availableSlots.slice(0, 12).map((slot) => (
+                            <span key={slot} className="is-available">{formatAvailabilityTime(slot)}</span>
+                          ))}
+                        </div>
+                      ) : (
+                        <p className="salon-staff-availability-modal__empty">No open slots for today.</p>
+                      )}
+                    </div>
+
+                    <div className="salon-staff-availability-modal__section">
+                      <div className="salon-staff-availability-modal__section-title">
+                        <CalendarCheck aria-hidden="true" />
+                        Booked Times
+                      </div>
+                      {selectedStaffAvailability.bookedSlots.length > 0 ? (
+                        <div className="salon-staff-availability-modal__chips" aria-label="Booked times">
+                          {selectedStaffAvailability.bookedSlots.slice(0, 8).map((slot) => (
+                            <span key={slot} className="is-booked">{formatAvailabilityTime(slot)}</span>
+                          ))}
+                        </div>
+                      ) : (
+                        <p className="salon-staff-availability-modal__empty">No booked slots listed for today.</p>
+                      )}
+                    </div>
+                  </>
+                )}
+
+                <a href="#booking" onClick={handleBookingClick} className="salon-staff-availability-modal__action">
+                  <CalendarDays aria-hidden="true" />
+                  Book Appointment
+                  <ArrowRight aria-hidden="true" />
+                </a>
+              </div>
+            </div>
+          )}
 
           <div
             className="salon-offer-banner"

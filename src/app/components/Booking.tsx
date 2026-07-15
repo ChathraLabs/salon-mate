@@ -7,9 +7,19 @@ import {
   Clock,
   User,
   CheckCircle,
+  Crown,
+  Droplet,
+  Hand,
+  Heart,
+  List,
+  Mail,
+  NotebookPen,
+  Palette,
+  Phone,
   Scissors,
   Sparkles,
   Tag,
+  Wind,
 } from 'lucide-react';
 import {
   formatServiceDuration as formatDurationLabel,
@@ -30,6 +40,19 @@ type BookingProps = {
 const fallbackServices: PublicService[] = publicSalonServices;
 
 const stepLabels = ['Service', 'Date & Time', 'Details', 'Confirm'];
+
+const bookingServiceIcons = {
+  'hair-cutting': Scissors,
+  'hair-styling': Sparkles,
+  'manicure-pedicure': Hand,
+  'waxing-threading': Wind,
+  'fire-cut-dreadlocks': Droplet,
+  'tattoo-piercing': Heart,
+  makeup: Palette,
+  'bridal-dressing': Crown,
+  'groom-dressing': Crown,
+  'facial-cleanup': Sparkles,
+};
 
 const defaultTimeSlots = Array.from({ length: 15 }, (_, index) => {
   const hour = index + 8;
@@ -184,7 +207,7 @@ export function Booking({ requestedService, onFlowActiveChange }: BookingProps) 
     if (!service) return;
 
     selectService(service);
-    setStep(1);
+    setStep(2);
     setSubmitError(null);
   }, [requestedService, services]);
 
@@ -467,19 +490,18 @@ export function Booking({ requestedService, onFlowActiveChange }: BookingProps) 
     { icon: Scissors, label: 'Service', value: selectedService?.name ?? 'Select service' },
     { icon: CalendarIcon, label: 'Date', value: selectedDateChip?.fullLabel ?? 'Select date' },
     { icon: Clock, label: 'Time', value: selectedTime ? formatTimeLabel(selectedTime) : 'Select time' },
-    { icon: User, label: selectedStaffRoleLabel, value: selectedStaff?.name ?? (barbers.length > 0 ? `Select ${selectedStaffRoleLabel.toLowerCase()}` : 'Any available') },
+    { icon: User, label: 'Staff', value: selectedStaff?.name ?? (barbers.length > 0 ? `Select ${selectedStaffRoleLabel.toLowerCase()}` : 'Any available') },
   ];
 
   const confirmRows = [
-    { label: 'Service', value: selectedService?.name },
-    { label: 'Options', value: selectedOptionLabels },
-    { label: 'Date', value: selectedDateChip?.fullLabel },
-    { label: 'Time', value: selectedTime ? formatTimeLabel(selectedTime) : null },
-    { label: selectedStaffRoleLabel, value: selectedStaff?.name ?? 'Any available' },
-    { label: 'Duration', value: selectedTotalDuration ? formatDurationLabel(selectedTotalDuration) : selectedService?.duration },
-    { label: 'Price', value: formatPrice(selectedTotalPrice) },
-    { label: 'Customer', value: customerDetails.name },
-    { label: 'Contact', value: customerDetails.phone },
+    { icon: Scissors, label: 'Service', value: selectedService?.name },
+    { icon: List, label: 'Options', value: selectedOptionLabels },
+    { icon: CalendarIcon, label: 'Date', value: selectedDateChip?.fullLabel },
+    { icon: Clock, label: 'Time', value: selectedTime ? formatTimeLabel(selectedTime) : null },
+    { icon: User, label: selectedStaffRoleLabel, value: selectedStaff?.name ?? 'Any available' },
+    { icon: Clock, label: 'Duration', value: selectedTotalDuration ? formatDurationLabel(selectedTotalDuration) : selectedService?.duration },
+    { icon: User, label: 'Customer', value: customerDetails.name },
+    { icon: Phone, label: 'Contact', value: customerDetails.phone },
   ];
 
   if (isConfirmed) {
@@ -598,6 +620,7 @@ export function Booking({ requestedService, onFlowActiveChange }: BookingProps) 
                   <div className="booking-service-grid">
                     {services.map((service) => {
                       const serviceImage = getSalonService(service.id)?.image;
+                      const ServiceIcon = bookingServiceIcons[service.id as keyof typeof bookingServiceIcons] ?? Sparkles;
 
                       return (
                         <button
@@ -608,6 +631,9 @@ export function Booking({ requestedService, onFlowActiveChange }: BookingProps) 
                         >
                           {serviceImage && <img src={serviceImage} alt="" />}
                           <span className="booking-service-card__copy">
+                            <span className="booking-service-card__icon">
+                              <ServiceIcon size={15} aria-hidden="true" />
+                            </span>
                             <strong>{service.name}</strong>
                           </span>
                         </button>
@@ -857,28 +883,34 @@ export function Booking({ requestedService, onFlowActiveChange }: BookingProps) 
                 </div>
                 <div className="booking-details-card">
                   {[
-                    { label: 'Full Name *', type: 'text', key: 'name', placeholder: 'Enter your full name' },
-                    { label: 'Mobile Number *', type: 'tel', key: 'phone', placeholder: '07X XXX XXXX' },
-                    { label: 'Email Address (Optional)', type: 'email', key: 'email', placeholder: 'your@email.com' },
-                  ].map(({ label, type, key, placeholder }) => (
+                    { icon: User, label: 'Full Name *', type: 'text', key: 'name', placeholder: 'Enter your full name' },
+                    { icon: Phone, label: 'Mobile Number *', type: 'tel', key: 'phone', placeholder: '07X XXX XXXX' },
+                    { icon: Mail, label: 'Email Address (Optional)', type: 'email', key: 'email', placeholder: 'your@email.com' },
+                  ].map(({ icon: Icon, label, type, key, placeholder }) => (
                     <label key={key} className="booking-field">
                       <span>{label}</span>
-                      <input
-                        type={type}
-                        value={customerDetails[key as keyof typeof customerDetails]}
-                        onChange={(event) => setCustomerDetails({ ...customerDetails, [key]: event.target.value })}
-                        placeholder={placeholder}
-                      />
+                      <span className="booking-field__control">
+                        <Icon aria-hidden="true" />
+                        <input
+                          type={type}
+                          value={customerDetails[key as keyof typeof customerDetails]}
+                          onChange={(event) => setCustomerDetails({ ...customerDetails, [key]: event.target.value })}
+                          placeholder={placeholder}
+                        />
+                      </span>
                     </label>
                   ))}
                   <label className="booking-field">
                     <span>Special Note (Optional)</span>
-                    <textarea
-                      value={customerDetails.note}
-                      onChange={(event) => setCustomerDetails({ ...customerDetails, note: event.target.value })}
-                      rows={4}
-                      placeholder="Any special requests or requirements..."
-                    />
+                    <span className="booking-field__control booking-field__control--textarea">
+                      <NotebookPen aria-hidden="true" />
+                      <textarea
+                        value={customerDetails.note}
+                        onChange={(event) => setCustomerDetails({ ...customerDetails, note: event.target.value })}
+                        rows={4}
+                        placeholder="Any special requests or requirements..."
+                      />
+                    </span>
                   </label>
                 </div>
               </div>
@@ -893,11 +925,14 @@ export function Booking({ requestedService, onFlowActiveChange }: BookingProps) 
                     <h3>Review your booking</h3>
                   </div>
                 </div>
-                <div className="booking-summary-card">
-                  {confirmRows.map(({ label, value }) => (
-                    <div key={label} className="booking-summary-row">
-                      <span>{label}</span>
-                      <strong>{value}</strong>
+                <div className="booking-confirm-review-card">
+                  {confirmRows.map(({ icon: Icon, label, value }) => (
+                    <div key={label} className="booking-confirm-review-row">
+                      <span className="booking-confirm-review-row__icon">
+                        <Icon size={18} aria-hidden="true" />
+                      </span>
+                      <span className="booking-confirm-review-row__label">{label}</span>
+                      <strong>{value ?? '-'}</strong>
                     </div>
                   ))}
                 </div>
@@ -910,7 +945,7 @@ export function Booking({ requestedService, onFlowActiveChange }: BookingProps) 
 
           </div>
 
-          {selectedService && (
+          {selectedService && step !== 4 && (
             <aside className="booking-live-summary" aria-label="Booking summary">
               <div className="booking-live-summary__header">
                 <h3>Booking Summary</h3>
