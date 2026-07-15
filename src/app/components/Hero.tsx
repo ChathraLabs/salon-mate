@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react';
+import { createPortal } from 'react-dom';
 import {
   ArrowRight,
   Award,
@@ -111,11 +112,16 @@ export function Hero({
   const [availabilityError, setAvailabilityError] = useState<string | null>(null);
   const [isAvailabilityLoading, setIsAvailabilityLoading] = useState(false);
   const [selectedStaffKey, setSelectedStaffKey] = useState<SalonStaffKey | null>(null);
+  const [modalHost, setModalHost] = useState<HTMLElement | null>(null);
 
   const todayAvailabilityCards = buildTodayAvailabilityCards(availabilityDays, availabilityStaff);
   const selectedStaffAvailability = selectedStaffKey
     ? todayAvailabilityCards.find((card) => card.key === selectedStaffKey) ?? null
     : null;
+
+  useEffect(() => {
+    setModalHost(document.querySelector('.salon-app') as HTMLElement | null);
+  }, []);
 
   useEffect(() => {
     const controller = new AbortController();
@@ -150,6 +156,17 @@ export function Hero({
       controller.abort();
     };
   }, []);
+
+  useEffect(() => {
+    if (!selectedStaffKey || typeof document === 'undefined') return;
+
+    const previousOverflow = document.body.style.overflow;
+    document.body.style.overflow = 'hidden';
+
+    return () => {
+      document.body.style.overflow = previousOverflow;
+    };
+  }, [selectedStaffKey]);
 
   const handleBookingClick = (event: React.MouseEvent<HTMLAnchorElement>) => {
     if (useStateNavigation) {
@@ -402,7 +419,7 @@ export function Hero({
               style={{ background: 'rgba(189,135,48,0.1)', color: 'var(--emerald)', fontFamily: 'var(--font-body)', fontSize: '0.72rem', fontWeight: 800 }}
             >
               <Star className="w-3.5 h-3.5" style={{ fill: 'var(--gold)', color: 'var(--gold)' }} />
-              TODAY BOOKINGS
+              BOOKINGS
             </div>
             <div className="mt-4 flex items-start gap-3">
               <div
@@ -413,7 +430,7 @@ export function Hero({
               </div>
               <div className="min-w-0">
                 <p style={{ fontFamily: 'var(--font-body)', color: 'var(--foreground)', fontWeight: 800, fontSize: '1.02rem' }}>
-                  Today Bookings
+                  Your Bookings
                 </p>
                 <p style={{ fontFamily: 'var(--font-body)', color: 'var(--muted-foreground)', fontSize: '0.94rem' }}>
                   Member availability at a glance
@@ -466,7 +483,7 @@ export function Hero({
             </a>
           </div>
 
-          {selectedStaffAvailability && (
+          {selectedStaffAvailability && modalHost && createPortal(
             <div className="salon-staff-availability-modal" role="presentation" onClick={() => setSelectedStaffKey(null)}>
               <div
                 className="salon-staff-availability-modal__panel"
@@ -539,7 +556,8 @@ export function Hero({
                   <ArrowRight aria-hidden="true" />
                 </a>
               </div>
-            </div>
+            </div>,
+            modalHost,
           )}
 
           <div

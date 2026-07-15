@@ -371,16 +371,36 @@ export function Booking({ requestedService, onFlowActiveChange }: BookingProps) 
     }
   }, [selectedDate, selectedDateOption, selectedStaffId, selectedTime, shouldChooseStaffFirst]);
 
-  const keepBookingCardInView = () => {
+  const keepBookingCardInView = (align: 'start' | 'card' = 'card') => {
     if (typeof window === 'undefined') return;
 
     window.setTimeout(() => {
       const target = bookingCardRef.current ?? bookingSectionRef.current;
       if (!target) return;
 
+      const scrollParent = target.closest('.mobile-section-view') as HTMLElement | null;
+
+      if (scrollParent) {
+        if (align === 'start') {
+          scrollParent.scrollTo({ top: 0, behavior: 'smooth' });
+          return;
+        }
+
+        const parentRect = scrollParent.getBoundingClientRect();
+        const targetRect = target.getBoundingClientRect();
+        const nextTop = scrollParent.scrollTop + (targetRect.top - parentRect.top) - 12;
+        scrollParent.scrollTo({ top: Math.max(0, nextTop), behavior: 'smooth' });
+        return;
+      }
+
+      if (align === 'start') {
+        window.scrollTo({ top: 0, behavior: 'smooth' });
+        return;
+      }
+
       const top = target.getBoundingClientRect().top + window.scrollY - 88;
       window.scrollTo({ top: Math.max(0, top), behavior: 'smooth' });
-    }, 0);
+    }, 50);
   };
 
   const handleNext = () => {
@@ -457,7 +477,7 @@ export function Booking({ requestedService, onFlowActiveChange }: BookingProps) 
 
       setBookingCode(data.booking.bookingCode);
       setIsConfirmed(true);
-      keepBookingCardInView();
+      keepBookingCardInView('start');
     } catch (error) {
       setSubmitError(error instanceof Error ? error.message : 'Unable to submit booking.');
     } finally {
@@ -595,7 +615,11 @@ export function Booking({ requestedService, onFlowActiveChange }: BookingProps) 
             <button
               type="button"
               onClick={handleStepNext}
-              disabled={!canProceed || (step === stepLabels.length && (isSubmitting || isUsingFallbackBookingOptions))}
+              disabled={
+                step === stepLabels.length
+                  ? isSubmitting || isUsingFallbackBookingOptions
+                  : !canProceed
+              }
               className="booking-primary-action"
             >
               Next
