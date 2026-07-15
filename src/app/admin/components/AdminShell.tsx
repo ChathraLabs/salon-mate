@@ -13,10 +13,13 @@ import {
   Grid2X2,
   LogOut,
   Mail,
+  Menu,
   MessageSquareText,
+  Bell,
   Scissors,
   Settings,
   Star,
+  UserRound,
 } from "lucide-react";
 import logoImage from "../../../imports/image-1.png";
 
@@ -51,6 +54,7 @@ type AdminUserRole = "SUPER_ADMIN" | "OWNER" | "STAFF";
 export function AdminShell({ active, children, footerText }: AdminShellProps) {
   const router = useRouter();
   const [role, setRole] = useState<AdminUserRole | null>(null);
+  const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
 
   useEffect(() => {
     async function loadUser() {
@@ -83,20 +87,20 @@ export function AdminShell({ active, children, footerText }: AdminShellProps) {
   const visibleNavItems = navItems.filter((item) => !item.adminOnly || canManageSalon);
 
   return (
-    <main className="min-h-screen p-3" style={{ background: "var(--background)", color: "var(--foreground)" }}>
+    <main className="admin-shell min-h-screen p-3" style={{ background: "var(--background)", color: "var(--foreground)" }}>
       <div
-        className="mx-auto grid max-w-[96rem] overflow-hidden lg:grid-cols-[20rem_1fr]"
+        className="admin-shell__frame mx-auto grid max-w-[96rem] overflow-hidden lg:grid-cols-[20rem_1fr]"
         style={{
           minHeight: "calc(100vh - 1.5rem)",
-          border: "1px solid rgba(240,228,184,0.14)",
+          border: "1px solid var(--border)",
           borderRadius: "1rem",
-          background: "linear-gradient(135deg, rgba(20,16,9,0.96), rgba(10,8,7,0.98))",
-          boxShadow: "0 16px 64px rgba(0,0,0,0.45)",
+          background: "linear-gradient(135deg, var(--surface), var(--cream-warm))",
+          boxShadow: "var(--shadow-card)",
         }}
       >
         <aside
-          className="flex flex-col gap-8 p-5 lg:min-h-full"
-          style={{ borderRight: "1px solid rgba(240,228,184,0.12)" }}
+          className="admin-shell__desktop-sidebar flex flex-col gap-8 p-5 lg:min-h-full"
+          style={{ borderRight: "1px solid var(--border)" }}
         >
           <Link href="/admin" className="flex items-center gap-4" style={{ textDecoration: "none", color: "inherit" }}>
             <img src={logoImage.src} alt="Scissor King Dimma" className="h-16 w-16 rounded-md object-cover" />
@@ -104,7 +108,7 @@ export function AdminShell({ active, children, footerText }: AdminShellProps) {
               <h2 style={{ fontFamily: "var(--font-heading)", fontSize: "1.35rem", lineHeight: 1.15 }}>
                 Scissor King Dimma
               </h2>
-              <p style={{ color: "rgba(240,228,184,0.62)", fontFamily: "var(--font-body)", fontSize: "0.9rem" }}>
+              <p style={{ color: "var(--muted-foreground)", fontFamily: "var(--font-body)", fontSize: "0.9rem" }}>
                 Academy & Salon
               </p>
             </div>
@@ -119,18 +123,18 @@ export function AdminShell({ active, children, footerText }: AdminShellProps) {
                   href={href}
                   className={separated ? "mt-6 flex items-center gap-4 px-4 py-3" : "flex items-center gap-4 px-4 py-3"}
                   style={{
-                    border: `1px solid ${isActive ? "rgba(212,165,32,0.8)" : "transparent"}`,
+                    border: `1px solid ${isActive ? "var(--emerald)" : "transparent"}`,
                     borderRadius: "0.55rem",
                     background: isActive
-                      ? "linear-gradient(135deg, rgba(212,165,32,0.45), rgba(184,134,11,0.18))"
+                      ? "var(--emerald-soft)"
                       : "transparent",
-                    color: isActive ? "var(--foreground)" : "rgba(240,228,184,0.7)",
+                    color: isActive ? "var(--emerald)" : "var(--muted-foreground)",
                     textDecoration: "none",
                     fontFamily: "var(--font-body)",
-                    boxShadow: isActive ? "inset 0 0 24px rgba(212,165,32,0.12)" : "none",
+                    boxShadow: isActive ? "inset 0 0 24px rgba(6,68,55,0.06)" : "none",
                   }}
                 >
-                  <Icon className="h-5 w-5" style={{ color: isActive ? "var(--gold-light)" : "rgba(240,228,184,0.72)" }} />
+                  <Icon className="h-5 w-5" style={{ color: isActive ? "var(--emerald)" : "var(--muted-foreground)" }} />
                   <span>{label}</span>
                 </Link>
               );
@@ -143,7 +147,7 @@ export function AdminShell({ active, children, footerText }: AdminShellProps) {
             style={{
               background: "transparent",
               border: "none",
-              color: "rgba(240,228,184,0.7)",
+              color: "var(--muted-foreground)",
               cursor: "pointer",
               fontFamily: "var(--font-body)",
             }}
@@ -153,21 +157,35 @@ export function AdminShell({ active, children, footerText }: AdminShellProps) {
           </button>
         </aside>
 
-        <section className="flex min-w-0 flex-col">
-          <div className="flex flex-col gap-6 p-5 sm:p-8 lg:p-10">
-            <div className="flex justify-end">
+        <section className="admin-shell__content flex min-w-0 flex-col">
+          <header className="admin-shell__mobile-header">
+            <button type="button" onClick={() => setMobileMenuOpen(true)} aria-label="Open admin menu"><Menu /></button>
+            <Link href="/admin" className="admin-shell__mobile-brand"><img src={logoImage.src} alt="" /><span><strong>Scissor King Dimma</strong><small>Admin Dashboard</small></span></Link>
+            <div><button type="button" aria-label="Notifications"><Bell /></button><button type="button" aria-label="Admin profile"><UserRound /></button></div>
+          </header>
+          {mobileMenuOpen && (
+            <div className="admin-shell__mobile-drawer-layer" onClick={() => setMobileMenuOpen(false)}>
+              <aside className="admin-shell__mobile-drawer" onClick={(event) => event.stopPropagation()}>
+                <div className="admin-shell__mobile-drawer-brand"><img src={logoImage.src} alt="" /><span><strong>Scissor King Dimma</strong><small>Admin Dashboard</small></span><button type="button" onClick={() => setMobileMenuOpen(false)}>×</button></div>
+                <nav>{visibleNavItems.map(({ key, label, href, Icon }) => <Link key={key} href={href} onClick={() => setMobileMenuOpen(false)} className={active === key ? "is-active" : ""}><Icon /><span>{label}</span></Link>)}</nav>
+                <button type="button" className="admin-shell__mobile-logout" onClick={logout}><LogOut />Log Out</button>
+              </aside>
+            </div>
+          )}
+          <div className="admin-shell__body flex flex-col gap-6 p-5 sm:p-8 lg:p-10">
+            <div className="admin-shell__website-link flex justify-end">
               <a
                 href="/"
                 target="_blank"
                 rel="noopener noreferrer"
                 className="inline-flex items-center gap-2 px-4 py-2"
                 style={{
-                  border: "1px solid rgba(212,165,32,0.55)",
+                  border: "1px solid var(--emerald)",
                   borderRadius: "0.45rem",
-                  color: "var(--gold-light)",
+                  color: "var(--emerald)",
                   textDecoration: "none",
                   fontFamily: "var(--font-body)",
-                  background: "rgba(212,165,32,0.04)",
+                  background: "var(--emerald-soft)",
                 }}
               >
                 View Website
@@ -177,9 +195,13 @@ export function AdminShell({ active, children, footerText }: AdminShellProps) {
             {children}
           </div>
 
+          <nav className="admin-shell__mobile-nav">
+            {navItems.slice(0, 4).map(({ key, label, href, Icon }) => <Link key={key} href={href} className={active === key ? "is-active" : ""}><Icon /><span>{label === "Booking" ? "Bookings" : label}</span></Link>)}
+          </nav>
+
           <div
             className="mt-auto flex items-center gap-2 px-5 py-4 sm:px-8 lg:px-10"
-            style={{ borderTop: "1px solid rgba(240,228,184,0.12)", color: "rgba(240,228,184,0.45)", fontFamily: "var(--font-body)" }}
+            style={{ borderTop: "1px solid var(--border)", color: "var(--muted-foreground)", fontFamily: "var(--font-body)" }}
           >
             <ArrowLeft className="hidden h-4 w-4 opacity-0" />
             {footerText ?? "Last updated: Just now"}

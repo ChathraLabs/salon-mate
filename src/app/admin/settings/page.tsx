@@ -74,6 +74,7 @@ export default function AdminSettingsPage() {
   const [exceptions, setExceptions] = useState<AvailabilityExceptionRow[]>([]);
   const [staffId, setStaffId] = useState("");
   const [date, setDate] = useState(todayKey());
+  const [endDate, setEndDate] = useState(todayKey());
   const [fullDay, setFullDay] = useState(false);
   const [startsAt, setStartsAt] = useState("09:00");
   const [endsAt, setEndsAt] = useState("10:00");
@@ -130,6 +131,12 @@ export default function AdminSettingsPage() {
     setSaving(true);
     setError(null);
 
+    if (endDate < date) {
+      setError("Leave end date must be the same as or after the start date.");
+      setSaving(false);
+      return;
+    }
+
     if (!fullDay && startsAt >= endsAt) {
       setError("End time must be after start time.");
       setSaving(false);
@@ -143,6 +150,7 @@ export default function AdminSettingsPage() {
         body: JSON.stringify({
           exception: {
             date,
+            endDate,
             staffId: staffId || null,
             type: "BLOCKED",
             startsAt: fullDay ? null : startsAt,
@@ -185,8 +193,8 @@ export default function AdminSettingsPage() {
 
   return (
     <AdminShell active="settings">
-      <div className="space-y-6">
-        <header>
+      <div className="admin-settings-page space-y-6">
+        <header className="admin-settings-heading">
           <h1 style={{ fontFamily: "var(--font-heading)", fontSize: "2.25rem" }}>Settings</h1>
           <p style={{ color: "var(--muted-foreground)", fontFamily: "var(--font-body)" }}>
             Block booking availability for the whole salon or a selected staff member.
@@ -198,7 +206,7 @@ export default function AdminSettingsPage() {
         <div className="grid gap-6 xl:grid-cols-[0.95fr_1.25fr]">
           <form
             onSubmit={saveBlock}
-            className="space-y-5 p-5"
+            className="admin-settings-form space-y-5 p-5"
             style={{ background: "var(--card)", border: "1px solid var(--border)", borderRadius: "1rem" }}
           >
             <div>
@@ -210,7 +218,7 @@ export default function AdminSettingsPage() {
 
             <div className="space-y-3">
               <span style={{ fontFamily: "var(--font-body)" }}>Staff member</span>
-              <div className="flex flex-wrap items-start gap-4">
+              <div className="admin-settings-staff flex flex-wrap items-start gap-4">
                 {activeStaff.map((member) => {
                   const isSelected = staffId === member.id;
                   const avatarUrl = staffAvatarForName(member.name);
@@ -334,9 +342,13 @@ export default function AdminSettingsPage() {
                   mode="single"
                   selected={selectedDate}
                   onSelect={(value) => {
-                    if (value) setDate(localDateKey(value));
+                    if (value) {
+                      const nextDate = localDateKey(value);
+                      setDate(nextDate);
+                      if (endDate < nextDate) setEndDate(nextDate);
+                    }
                   }}
-                  className="w-full rounded-xl border border-border bg-input-background text-foreground"
+                  className="admin-settings-calendar w-full rounded-xl border border-border bg-input-background text-foreground"
                   classNames={{
                     months: "flex w-full flex-col",
                     month: "flex w-full flex-col gap-4",
@@ -357,18 +369,29 @@ export default function AdminSettingsPage() {
                     day_outside: "text-muted-foreground opacity-30",
                     day_disabled: "text-muted-foreground opacity-30",
                   }}
-                />
+              />
+              </div>
+
+              <div className="admin-settings-date-range grid gap-3 sm:grid-cols-2">
+                <label className="block space-y-2">
+                  <span>Leave starts</span>
+                  <input type="date" min={todayKey()} value={date} onChange={(event) => { setDate(event.target.value); if (endDate < event.target.value) setEndDate(event.target.value); }} style={{ ...fieldStyle, minHeight: "3rem" }} />
+                </label>
+                <label className="block space-y-2">
+                  <span>Leave ends</span>
+                  <input type="date" min={date} value={endDate} onChange={(event) => setEndDate(event.target.value)} style={{ ...fieldStyle, minHeight: "3rem" }} />
+                </label>
               </div>
 
               <div
-                className="rounded-xl px-4 py-3"
+                className="admin-settings-date-summary rounded-xl px-4 py-3"
                 style={{
                   background: "rgba(212,165,32,0.08)",
                   border: "1px solid rgba(212,165,32,0.25)",
                 }}
               >
                 <p style={{ fontFamily: "var(--font-heading)", color: "var(--foreground)", fontSize: "1rem" }}>
-                  {date}
+                  {date === endDate ? date : `${date} to ${endDate}`}
                 </p>
                 <p style={{ fontFamily: "var(--font-body)", color: "var(--muted-foreground)", fontSize: "0.78rem", marginTop: "0.2rem" }}>
                   Selected block date
@@ -422,7 +445,7 @@ export default function AdminSettingsPage() {
             </button>
           </form>
 
-          <section className="p-5" style={{ background: "var(--card)", border: "1px solid var(--border)", borderRadius: "1rem" }}>
+          <section className="admin-settings-blocks p-5" style={{ background: "var(--card)", border: "1px solid var(--border)", borderRadius: "1rem" }}>
             <div className="mb-5 flex items-center justify-between gap-3">
               <div>
                 <h2 style={{ fontFamily: "var(--font-heading)", fontSize: "1.45rem" }}>Availability Blocks</h2>

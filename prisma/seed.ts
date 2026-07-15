@@ -7,9 +7,11 @@ const prisma = new PrismaClient();
 const services = salonServices.map((service, index) => ({
   id: service.id,
   name: service.title,
+  description: service.description,
   priceCents: service.basePrice * 100,
   durationMinutes: service.baseDuration,
   sortOrder: index + 1,
+  options: service.options,
 }));
 
 const defaultSlotTimes = Array.from({ length: 15 }, (_, index) => {
@@ -21,13 +23,18 @@ async function main() {
   const activeServiceIds = services.map((service) => service.id);
 
   for (const service of services) {
+    const { options, ...serviceData } = service;
     await prisma.service.upsert({
       where: { id: service.id },
-      update: { ...service, active: true },
+      update: { ...serviceData, active: true },
       create: {
-        ...service,
+        ...serviceData,
         active: true,
       },
+    });
+    await prisma.serviceOption.deleteMany({ where: { serviceId: service.id } });
+    await prisma.serviceOption.createMany({
+      data: options.map((option, optionIndex) => ({ id: option.id, serviceId: service.id, name: option.name, durationMinutes: option.duration, priceCents: option.price * 100, sortOrder: optionIndex, active: true })),
     });
   }
 

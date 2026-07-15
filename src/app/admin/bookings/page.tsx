@@ -2,8 +2,12 @@
 
 import { useEffect, useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
+import {
+  ArrowLeft, CalendarDays, ChevronRight, Clock, Filter, Phone, Search,
+  Scissors, UserRound, WalletCards,
+} from "lucide-react";
 import type { AdminBookingRow, AdminStaffRow } from "@/types/admin";
-import { isStaffAllowedForService } from "@/app/config/services";
+import { isStaffAllowedForService, staffAvatarForName } from "@/app/config/services";
 import { AdminShell } from "../components/AdminShell";
 
 const statuses = ["PENDING", "CONFIRMED", "REJECTED", "CANCELLED", "COMPLETED"] as const;
@@ -21,6 +25,25 @@ function firstName(name?: string | null) {
   return name?.trim().split(/\s+/)[0] ?? "Unassigned";
 }
 
+function formatAdminDate(value: string) {
+  return new Intl.DateTimeFormat("en-LK", { weekday: "short", month: "short", day: "numeric", year: "numeric", timeZone: "UTC" }).format(new Date(value));
+}
+
+function formatAdminTime(value: string) {
+  return new Intl.DateTimeFormat("en-LK", { hour: "numeric", minute: "2-digit", timeZone: "UTC" }).format(new Date(value));
+}
+
+function formatAdminPrice(priceCents: number) {
+  return `LKR ${new Intl.NumberFormat("en-LK").format(priceCents / 100)}`;
+}
+
+function formatAdminDuration(start: string, end: string) {
+  const minutes = Math.max(0, Math.round((new Date(end).getTime() - new Date(start).getTime()) / 60000));
+  const hours = Math.floor(minutes / 60);
+  const rest = minutes % 60;
+  return hours ? `${hours} hr${rest ? ` ${rest} min` : ""}` : `${rest} min`;
+}
+
 export default function AdminBookingsPage() {
   const router = useRouter();
   const [bookings, setBookings] = useState<AdminBookingRow[]>([]);
@@ -30,6 +53,13 @@ export default function AdminBookingsPage() {
   const [role, setRole] = useState<AdminUserRole | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [mobileQuery, setMobileQuery] = useState("");
+  const [mobileTab, setMobileTab] = useState<"ALL" | "TODAY" | "UPCOMING" | "COMPLETED">("ALL");
+  const [mobileDetailOpen, setMobileDetailOpen] = useState(false);
+  const [draftStatus, setDraftStatus] = useState<(typeof statuses)[number]>("PENDING");
+  const [draftAssigneeId, setDraftAssigneeId] = useState<string | null>(null);
+  const [statusExpanded, setStatusExpanded] = useState(false);
+  const [saving, setSaving] = useState(false);
 
   const selectedBooking = useMemo(
     () => bookings.find((booking) => booking.id === selectedId) ?? bookings[0] ?? null,
@@ -101,6 +131,36 @@ export default function AdminBookingsPage() {
 
   const canAssignStaff = role === "SUPER_ADMIN" || role === "OWNER";
 
+  const mobileBookings = useMemo(() => {
+    const query = mobileQuery.trim().toLowerCase();
+    const today = new Date().toISOString().slice(0, 10);
+    return bookings.filter((booking) => {
+      const bookingDay = booking.startsAt.slice(0, 10);
+      const matchesQuery = !query || [booking.customer.name, booking.customer.phone, booking.service.name, booking.bookingCode]
+        .some((value) => value.toLowerCase().includes(query));
+      const matchesTab = mobileTab === "ALL"
+        || (mobileTab === "TODAY" && bookingDay === today)
+        || (mobileTab === "UPCOMING" && bookingDay >= today && booking.status !== "COMPLETED")
+        || (mobileTab === "COMPLETED" && booking.status === "COMPLETED");
+      return matchesQuery && matchesTab;
+    });
+  }, [bookings, mobileQuery, mobileTab]);
+
+  function openMobileBooking(booking: AdminBookingRow) {
+    setSelectedId(booking.id);
+    setDraftStatus(booking.status);
+    setDraftAssigneeId(booking.assignedStaff?.id ?? null);
+    setStatusExpanded(false);
+    setMobileDetailOpen(true);
+  }
+
+  async function saveMobileStatus() {
+    if (!selectedBooking) return;
+    setSaving(true);
+    await updateBooking({ status: draftStatus, assignedStaffId: canAssignStaff ? draftAssigneeId : undefined });
+    setSaving(false);
+  }
+
   async function updateBooking(payload: { status?: string; assignedStaffId?: string | null; adminNote?: string | null }) {
     if (!selectedBooking) return;
 
@@ -122,7 +182,96 @@ export default function AdminBookingsPage() {
 
   return (
     <AdminShell active="booking">
-      <div className="space-y-6">
+      <div className="admin-mobile-bookings">
+        {!mobileDetailOpen ? (
+          <div className="admin-mobile-booking-list">
+            <header className="admin-mobile-page-heading">
+              <div><h1>Bookings</h1><p>Manage and track all appointments.</p></div>
+              <button type="button" aria-label="Filter bookings"><Filter /></button>
+            </header>
+
+            <label className="admin-mobile-search">
+              <Search aria-hidden="true" />
+              <input value={mobileQuery} onChange={(event) => setMobileQuery(event.target.value)} placeholder="Search by name, service or phone..." />
+            </label>
+
+            <div className="admin-mobile-tabs">
+              {(["ALL", "TODAY", "UPCOMING", "COMPLETED"] as const).map((tab) => {
+                const count = tab === "ALL" ? bookings.length : tab === "COMPLETED"
+                  ? bookings.filter((item) => item.status === "COMPLETED").length
+                  : mobileBookings.length;
+                return <button key={tab} type="button" className={mobileTab === tab ? "is-active" : ""} onClick={() => setMobileTab(tab)}>{tab[0]}{tab.slice(1).toLowerCase()} <span>{count}</span></button>;
+              })}
+            </div>
+
+            {error && <p className="admin-mobile-error">{error}</p>}
+            <div className="admin-mobile-booking-cards">
+              {loading ? <p className="admin-mobile-empty">Loading bookings...</p> : mobileBookings.length === 0 ? <p className="admin-mobile-empty">No bookings found.</p> : mobileBookings.map((booking) => (
+                <button key={booking.id} type="button" className="admin-mobile-booking-card" onClick={() => openMobileBooking(booking)}>
+                  <div className="admin-mobile-booking-card__top">
+                    <strong>{booking.customer.name}</strong>
+                    <span className={`admin-status admin-status--${booking.status.toLowerCase()}`}>{booking.status === "REJECTED" ? "Rejected" : booking.status[0] + booking.status.slice(1).toLowerCase()}</span>
+                  </div>
+                  <div className="admin-mobile-booking-card__line"><CalendarDays /><span>{formatAdminDate(booking.startsAt)} · {formatAdminTime(booking.startsAt)}</span></div>
+                  <div className="admin-mobile-booking-card__line"><Clock /><span>{booking.service.name}</span><b>{formatAdminPrice(booking.service.priceCents)}</b></div>
+                  <div className="admin-mobile-booking-card__line"><UserRound /><span>{firstName(booking.assignedStaff?.name)}</span><ChevronRight className="admin-mobile-card-arrow" /></div>
+                </button>
+              ))}
+            </div>
+          </div>
+        ) : selectedBooking ? (
+          <div className="admin-mobile-booking-detail">
+            <header className="admin-mobile-detail-header">
+              <button type="button" onClick={() => setMobileDetailOpen(false)} aria-label="Back to bookings"><ArrowLeft /></button>
+              <h1>Booking Details</h1><span />
+            </header>
+
+            <section className="admin-mobile-customer-card">
+              <div><strong>{selectedBooking.customer.name}</strong><span>{selectedBooking.customer.phone}</span>{selectedBooking.customer.email && <span>{selectedBooking.customer.email}</span>}</div>
+              <aside><span>Booking ID</span><b>{selectedBooking.bookingCode}</b></aside>
+            </section>
+
+            <h2 className="admin-mobile-section-title">Appointment Details</h2>
+            <section className="admin-mobile-detail-card">
+              {[
+                { Icon: Scissors, label: "Service", value: selectedBooking.service.name },
+                { Icon: UserRound, label: "Stylist", value: selectedBooking.assignedStaff?.name ?? "Unassigned" },
+                { Icon: CalendarDays, label: "Date", value: formatAdminDate(selectedBooking.startsAt) },
+                { Icon: Clock, label: "Time", value: formatAdminTime(selectedBooking.startsAt) },
+                { Icon: Clock, label: "Duration", value: formatAdminDuration(selectedBooking.startsAt, selectedBooking.endsAt) },
+                { Icon: WalletCards, label: "Amount", value: formatAdminPrice(selectedBooking.service.priceCents) },
+              ].map(({ Icon, label, value }) => <div key={label} className="admin-mobile-detail-row"><span className="admin-mobile-detail-icon"><Icon /></span><span><small>{label}</small><strong>{value}</strong></span></div>)}
+            </section>
+
+            <h2 className="admin-mobile-section-title">Status</h2>
+            <section className={`admin-mobile-status-panel ${statusExpanded ? "is-expanded" : ""}`}>
+              <button type="button" className="admin-mobile-current-status" onClick={() => setStatusExpanded((current) => !current)} aria-expanded={statusExpanded}>
+                <i className={`admin-status-dot admin-status-dot--${draftStatus.toLowerCase()}`} />
+                <div><strong>{draftStatus === "REJECTED" ? "Rejected" : draftStatus[0] + draftStatus.slice(1).toLowerCase()}</strong><span>{statusExpanded ? "Choose a new appointment status" : "Tap to change appointment status"}</span></div>
+                <ChevronRight aria-hidden="true" />
+              </button>
+              {statusExpanded && <div className="admin-mobile-status-options">
+                {statuses.map((status) => <label key={status}><input type="radio" name="mobile-status" checked={draftStatus === status} onChange={() => setDraftStatus(status)} /><i className={`admin-status-dot admin-status-dot--${status.toLowerCase()}`} /><span>{status === "REJECTED" ? "Rejected" : status[0] + status.slice(1).toLowerCase()}</span></label>)}
+              </div>}
+            </section>
+
+            <h2 className="admin-mobile-section-title">Assigned Staff</h2>
+            <section className="admin-mobile-assignees">
+              {assignableStaff.map((member) => {
+                const avatar = staffAvatarForName(member.name);
+                const selected = draftAssigneeId === member.id;
+                return <button key={member.id} type="button" className={selected ? "is-selected" : ""} onClick={() => setDraftAssigneeId(member.id)} disabled={!canAssignStaff}>
+                  <span>{avatar ? <img src={avatar} alt="" /> : <UserRound aria-hidden="true" />}</span><strong>{firstName(member.name)}</strong><small>{selected ? "Assigned" : "Available"}</small>
+                </button>;
+              })}
+              {assignableStaff.length === 0 && <p>No available staff for this service.</p>}
+            </section>
+            <button type="button" className="admin-mobile-update" onClick={saveMobileStatus} disabled={saving}>{saving ? "Updating..." : "Update Status"}</button>
+          </div>
+        ) : null}
+      </div>
+
+      <div className="admin-desktop-bookings space-y-6">
         <header>
           <div>
             <h1 style={{ fontFamily: "var(--font-heading)", fontSize: "2.25rem" }}>Bookings</h1>

@@ -20,6 +20,7 @@ export async function createPublicBooking(input: {
 }) {
   const service = await prisma.service.findFirst({
     where: { id: input.serviceId, active: true },
+    include: { options: { where: { active: true }, orderBy: { sortOrder: "asc" } } },
   });
 
   if (!service) {
@@ -29,11 +30,11 @@ export async function createPublicBooking(input: {
   const serviceConfig = getSalonService(service.id);
   const staffRoleLabel = getStaffRoleLabelForService(service.id).toLowerCase();
   const selectedOptionIds = input.optionIds ?? [];
-  const selectedOptions = serviceConfig
-    ? serviceConfig.options.filter((option) => selectedOptionIds.includes(option.id))
-    : [];
+  const storedOptions = service.options.map((option) => ({ id: option.id, name: option.name, duration: option.durationMinutes, price: option.priceCents / 100 }));
+  const availableOptions = storedOptions.length > 0 ? storedOptions : serviceConfig?.options ?? [];
+  const selectedOptions = availableOptions.filter((option) => selectedOptionIds.includes(option.id));
 
-  if (serviceConfig && selectedOptionIds.length > 0 && selectedOptions.length !== selectedOptionIds.length) {
+  if (availableOptions.length > 0 && selectedOptionIds.length > 0 && selectedOptions.length !== selectedOptionIds.length) {
     throw new Error("Selected service options are not available.");
   }
 

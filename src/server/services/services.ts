@@ -13,17 +13,20 @@ export function serializeService(service: {
   description: string | null;
   priceCents: number;
   durationMinutes: number;
+  options?: Array<{ id: string; name: string; durationMinutes: number; priceCents: number }>;
 }) {
   return {
     ...service,
     price: Math.round(service.priceCents / 100),
     duration: formatDuration(service.durationMinutes),
+    options: service.options?.map((option) => ({ id: option.id, name: option.name, duration: option.durationMinutes, price: Math.round(option.priceCents / 100) })),
   };
 }
 
 export async function listPublicServices() {
   const services = await prisma.service.findMany({
     where: { active: true },
+    include: { options: { where: { active: true }, orderBy: { sortOrder: "asc" } } },
     orderBy: [{ sortOrder: "asc" }, { name: "asc" }],
   });
 
@@ -32,6 +35,7 @@ export async function listPublicServices() {
 
 export async function listAdminServices() {
   return prisma.service.findMany({
+    include: { options: { orderBy: { sortOrder: "asc" } } },
     orderBy: [{ sortOrder: "asc" }, { name: "asc" }],
   });
 }
@@ -44,18 +48,23 @@ export async function upsertService(input: {
   durationMinutes: number;
   active?: boolean;
   sortOrder?: number;
+  options?: Array<{ id: string; name: string; durationMinutes: number; priceCents: number; sortOrder: number; active?: boolean }>;
 }) {
   if (input.id) {
-    return prisma.service.update({
-      where: { id: input.id },
-      data: {
+    return prisma.$transaction(async (tx) => {
+      const service = await tx.service.update({ where: { id: input.id }, data: {
         name: input.name,
         description: input.description,
         priceCents: input.priceCents,
         durationMinutes: input.durationMinutes,
         active: input.active,
         sortOrder: input.sortOrder,
-      },
+      } });
+      if (input.options) {
+        await tx.serviceOption.deleteMany({ where: { serviceId: input.id } });
+        if (input.options.length) await tx.serviceOption.createMany({ data: input.options.map((option) => ({ ...option, active: option.active ?? true, serviceId: input.id! })) });
+      }
+      return tx.service.findUniqueOrThrow({ where: { id: service.id }, include: { options: { orderBy: { sortOrder: "asc" } } } });
     });
   }
 
@@ -67,6 +76,8 @@ export async function upsertService(input: {
       durationMinutes: input.durationMinutes,
       active: input.active ?? true,
       sortOrder: input.sortOrder ?? 0,
+      options: input.options?.length ? { create: input.options.map((option) => ({ id: option.id, name: option.name, durationMinutes: option.durationMinutes, priceCents: option.priceCents, sortOrder: option.sortOrder, active: option.active ?? true })) } : undefined,
     },
+    include: { options: { orderBy: { sortOrder: "asc" } } },
   });
 }

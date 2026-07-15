@@ -107,6 +107,9 @@ export function MobileMenu({ isOpen, activeSection, onNavigate, onClose }: Mobil
         {/* Nav Links */}
         <nav className="mobile-menu-panel__nav flex-1 px-6 py-8">
           <div className="flex flex-col gap-1">
+            <a href="/admin" onClick={onClose} className="mobile-menu-panel__dashboard-link">
+              Dashboard
+            </a>
             {navLinks.map((item) => (
               <button
                 key={item.section}

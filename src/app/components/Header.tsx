@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { Bell, Phone, UserRound } from 'lucide-react';
+import { Bell, UserRound } from 'lucide-react';
 import logoImage from '../../imports/image-1.png';
 import { is_visible_cilent_review } from '../config/visibility';
 
@@ -136,19 +136,6 @@ export function Header({ onMenuClick }: HeaderProps) {
           </div>
 
           <div className="lg:hidden flex shrink-0 items-center gap-1.5 sm:gap-2">
-            <a
-              href="tel:+94715729660"
-              aria-label="Call salon"
-              className="h-10 w-10 rounded-full flex items-center justify-center"
-              style={{
-                background: 'var(--surface-strong)',
-                color: 'var(--gold-dark)',
-                border: '1px solid var(--border)',
-                boxShadow: 'var(--shadow-soft)',
-              }}
-            >
-              <Phone size={18} />
-            </a>
             <button
               type="button"
               aria-label="Notifications"
