@@ -4,6 +4,7 @@ import { useEffect, useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
 import { ArrowRight, CalendarDays, CheckCircle2, ChevronRight, Clock3, Mail, Plus, Scissors, Star } from "lucide-react";
 import { AdminShell } from "./components/AdminShell";
+import { AdminPageLoader } from "./components/AdminPageLoader";
 import { salonServices } from "../config/services";
 import type { AdminBookingRow } from "@/types/admin";
 
@@ -183,6 +184,10 @@ export default function AdminDashboardPage() {
   const completedToday = todayBookings.filter((booking) => booking.status === "COMPLETED");
   const recentBookings = bookings.slice(0, 5);
   const schedule = [...todayBookings].sort((a, b) => new Date(a.startsAt).getTime() - new Date(b.startsAt).getTime()).slice(0, 5);
+
+  if (loading) {
+    return <AdminShell active="dashboard"><AdminPageLoader label="Loading dashboard..." /></AdminShell>;
+  }
 
   return (
     <AdminShell active="dashboard" footerText={lastUpdated ? `Last updated: ${lastUpdated}` : "Last updated: Loading..."}>

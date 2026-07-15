@@ -7,9 +7,11 @@ import { useRouter } from "next/navigation";
 import {
   ArrowLeft,
   CalendarDays,
+  CalendarClock,
   ExternalLink,
   GalleryHorizontal,
   Globe,
+  House,
   Grid2X2,
   LogOut,
   Mail,
@@ -19,9 +21,9 @@ import {
   Scissors,
   Settings,
   Star,
-  UserRound,
 } from "lucide-react";
 import logoImage from "../../../imports/image-1.png";
+import { is_visible_admin_gallery, is_visible_admin_reviews } from "@/app/config/visibility";
 
 type AdminShellProps = {
   active: "dashboard" | "booking" | "services" | "gallery" | "reviews" | "contacts" | "settings" | "website";
@@ -36,14 +38,15 @@ type AdminNavItem = {
   Icon: React.ComponentType<{ className?: string; style?: React.CSSProperties }>;
   adminOnly?: boolean;
   separated?: boolean;
+  visible?: boolean;
 };
 
 const navItems: AdminNavItem[] = [
   { key: "dashboard", label: "Dashboard", href: "/admin", Icon: Grid2X2 },
   { key: "booking", label: "Booking", href: "/admin/bookings", Icon: CalendarDays },
   { key: "services", label: "Services", href: "/admin/services", Icon: Scissors, adminOnly: true },
-  { key: "gallery", label: "Gallery", href: "/admin/gallery", Icon: GalleryHorizontal, adminOnly: true },
-  { key: "reviews", label: "Reviews", href: "/admin/reviews", Icon: Star, adminOnly: true },
+  { key: "gallery", label: "Gallery", href: "/admin/gallery", Icon: GalleryHorizontal, adminOnly: true, visible: is_visible_admin_gallery },
+  { key: "reviews", label: "Reviews", href: "/admin/reviews", Icon: Star, adminOnly: true, visible: is_visible_admin_reviews },
   { key: "contacts", label: "Contacts", href: "/admin/contacts", Icon: Mail, adminOnly: true },
   { key: "settings", label: "Settings", href: "/admin/settings", Icon: Settings, adminOnly: true, separated: true },
   { key: "website", label: "Website Settings", href: "/admin/website", Icon: Globe, adminOnly: true },
@@ -84,7 +87,8 @@ export function AdminShell({ active, children, footerText }: AdminShellProps) {
   }
 
   const canManageSalon = role === "SUPER_ADMIN" || role === "OWNER";
-  const visibleNavItems = navItems.filter((item) => !item.adminOnly || canManageSalon);
+  const visibleNavItems = navItems.filter((item) => item.visible !== false && (!item.adminOnly || canManageSalon));
+  const mobileBottomNavItems = visibleNavItems.filter((item) => ["dashboard", "booking", "services", "settings"].includes(item.key));
 
   return (
     <main className="admin-shell min-h-screen p-3" style={{ background: "var(--background)", color: "var(--foreground)" }}>
@@ -161,7 +165,7 @@ export function AdminShell({ active, children, footerText }: AdminShellProps) {
           <header className="admin-shell__mobile-header">
             <button type="button" onClick={() => setMobileMenuOpen(true)} aria-label="Open admin menu"><Menu /></button>
             <Link href="/admin" className="admin-shell__mobile-brand"><img src={logoImage.src} alt="" /><span><strong>Scissor King Dimma</strong><small>Admin Dashboard</small></span></Link>
-            <div><button type="button" aria-label="Notifications"><Bell /></button><button type="button" aria-label="Admin profile"><UserRound /></button></div>
+            <div><button type="button" aria-label="Notifications"><Bell /></button><Link href="/" className="admin-shell__home-link" aria-label="Open customer website"><House /></Link></div>
           </header>
           {mobileMenuOpen && (
             <div className="admin-shell__mobile-drawer-layer" onClick={() => setMobileMenuOpen(false)}>
@@ -196,7 +200,11 @@ export function AdminShell({ active, children, footerText }: AdminShellProps) {
           </div>
 
           <nav className="admin-shell__mobile-nav">
-            {navItems.slice(0, 4).map(({ key, label, href, Icon }) => <Link key={key} href={href} className={active === key ? "is-active" : ""}><Icon /><span>{label === "Booking" ? "Bookings" : label}</span></Link>)}
+            {mobileBottomNavItems.map(({ key, label, href, Icon }) => {
+              const BottomIcon = key === "settings" ? CalendarClock : Icon;
+              const bottomLabel = key === "settings" ? "Availability" : label === "Booking" ? "Bookings" : label;
+              return <Link key={key} href={href} className={active === key ? "is-active" : ""}><BottomIcon /><span>{bottomLabel}</span></Link>;
+            })}
           </nav>
 
           <div

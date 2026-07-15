@@ -9,6 +9,7 @@ import {
 import type { AdminBookingRow, AdminStaffRow } from "@/types/admin";
 import { isStaffAllowedForService, staffAvatarForName } from "@/app/config/services";
 import { AdminShell } from "../components/AdminShell";
+import { AdminPageLoader } from "../components/AdminPageLoader";
 
 const statuses = ["PENDING", "CONFIRMED", "REJECTED", "CANCELLED", "COMPLETED"] as const;
 type AdminUserRole = "SUPER_ADMIN" | "OWNER" | "STAFF";
@@ -159,6 +160,10 @@ export default function AdminBookingsPage() {
     setSaving(true);
     await updateBooking({ status: draftStatus, assignedStaffId: canAssignStaff ? draftAssigneeId : undefined });
     setSaving(false);
+  }
+
+  if (loading) {
+    return <AdminShell active="booking"><AdminPageLoader label="Loading bookings..." /></AdminShell>;
   }
 
   async function updateBooking(payload: { status?: string; assignedStaffId?: string | null; adminNote?: string | null }) {

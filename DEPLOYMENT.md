@@ -91,7 +91,13 @@ Your database is now in sync with your Prisma schema.
 The seed command has been executed.
 ```
 
-This project currently uses `prisma db push` because there is no `prisma/migrations` folder. If migrations are added later, use `npx prisma migrate deploy` for production instead.
+This project runs `prisma db push --skip-generate` automatically in the `prebuild` script before Vercel builds the Next.js app. This keeps an existing production database synchronized when additive schema changes such as `ServiceOption` are deployed. `prisma generate` runs immediately afterward.
+
+For an urgent schema-only repair without redeploying, run:
+
+```bash
+DATABASE_URL="your Neon PostgreSQL connection string" npm run db:deploy
+```
 
 ## 4. Redeploy Vercel
 

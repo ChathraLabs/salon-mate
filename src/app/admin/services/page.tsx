@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import { ArrowLeft, ChevronRight, Clock, Filter, GripVertical, Pencil, Plus, Search, SlidersHorizontal, Trash2 } from "lucide-react";
 import { salonServices, type SalonServiceOption } from "@/app/config/services";
 import { AdminShell } from "../components/AdminShell";
+import { AdminPageLoader } from "../components/AdminPageLoader";
 
 type AdminService = {
   id: string;
@@ -118,6 +119,10 @@ export default function AdminServicesPage() {
 
   function addOption() {
     setOptions((current) => [...current, { id: `option-${Date.now()}`, name: "New Option", duration: 30, price: 0 }]);
+  }
+
+  if (loading) {
+    return <AdminShell active="services"><AdminPageLoader label="Loading services..." /></AdminShell>;
   }
 
   return (

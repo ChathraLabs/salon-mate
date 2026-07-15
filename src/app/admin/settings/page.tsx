@@ -6,6 +6,7 @@ import type { AdminStaffRow } from "@/types/admin";
 import { staffAvatarForName } from "@/app/config/services";
 import { Calendar as DatePickerCalendar } from "@/app/components/ui/calendar";
 import { AdminShell } from "../components/AdminShell";
+import { AdminPageLoader } from "../components/AdminPageLoader";
 
 type AvailabilityExceptionRow = {
   id: string;
@@ -189,6 +190,10 @@ export default function AdminSettingsPage() {
     } catch (error) {
       setError(error instanceof Error ? error.message : "Unable to delete availability block.");
     }
+  }
+
+  if (loading) {
+    return <AdminShell active="settings"><AdminPageLoader label="Loading settings..." /></AdminShell>;
   }
 
   return (

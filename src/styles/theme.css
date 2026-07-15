@@ -521,11 +521,11 @@
     margin-bottom: 0.25rem;
     padding: 0.95rem 1rem;
     border-radius: 0.9rem;
-    color: var(--emerald);
-    background: var(--emerald-soft);
+    color: var(--foreground);
+    background: transparent;
     font-family: var(--font-body);
     font-size: 1rem;
-    font-weight: 700;
+    font-weight: 400;
     letter-spacing: 0.01em;
     text-decoration: none;
     transition: color 0.2s, background 0.2s;
@@ -1795,6 +1795,36 @@
   display: none;
 }
 
+.admin-page-loader {
+  min-height: min(34rem, 70vh);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: .85rem;
+  color: var(--muted-foreground);
+  font-family: var(--font-body);
+  text-align: center;
+}
+
+.admin-page-loader__spinner {
+  width: 3rem;
+  height: 3rem;
+  display: block;
+  border: 3px solid rgba(6,68,55,.14);
+  border-top-color: var(--emerald);
+  border-right-color: var(--emerald);
+  border-radius: 9999px;
+  animation: admin-page-loader-spin .75s linear infinite;
+  box-shadow: 0 8px 20px rgba(6,68,55,.08);
+}
+
+.admin-page-loader p { font-size: .78rem; font-weight: 700; }
+
+@keyframes admin-page-loader-spin {
+  to { transform: rotate(360deg); }
+}
+
 @media (max-width: 767px) {
   .admin-shell {
     height: 100dvh;
@@ -1839,7 +1869,8 @@
     background: rgba(255, 250, 244, 0.96);
   }
 
-  .admin-shell__mobile-header button {
+  .admin-shell__mobile-header button,
+  .admin-shell__mobile-header .admin-shell__home-link {
     width: 2.55rem;
     height: 2.55rem;
     display: inline-flex;
@@ -1852,7 +1883,8 @@
     box-shadow: var(--shadow-soft);
   }
 
-  .admin-shell__mobile-header button svg { width: 1.15rem; height: 1.15rem; }
+  .admin-shell__mobile-header button svg,
+  .admin-shell__mobile-header .admin-shell__home-link svg { width: 1.15rem; height: 1.15rem; }
   .admin-shell__mobile-header > div { display: flex; gap: 0.45rem; }
 
   .admin-shell__mobile-brand {
@@ -1899,6 +1931,10 @@
     display: none;
     width: 0;
     height: 0;
+  }
+
+  .admin-page-loader {
+    min-height: calc(100dvh - 10.2rem - env(safe-area-inset-bottom));
   }
 
   .admin-shell__mobile-nav {
@@ -3971,13 +4007,15 @@
   .admin-settings-calendar { padding: .45rem; border-color: var(--border) !important; background: rgba(255,255,255,.58) !important; }
   .admin-settings-calendar table { font-size: .72rem; }
   .admin-settings-calendar button { font-size: .7rem !important; }
-  .admin-settings-date-range { grid-template-columns: 1fr 1fr; gap: .55rem !important; }
-  .admin-settings-date-range label { min-width: 0; }
-  .admin-settings-date-range input { width: 100%; min-width: 0; min-height: 2.7rem !important; padding: .55rem !important; border-radius: .65rem !important; color: var(--foreground); background: rgba(255,255,255,.6) !important; font-size: .66rem; }
+  .admin-settings-date-range { width: 100%; min-width: 0; grid-template-columns: repeat(2,minmax(0,1fr)); gap: .55rem !important; }
+  .admin-settings-date-range label { width: 100%; min-width: 0; overflow: hidden; }
+  .admin-settings-date-range input { box-sizing: border-box; display: block; width: 100% !important; max-width: 100%; min-width: 0; -webkit-min-logical-width: 0; min-height: 2.7rem !important; padding: .55rem !important; border-radius: .65rem !important; color: var(--foreground); background: rgba(255,255,255,.6) !important; font-size: .66rem; }
   .admin-settings-date-summary { padding: .65rem .75rem !important; border-color: rgba(6,68,55,.16) !important; background: var(--emerald-soft) !important; }
   .admin-settings-date-summary p:first-child { color: var(--emerald) !important; font-size: .8rem !important; }
   .admin-settings-form input[type="checkbox"] { accent-color: var(--emerald) !important; }
-  .admin-settings-form input[type="time"], .admin-settings-form textarea { min-height: 2.7rem !important; border-radius: .65rem !important; padding: .65rem .75rem !important; font-size: .72rem; background: rgba(255,255,255,.6) !important; }
+  .admin-settings-form .grid:has(input[type="time"]) { width: 100%; min-width: 0; grid-template-columns: minmax(0,1fr); }
+  .admin-settings-form .grid:has(input[type="time"]) label { width: 100%; min-width: 0; overflow: hidden; }
+  .admin-settings-form input[type="time"], .admin-settings-form textarea { box-sizing: border-box; display: block; width: 100% !important; max-width: 100%; min-width: 0; -webkit-min-logical-width: 0; min-height: 2.7rem !important; border-radius: .65rem !important; padding: .65rem .75rem !important; font-size: .72rem; background: rgba(255,255,255,.6) !important; }
   .admin-settings-form textarea { min-height: 4.5rem !important; }
   .admin-settings-form > button[type="submit"] { width: 100%; min-height: 3rem; border-radius: 9999px !important; background: linear-gradient(135deg,var(--emerald),var(--emerald-dark)) !important; font-size: .78rem; font-weight: 800; box-shadow: var(--shadow-button); }
   .admin-settings-blocks { padding: .9rem !important; border-color: rgba(138,95,34,.12) !important; background: rgba(255,255,255,.72) !important; box-shadow: 0 8px 22px rgba(32,22,12,.045); }
