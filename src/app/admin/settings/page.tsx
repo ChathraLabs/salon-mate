@@ -2,11 +2,13 @@
 
 import { useEffect, useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
+import { CalendarDays, Clock } from "lucide-react";
 import type { AdminStaffRow } from "@/types/admin";
 import { staffAvatarForName } from "@/app/config/services";
 import { Calendar as DatePickerCalendar } from "@/app/components/ui/calendar";
 import { AdminShell } from "../components/AdminShell";
 import { AdminPageLoader } from "../components/AdminPageLoader";
+import { fetchAdminData, getCachedAdminData, setCachedAdminData } from "../adminDataCache";
 
 type AvailabilityExceptionRow = {
   id: string;
@@ -71,8 +73,10 @@ async function readJson(response: Response) {
 
 export default function AdminSettingsPage() {
   const router = useRouter();
-  const [staff, setStaff] = useState<AdminStaffRow[]>([]);
-  const [exceptions, setExceptions] = useState<AvailabilityExceptionRow[]>([]);
+  const cachedStaff = getCachedAdminData<{ staff: AdminStaffRow[] }>("staff");
+  const cachedAvailability = getCachedAdminData<{ exceptions: AvailabilityExceptionRow[] }>("availability");
+  const [staff, setStaff] = useState<AdminStaffRow[]>(cachedStaff?.staff ?? []);
+  const [exceptions, setExceptions] = useState<AvailabilityExceptionRow[]>(cachedAvailability?.exceptions ?? []);
   const [staffId, setStaffId] = useState("");
   const [date, setDate] = useState(todayKey());
   const [endDate, setEndDate] = useState(todayKey());
@@ -80,7 +84,7 @@ export default function AdminSettingsPage() {
   const [startsAt, setStartsAt] = useState("09:00");
   const [endsAt, setEndsAt] = useState("10:00");
   const [reason, setReason] = useState("");
-  const [loading, setLoading] = useState(true);
+  const [loading, setLoading] = useState(!cachedStaff || !cachedAvailability);
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
@@ -88,34 +92,20 @@ export default function AdminSettingsPage() {
   const selectedStaff = useMemo(() => activeStaff.find((member) => member.id === staffId) ?? null, [activeStaff, staffId]);
   const selectedDate = dateToLocalDate(date);
 
-  async function loadSettings() {
-    setLoading(true);
+  async function loadSettings(force = false) {
+    if (!getCachedAdminData("staff") || !getCachedAdminData("availability")) setLoading(true);
     setError(null);
 
     try {
-      const [availabilityResponse, staffResponse] = await Promise.all([
-        fetch("/api/admin/availability"),
-        fetch("/api/admin/staff"),
-      ]);
-
-      if (availabilityResponse.status === 401 || staffResponse.status === 401) {
-        router.push("/admin/login");
-        return;
-      }
-
       const [availabilityData, staffData] = await Promise.all([
-        readJson(availabilityResponse),
-        readJson(staffResponse),
+        fetchAdminData<{ exceptions: AvailabilityExceptionRow[] }>("availability", force),
+        fetchAdminData<{ staff: AdminStaffRow[] }>("staff", force),
       ]);
-
-      if (!staffResponse.ok) throw new Error(staffData.error ?? "Unable to load staff.");
 
       setStaff(staffData.staff);
-
-      if (!availabilityResponse.ok) throw new Error(availabilityData.error ?? "Unable to load availability.");
-
       setExceptions(availabilityData.exceptions);
     } catch (error) {
+      if (error instanceof Error && error.message === "UNAUTHORIZED") { router.push("/admin/login"); return; }
       setError(error instanceof Error ? error.message : "Unable to load settings.");
     } finally {
       setLoading(false);
@@ -167,7 +157,7 @@ export default function AdminSettingsPage() {
       }
 
       setReason("");
-      await loadSettings();
+      await loadSettings(true);
     } catch (error) {
       setError(error instanceof Error ? error.message : "Unable to save availability block.");
     } finally {
@@ -186,7 +176,7 @@ export default function AdminSettingsPage() {
         throw new Error(data.error ?? "Unable to delete availability block.");
       }
 
-      setExceptions((current) => current.filter((block) => block.id !== id));
+      setExceptions((current) => { const next = current.filter((block) => block.id !== id); const cached = getCachedAdminData<Record<string, unknown>>("availability") ?? {}; setCachedAdminData("availability", { ...cached, exceptions: next }); return next; });
     } catch (error) {
       setError(error instanceof Error ? error.message : "Unable to delete availability block.");
     }
@@ -380,11 +370,11 @@ export default function AdminSettingsPage() {
               <div className="admin-settings-date-range grid gap-3 sm:grid-cols-2">
                 <label className="block space-y-2">
                   <span>Leave starts</span>
-                  <input type="date" min={todayKey()} value={date} onChange={(event) => { setDate(event.target.value); if (endDate < event.target.value) setEndDate(event.target.value); }} style={{ ...fieldStyle, minHeight: "3rem" }} />
+                  <span className="admin-settings-native-field"><input type="date" min={todayKey()} value={date} onChange={(event) => { setDate(event.target.value); if (endDate < event.target.value) setEndDate(event.target.value); }} style={{ ...fieldStyle, minHeight: "3rem" }} /><CalendarDays aria-hidden="true" /></span>
                 </label>
                 <label className="block space-y-2">
                   <span>Leave ends</span>
-                  <input type="date" min={date} value={endDate} onChange={(event) => setEndDate(event.target.value)} style={{ ...fieldStyle, minHeight: "3rem" }} />
+                  <span className="admin-settings-native-field"><input type="date" min={date} value={endDate} onChange={(event) => setEndDate(event.target.value)} style={{ ...fieldStyle, minHeight: "3rem" }} /><CalendarDays aria-hidden="true" /></span>
                 </label>
               </div>
 
@@ -412,11 +402,11 @@ export default function AdminSettingsPage() {
                 <div className="grid gap-3 sm:grid-cols-2">
                   <label className="block space-y-2">
                     <span>Start time</span>
-                    <input type="time" value={startsAt} onChange={(event) => setStartsAt(event.target.value)} style={{ ...fieldStyle, minHeight: "3rem" }} />
+                    <span className="admin-settings-native-field"><input type="time" value={startsAt} onChange={(event) => setStartsAt(event.target.value)} style={{ ...fieldStyle, minHeight: "3rem" }} /><Clock aria-hidden="true" /></span>
                   </label>
                   <label className="block space-y-2">
                     <span>End time</span>
-                    <input type="time" value={endsAt} onChange={(event) => setEndsAt(event.target.value)} style={{ ...fieldStyle, minHeight: "3rem" }} />
+                    <span className="admin-settings-native-field"><input type="time" value={endsAt} onChange={(event) => setEndsAt(event.target.value)} style={{ ...fieldStyle, minHeight: "3rem" }} /><Clock aria-hidden="true" /></span>
                   </label>
                 </div>
               )}
@@ -460,7 +450,7 @@ export default function AdminSettingsPage() {
               </div>
               <button
                 type="button"
-                onClick={loadSettings}
+                onClick={() => loadSettings(true)}
                 className="px-4 py-2"
                 style={{ border: "1px solid var(--border)", borderRadius: "0.75rem", background: "var(--card)", color: "var(--foreground)" }}
               >

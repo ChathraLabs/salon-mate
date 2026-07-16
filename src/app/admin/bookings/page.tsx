@@ -10,6 +10,7 @@ import type { AdminBookingRow, AdminStaffRow } from "@/types/admin";
 import { isStaffAllowedForService, staffAvatarForName } from "@/app/config/services";
 import { AdminShell } from "../components/AdminShell";
 import { AdminPageLoader } from "../components/AdminPageLoader";
+import { fetchAdminData, getCachedAdminData, setCachedAdminData } from "../adminDataCache";
 
 const statuses = ["PENDING", "CONFIRMED", "REJECTED", "CANCELLED", "COMPLETED"] as const;
 type AdminUserRole = "SUPER_ADMIN" | "OWNER" | "STAFF";
@@ -47,12 +48,14 @@ function formatAdminDuration(start: string, end: string) {
 
 export default function AdminBookingsPage() {
   const router = useRouter();
-  const [bookings, setBookings] = useState<AdminBookingRow[]>([]);
-  const [staff, setStaff] = useState<AdminStaffRow[]>([]);
+  const cachedBookings = getCachedAdminData<{ bookings: AdminBookingRow[] }>("bookings");
+  const cachedStaff = getCachedAdminData<{ staff: AdminStaffRow[] }>("staff");
+  const [bookings, setBookings] = useState<AdminBookingRow[]>(cachedBookings?.bookings ?? []);
+  const [staff, setStaff] = useState<AdminStaffRow[]>(cachedStaff?.staff ?? []);
   const [selectedId, setSelectedId] = useState<string | null>(null);
   const [statusFilter, setStatusFilter] = useState("");
   const [role, setRole] = useState<AdminUserRole | null>(null);
-  const [loading, setLoading] = useState(true);
+  const [loading, setLoading] = useState(!cachedBookings || !cachedStaff);
   const [error, setError] = useState<string | null>(null);
   const [mobileQuery, setMobileQuery] = useState("");
   const [mobileTab, setMobileTab] = useState<"ALL" | "TODAY" | "UPCOMING" | "COMPLETED">("ALL");
@@ -77,45 +80,31 @@ export default function AdminBookingsPage() {
     ));
   }, [activeStaff, selectedBooking]);
 
-  async function loadBookings() {
-    setLoading(true);
+  async function loadBookings(force = false) {
+    if (!getCachedAdminData("bookings") || !getCachedAdminData("staff")) setLoading(true);
     setError(null);
 
     try {
-      const query = statusFilter ? `?status=${statusFilter}` : "";
-      const [response, userResponse, staffResponse] = await Promise.all([
-        fetch(`/api/admin/bookings${query}`),
+      const [bookingsData, userResponse, staffData] = await Promise.all([
+        fetchAdminData<{ bookings: AdminBookingRow[] }>("bookings", force),
         fetch("/api/admin/auth/me"),
-        fetch("/api/admin/staff"),
+        fetchAdminData<{ staff: AdminStaffRow[] }>("staff", force),
       ]);
 
       if (
-        response.status === 401
-        || userResponse.status === 401
-        || staffResponse.status === 401
+        userResponse.status === 401
       ) {
         router.push("/admin/login");
         return;
       }
 
-      const [data, userData, staffData] = await Promise.all([
-        response.json(),
-        userResponse.json(),
-        staffResponse.json(),
-      ]);
-
-      if (!response.ok) {
-        throw new Error(data.error ?? "Unable to load bookings.");
-      }
+      const userData = await userResponse.json();
       if (!userResponse.ok) {
         throw new Error(userData.error ?? "Unable to load admin user.");
       }
-      if (!staffResponse.ok) {
-        throw new Error(staffData.error ?? "Unable to load staff.");
-      }
-
-      setBookings(data.bookings);
-      setSelectedId((current) => current ?? data.bookings[0]?.id ?? null);
+      const nextBookings = statusFilter ? bookingsData.bookings.filter((booking) => booking.status === statusFilter) : bookingsData.bookings;
+      setBookings(nextBookings);
+      setSelectedId((current) => current ?? nextBookings[0]?.id ?? null);
       setRole(userData.user.role);
       setStaff(staffData.staff);
     } catch (error) {
@@ -182,7 +171,12 @@ export default function AdminBookingsPage() {
     }
 
     setError(null);
-    setBookings((current) => current.map((booking) => (booking.id === data.booking.id ? data.booking : booking)));
+    setBookings((current) => {
+      const next = current.map((booking) => (booking.id === data.booking.id ? data.booking : booking));
+      const cached = getCachedAdminData<{ bookings: AdminBookingRow[] }>("bookings");
+      if (cached) setCachedAdminData("bookings", { bookings: cached.bookings.map((booking) => booking.id === data.booking.id ? data.booking : booking) });
+      return next;
+    });
   }
 
   return (
@@ -301,7 +295,7 @@ export default function AdminBookingsPage() {
             ))}
           </select>
           <button
-            onClick={loadBookings}
+            onClick={() => loadBookings(true)}
             className="px-4 py-2"
             style={{ border: "1px solid var(--border)", borderRadius: "0.75rem", background: "var(--card)", color: "var(--foreground)" }}
           >

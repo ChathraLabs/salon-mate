@@ -3,9 +3,10 @@
 import { useEffect, useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
 import { ArrowLeft, ChevronRight, Clock, Filter, GripVertical, Pencil, Plus, Search, SlidersHorizontal, Trash2 } from "lucide-react";
-import { salonServices, type SalonServiceOption } from "@/app/config/services";
+import { salonServices } from "@/app/config/services";
 import { AdminShell } from "../components/AdminShell";
 import { AdminPageLoader } from "../components/AdminPageLoader";
+import { fetchAdminData, getCachedAdminData, setCachedAdminData } from "../adminDataCache";
 
 type AdminService = {
   id: string;
@@ -24,11 +25,14 @@ type ServiceDraft = {
   description: string;
   price: string;
   duration: string;
+  durationUnit: "min" | "hour";
   active: boolean;
   sortOrder: number;
 };
 
-const emptyDraft: ServiceDraft = { name: "", description: "", price: "", duration: "", active: true, sortOrder: 0 };
+type EditableOption = { id: string; name: string; duration: string; durationUnit: "min" | "hour"; price: string };
+
+const emptyDraft: ServiceDraft = { name: "", description: "", price: "", duration: "", durationUnit: "min", active: true, sortOrder: 0 };
 
 async function readJsonResponse(response: Response) {
   const text = await response.text();
@@ -45,25 +49,45 @@ function money(priceCents: number) {
   return `LKR ${new Intl.NumberFormat("en-LK").format(priceCents / 100)}`;
 }
 
+function durationLabel(minutes: number) {
+  if (minutes < 60) return `${minutes} min`;
+  const hours = Math.floor(minutes / 60);
+  const remainder = minutes % 60;
+  return `${hours} hr${hours > 1 ? "s" : ""}${remainder ? ` ${remainder} min` : ""}`;
+}
+
+function editableDuration(minutes: number) {
+  return minutes >= 60 && minutes % 60 === 0
+    ? { duration: String(minutes / 60), durationUnit: "hour" as const }
+    : { duration: String(minutes), durationUnit: "min" as const };
+}
+
+function durationInMinutes(value: string, unit: "min" | "hour") {
+  const amount = Number(value);
+  return unit === "hour" ? Math.round(amount * 60) : Math.round(amount);
+}
+
 export default function AdminServicesPage() {
   const router = useRouter();
-  const [services, setServices] = useState<AdminService[]>([]);
+  const cachedServices = getCachedAdminData<{ services: AdminService[] }>("services");
+  const [services, setServices] = useState<AdminService[]>(cachedServices?.services ?? []);
   const [query, setQuery] = useState("");
   const [showActiveOnly, setShowActiveOnly] = useState(false);
   const [draft, setDraft] = useState<ServiceDraft | null>(null);
-  const [options, setOptions] = useState<SalonServiceOption[]>([]);
-  const [loading, setLoading] = useState(true);
+  const [options, setOptions] = useState<EditableOption[]>([]);
+  const [loading, setLoading] = useState(!cachedServices);
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  async function loadServices() {
-    setLoading(true);
-    const response = await fetch("/api/admin/services");
-    if (response.status === 401) { router.push("/admin/login"); return; }
-    const data = await readJsonResponse(response);
-    if (!response.ok) setError(data.error ?? "Unable to load services.");
-    else { setServices(Array.isArray(data.services) ? data.services : []); setError(null); }
-    setLoading(false);
+  async function loadServices(force = false) {
+    if (!getCachedAdminData("services")) setLoading(true);
+    try {
+      const data = await fetchAdminData<{ services: AdminService[] }>("services", force);
+      setServices(Array.isArray(data.services) ? data.services : []); setError(null);
+    } catch (cause) {
+      if (cause instanceof Error && cause.message === "UNAUTHORIZED") router.push("/admin/login");
+      else setError(cause instanceof Error ? cause.message : "Unable to load services.");
+    } finally { setLoading(false); }
   }
 
   useEffect(() => { loadServices(); }, []); // eslint-disable-line react-hooks/exhaustive-deps
@@ -74,10 +98,11 @@ export default function AdminServicesPage() {
   }), [query, services, showActiveOnly]);
 
   function editService(service: AdminService) {
-    setDraft({ id: service.id, name: service.name, description: service.description ?? "", price: String(service.priceCents / 100), duration: String(service.durationMinutes), active: service.active, sortOrder: service.sortOrder });
+    const baseDuration = editableDuration(service.durationMinutes);
+    setDraft({ id: service.id, name: service.name, description: service.description ?? "", price: String(service.priceCents / 100), ...baseDuration, active: service.active, sortOrder: service.sortOrder });
     setOptions(service.options.length
-      ? service.options.map((option) => ({ id: option.id, name: option.name, duration: option.durationMinutes, price: option.priceCents / 100 }))
-      : configuredService(service.id)?.options.map((option) => ({ ...option })) ?? []);
+      ? service.options.map((option) => ({ id: option.id, name: option.name, ...editableDuration(option.durationMinutes), price: String(option.priceCents / 100) }))
+      : configuredService(service.id)?.options.map((option) => ({ id: option.id, name: option.name, ...editableDuration(option.duration), price: String(option.price) })) ?? []);
   }
 
   function startAdd() { setDraft({ ...emptyDraft, sortOrder: services.length }); setOptions([]); }
@@ -88,8 +113,8 @@ export default function AdminServicesPage() {
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({
         ...(serviceDraft.id ? { id: serviceDraft.id } : {}), name: serviceDraft.name, description: serviceDraft.description || null,
-        priceCents: Math.round(Number(serviceDraft.price) * 100), durationMinutes: Number(serviceDraft.duration), active: serviceDraft.active, sortOrder: serviceDraft.sortOrder,
-        options: options.map((option, index) => ({ id: option.id, name: option.name, durationMinutes: option.duration, priceCents: Math.round(option.price * 100), sortOrder: index, active: true })),
+        priceCents: Math.round(Number(serviceDraft.price) * 100), durationMinutes: durationInMinutes(serviceDraft.duration, serviceDraft.durationUnit), active: serviceDraft.active, sortOrder: serviceDraft.sortOrder,
+        options: options.map((option, index) => ({ id: option.id, name: option.name, durationMinutes: durationInMinutes(option.duration, option.durationUnit), priceCents: Math.round(Number(option.price) * 100), sortOrder: index, active: true })),
       }),
     });
     const data = await readJsonResponse(response);
@@ -100,7 +125,7 @@ export default function AdminServicesPage() {
   async function saveDraft() {
     if (!draft) return;
     setSaving(true); setError(null);
-    try { const saved = await persist(draft); setServices((current) => draft.id ? current.map((item) => item.id === saved.id ? saved : item) : [...current, saved]); setDraft(null); }
+    try { const saved = await persist(draft); setServices((current) => { const next = draft.id ? current.map((item) => item.id === saved.id ? saved : item) : [...current, saved]; setCachedAdminData("services", { services: next }); return next; }); setDraft(null); }
     catch (cause) { setError(cause instanceof Error ? cause.message : "Unable to save service."); }
     finally { setSaving(false); }
   }
@@ -108,17 +133,17 @@ export default function AdminServicesPage() {
   async function disableService() {
     if (!draft?.id) { setDraft(null); return; }
     setSaving(true);
-    try { const saved = await persist({ ...draft, active: false }); setServices((current) => current.map((item) => item.id === saved.id ? saved : item)); setDraft(null); }
+    try { const saved = await persist({ ...draft, active: false }); setServices((current) => { const next = current.map((item) => item.id === saved.id ? saved : item); setCachedAdminData("services", { services: next }); return next; }); setDraft(null); }
     catch (cause) { setError(cause instanceof Error ? cause.message : "Unable to disable service."); }
     finally { setSaving(false); }
   }
 
-  function updateOption(index: number, field: "name" | "duration" | "price", value: string) {
-    setOptions((current) => current.map((option, optionIndex) => optionIndex === index ? { ...option, [field]: field === "name" ? value : Number(value) } : option));
+  function updateOption(index: number, field: "name" | "duration" | "durationUnit" | "price", value: string) {
+    setOptions((current) => current.map((option, optionIndex) => optionIndex === index ? { ...option, [field]: value } : option));
   }
 
   function addOption() {
-    setOptions((current) => [...current, { id: `option-${Date.now()}`, name: "New Option", duration: 30, price: 0 }]);
+    setOptions((current) => [...current, { id: `option-${Date.now()}`, name: "", duration: "", durationUnit: "min", price: "" }]);
   }
 
   if (loading) {
@@ -144,7 +169,7 @@ export default function AdminServicesPage() {
                 <div className="admin-service-card__body">
                   <div className="admin-service-card__title"><strong>{service.name}</strong><span className={service.active ? "is-active" : ""}>{service.active ? "Active" : "Disabled"}</span></div>
                   <p><SlidersHorizontal />{service.options.length || configured?.options.length || 0} options <i /> From <b>{money(service.priceCents)}</b></p>
-                  <p><Clock />Total time <b>{service.durationMinutes} min</b></p>
+                  <p><Clock />Total time <b>{durationLabel(service.durationMinutes)}</b></p>
                   <button type="button" onClick={() => editService(service)}><Pencil />Edit</button>
                 </div>
                 <button type="button" className="admin-service-card__open" onClick={() => editService(service)} aria-label={`Edit ${service.name}`}><ChevronRight /></button>
@@ -157,9 +182,9 @@ export default function AdminServicesPage() {
           <section className="admin-service-form-card">
             <label>Service Title<input value={draft.name} onChange={(event) => setDraft({ ...draft, name: event.target.value })} /></label>
             <label>Description<textarea maxLength={150} value={draft.description} onChange={(event) => setDraft({ ...draft, description: event.target.value })} /><small>{draft.description.length}/150</small></label>
-            <div><label>Base Time (min)<input type="number" value={draft.duration} onChange={(event) => setDraft({ ...draft, duration: event.target.value })} /></label><label>Base Price (LKR)<input type="number" value={draft.price} onChange={(event) => setDraft({ ...draft, price: event.target.value })} /></label></div>
+            <div><label>Base Time<span className="admin-service-duration-field"><input type="number" inputMode="decimal" step="any" value={draft.duration} onChange={(event) => setDraft({ ...draft, duration: event.target.value })} /><select value={draft.durationUnit} onChange={(event) => setDraft({ ...draft, durationUnit: event.target.value as "min" | "hour" })}><option value="min">Min</option><option value="hour">Hours</option></select></span></label><label>Base Price (LKR)<input type="number" value={draft.price} onChange={(event) => setDraft({ ...draft, price: event.target.value })} /></label></div>
           </section>
-          <section className="admin-service-options-card"><h2>Service Options</h2>{options.map((option, index) => <div key={option.id} className="admin-service-option-row"><GripVertical /><input value={option.name} onChange={(event) => updateOption(index, "name", event.target.value)} /><label><input type="number" value={option.duration} onChange={(event) => updateOption(index, "duration", event.target.value)} /><span>min</span></label><input type="number" value={option.price} onChange={(event) => updateOption(index, "price", event.target.value)} /><button type="button" onClick={() => setOptions((current) => current.filter((_, optionIndex) => optionIndex !== index))}><Trash2 /></button></div>)}<button type="button" className="admin-service-new-option" onClick={addOption}><Plus />Add New Option</button></section>
+          <section className="admin-service-options-card"><h2>Service Options</h2>{options.map((option, index) => <div key={option.id} className="admin-service-option-row"><GripVertical /><input placeholder="Option name" value={option.name} onChange={(event) => updateOption(index, "name", event.target.value)} /><span className="admin-service-duration-field"><input type="number" inputMode="decimal" step="any" placeholder="Time" value={option.duration} onChange={(event) => updateOption(index, "duration", event.target.value)} /><select value={option.durationUnit} onChange={(event) => updateOption(index, "durationUnit", event.target.value)} aria-label="Duration unit"><option value="min">Min</option><option value="hour">Hours</option></select></span><input type="number" inputMode="numeric" placeholder="Price" value={option.price} onChange={(event) => updateOption(index, "price", event.target.value)} /><button type="button" onClick={() => setOptions((current) => current.filter((_, optionIndex) => optionIndex !== index))}><Trash2 /></button></div>)}<button type="button" className="admin-service-new-option" onClick={addOption}><Plus />Add New Option</button></section>
           <footer><button type="button" onClick={() => setDraft(null)}>Cancel</button><button type="button" onClick={saveDraft} disabled={saving}>{saving ? "Saving..." : "Save Changes"}</button></footer>
         </div>}
       </div>

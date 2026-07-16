@@ -3955,12 +3955,12 @@
 .admin-service-form-card label small { position: absolute; right: .5rem; bottom: .35rem; color: var(--muted-foreground); font-size: .55rem; }
 .admin-service-form-card > div, .admin-service-create-card > div { display: grid; grid-template-columns: 1fr 1fr; gap: .65rem; }
 .admin-service-options-card h2, .admin-service-create-card h2 { margin-bottom: .65rem; color: var(--emerald); font-size: .72rem; font-weight: 800; }
-.admin-service-option-row { display: grid; grid-template-columns: 1rem minmax(0,1.2fr) minmax(4.2rem,.8fr) minmax(4.2rem,.8fr) 1.5rem; align-items: center; gap: .45rem; margin-bottom: .45rem; }
+.admin-service-option-row { display: grid; grid-template-columns: 1rem minmax(0,1.2fr) minmax(6.4rem,.9fr) minmax(4.2rem,.8fr) 1.5rem; align-items: center; gap: .45rem; margin-bottom: .45rem; }
 .admin-service-option-row > svg { width: .75rem; color: var(--muted-foreground); }
 .admin-service-option-row input { min-width: 0; width: 100%; height: 2rem; border: 1px solid var(--border); border-radius: .4rem; padding: 0 .45rem; color: var(--foreground); background: rgba(255,255,255,.68); font-size: .66rem; }
-.admin-service-option-row label { position: relative; }
-.admin-service-option-row label input { padding-right: 1.8rem; }
-.admin-service-option-row label span { position: absolute; right: .4rem; top: .52rem; color: var(--muted-foreground); font-size: .55rem; }
+.admin-service-duration-field { position: relative; display: block; width: 100%; min-width: 0; }
+.admin-service-duration-field > input { padding-right: 3.4rem !important; }
+.admin-service-duration-field > select { position: absolute; top: 1px; right: 1px; bottom: 1px; width: 3.15rem; border: 0; border-left: 1px solid var(--border); border-radius: 0 .38rem .38rem 0; outline: 0; color: var(--emerald); background: #fffaf4; font-family: var(--font-body); font-size: .58rem; font-weight: 800; }
 .admin-service-option-row button { width: 1.5rem; height: 1.8rem; display: inline-flex; align-items: center; justify-content: center; border: 0; color: var(--destructive); background: transparent; }
 .admin-service-option-row button svg { width: .8rem; }
 .admin-service-new-option { width: 100%; min-height: 2rem; display: flex; align-items: center; justify-content: center; gap: .3rem; border: 1px dashed var(--border); border-radius: .45rem; color: var(--emerald); background: transparent; font-size: .65rem; font-weight: 700; }
@@ -3984,6 +3984,16 @@
 }
 
 @media (max-width: 767px) {
+  /* iOS Safari zooms the viewport when focused controls render below 16px. */
+  .salon-app input,
+  .salon-app textarea,
+  .salon-app select,
+  .admin-shell input,
+  .admin-shell textarea,
+  .admin-shell select {
+    font-size: 16px !important;
+  }
+
   .admin-settings-page { padding: 1.25rem 1rem 1.75rem; }
   .admin-settings-heading { margin-bottom: 1rem; }
   .admin-settings-heading h1 { color: var(--emerald); font-size: 2rem !important; line-height: 1 !important; }
@@ -4009,7 +4019,12 @@
   .admin-settings-calendar button { font-size: .7rem !important; }
   .admin-settings-date-range { width: 100%; min-width: 0; grid-template-columns: repeat(2,minmax(0,1fr)); gap: .55rem !important; }
   .admin-settings-date-range label { width: 100%; min-width: 0; overflow: hidden; }
+  .admin-settings-native-field { position: relative; display: block; width: 100%; min-width: 0; }
+  .admin-settings-native-field > input { padding-right: 2.65rem !important; }
+  .admin-settings-native-field > svg { position: absolute; z-index: 2; top: 50%; right: .8rem; width: 1rem; height: 1rem; color: var(--emerald); pointer-events: none; transform: translateY(-50%); }
+  .admin-settings-native-field > input::-webkit-calendar-picker-indicator { position: absolute; z-index: 3; top: 0; right: 0; width: 2.75rem; height: 100%; margin: 0; padding: 0; opacity: 0; cursor: pointer; }
   .admin-settings-date-range input { box-sizing: border-box; display: block; width: 100% !important; max-width: 100%; min-width: 0; -webkit-min-logical-width: 0; min-height: 2.7rem !important; padding: .55rem !important; border-radius: .65rem !important; color: var(--foreground); background: rgba(255,255,255,.6) !important; font-size: .66rem; }
+  .admin-settings-date-range .admin-settings-native-field > input { padding-right: 2.35rem !important; }
   .admin-settings-date-summary { padding: .65rem .75rem !important; border-color: rgba(6,68,55,.16) !important; background: var(--emerald-soft) !important; }
   .admin-settings-date-summary p:first-child { color: var(--emerald) !important; font-size: .8rem !important; }
   .admin-settings-form input[type="checkbox"] { accent-color: var(--emerald) !important; }

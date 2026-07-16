@@ -24,6 +24,7 @@ import {
 } from "lucide-react";
 import logoImage from "../../../imports/image-1.png";
 import { is_visible_admin_gallery, is_visible_admin_reviews } from "@/app/config/visibility";
+import { prefetchAdminData } from "../adminDataCache";
 
 type AdminShellProps = {
   active: "dashboard" | "booking" | "services" | "gallery" | "reviews" | "contacts" | "settings" | "website";
@@ -71,6 +72,7 @@ export function AdminShell({ active, children, footerText }: AdminShellProps) {
 
       const data = await response.json();
       setRole(data.user.role);
+      void prefetchAdminData();
 
       const activeNavItem = navItems.find((item) => item.key === active);
       if (data.user.role === "STAFF" && activeNavItem?.adminOnly) {

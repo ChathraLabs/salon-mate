@@ -7,6 +7,7 @@ import { AdminShell } from "./components/AdminShell";
 import { AdminPageLoader } from "./components/AdminPageLoader";
 import { salonServices } from "../config/services";
 import type { AdminBookingRow } from "@/types/admin";
+import { fetchAdminData, getCachedAdminData } from "./adminDataCache";
 
 const fallbackReviews = [
   { name: "Nethmi P.", text: "Amazing service and very friendly staff...", age: "2 days ago" },
@@ -139,33 +140,27 @@ function StatCard({
 
 export default function AdminDashboardPage() {
   const router = useRouter();
-  const [bookings, setBookings] = useState<AdminBookingRow[]>([]);
-  const [serviceCount, setServiceCount] = useState(salonServices.length);
-  const [loading, setLoading] = useState(true);
+  const cachedBookings = getCachedAdminData<{ bookings: AdminBookingRow[] }>("bookings");
+  const cachedServices = getCachedAdminData<{ services: Array<{ active: boolean }> }>("services");
+  const [bookings, setBookings] = useState<AdminBookingRow[]>(cachedBookings?.bookings ?? []);
+  const [serviceCount, setServiceCount] = useState(cachedServices?.services.filter((service) => service.active).length ?? salonServices.length);
+  const [loading, setLoading] = useState(!cachedBookings || !cachedServices);
   const [error, setError] = useState<string | null>(null);
   const [lastUpdated, setLastUpdated] = useState("");
 
   useEffect(() => {
     async function loadDashboard() {
       try {
-        const bookingsResponse = await fetch("/api/admin/bookings");
-        if (bookingsResponse.status === 401) {
-          router.push("/admin/login");
-          return;
-        }
-
-        const bookingsData = await bookingsResponse.json();
-        if (!bookingsResponse.ok) throw new Error(bookingsData.error ?? "Unable to load dashboard.");
+        const [bookingsData, servicesData] = await Promise.all([
+          fetchAdminData<{ bookings: AdminBookingRow[] }>("bookings"),
+          fetchAdminData<{ services: Array<{ active: boolean }> }>("services"),
+        ]);
         setBookings(bookingsData.bookings);
-
-        const servicesResponse = await fetch("/api/admin/services");
-        if (servicesResponse.ok) {
-          const servicesData = await servicesResponse.json();
-          setServiceCount(servicesData.services.filter((service: { active: boolean }) => service.active).length);
-        }
+        setServiceCount(servicesData.services.filter((service) => service.active).length);
 
         setLastUpdated(new Intl.DateTimeFormat("en-LK", { weekday: "long", hour: "2-digit", minute: "2-digit" }).format(new Date()));
       } catch (error) {
+        if (error instanceof Error && error.message === "UNAUTHORIZED") { router.push("/admin/login"); return; }
         setError(error instanceof Error ? error.message : "Unable to load dashboard.");
       } finally {
         setLoading(false);
