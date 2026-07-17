@@ -2,6 +2,7 @@ import { BookingStatus, Prisma, UserRole } from "@prisma/client";
 import { prisma } from "@/server/db";
 import { getSalonService, getStaffRoleLabelForService, isStaffAllowedForService } from "@/app/config/services";
 import { canManageSalon } from "@/server/auth/roles";
+import { sendBookingStatusSms } from "@/server/notifications/sms";
 import { addMinutes, dateTimeFromLocalParts, parseDisplayTime } from "./time";
 import { getAvailableStaffForAppointment } from "./availability";
 
@@ -111,6 +112,17 @@ export async function listAdminBookings(filters: { status?: BookingStatus; staff
   });
 }
 
+export async function getPublicBookingByCode(bookingCode: string) {
+  return prisma.booking.findUnique({
+    where: { bookingCode },
+    include: {
+      service: true,
+      customer: true,
+      assignedStaff: { select: { id: true, name: true, email: true } },
+    },
+  });
+}
+
 export async function updateAdminBooking(
   input: {
     id: string;
@@ -207,6 +219,26 @@ export async function updateAdminBooking(
       },
     },
   });
+
+  const notificationStatus = input.status === BookingStatus.CONFIRMED || input.status === BookingStatus.CANCELLED
+    ? input.status
+    : null;
+  const shouldNotifyCustomer = notificationStatus && notificationStatus !== booking.status;
+
+  if (shouldNotifyCustomer) {
+    try {
+      await sendBookingStatusSms({
+        bookingCode: updated.bookingCode,
+        customerName: updated.customer.name,
+        phone: updated.customer.phone,
+        serviceName: updated.service.name,
+        startsAt: updated.startsAt,
+        status: notificationStatus,
+      });
+    } catch (error) {
+      console.error(`Unable to send booking status SMS for booking ${updated.id}.`, error);
+    }
+  }
 
   return updated;
 }

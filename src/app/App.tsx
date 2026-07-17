@@ -24,8 +24,16 @@ export default function App() {
 
   useEffect(() => {
     if (!isMobile) return;
-    if (window.location.hash) {
-      window.history.replaceState(null, '', `${window.location.pathname}${window.location.search}`);
+    const params = new URLSearchParams(window.location.search);
+    const section = params.get('section');
+    const shouldOpenBooking = section === 'booking' || window.location.hash === '#booking';
+
+    if (shouldOpenBooking) {
+      setActiveMobileSection('booking');
+    }
+
+    if (window.location.hash || section) {
+      window.history.replaceState(null, '', window.location.pathname);
     }
   }, [isMobile]);
 
